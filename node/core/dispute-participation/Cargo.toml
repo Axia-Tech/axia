@@ -1,0 +1,20 @@
+[package]
+name = "axia-node-core-dispute-participation"
+version = "0.9.12"
+authors = ["Parity Technologies <admin@axiacoin.network>"]
+edition = "2018"
+
+[dependencies]
+futures = "0.3.17"
+thiserror = "1.0.30"
+tracing = "0.1.29"
+
+axia-node-primitives = { path = "../../primitives" }
+axia-node-subsystem = { path = "../../subsystem" }
+axia-primitives = { path = "../../../primitives" }
+
+[dev-dependencies]
+assert_matches = "1.5.0"
+parity-scale-codec = "2.3.1"
+axia-node-subsystem-test-helpers = { path = "../../subsystem-test-helpers"}
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }

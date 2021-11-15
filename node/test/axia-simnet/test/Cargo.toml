@@ -1,0 +1,22 @@
+[package]
+name = "axia-simnet-test"
+version = "0.9.12"
+authors = ["Parity Technologies <admin@axiacoin.network>"]
+edition = "2018"
+
+[dependencies]
+# substrate primitives
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+
+# frame pallets
+system = { package = "frame-system", git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+balances = { package = "pallet-balances", git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+
+# substrate client libs
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+
+# axia deps
+axia-simnet = { path = "../common" }
+axia-runtime = { path = "../../../../runtime/axia" }
