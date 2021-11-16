@@ -15,6 +15,6 @@ axia-node-subsystem-util = { path = "../../subsystem-util" }
 futures-timer = "3.0.2"
 
 [dev-dependencies]
-sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 axia-node-subsystem-test-helpers = { path = "../../subsystem-test-helpers" }

@@ -18,14 +18,14 @@ axia-node-primitives = { path = "../../primitives" }
 axia-node-subsystem = { path = "../../subsystem" }
 axia-node-subsystem-util = { path = "../../subsystem-util" }
 
-sc-keystore = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sc-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [dev-dependencies]
 kvdb-memorydb = "0.10.0"
 axia-node-subsystem-test-helpers = { path = "../../subsystem-test-helpers" }
-sp-keyring = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-keyring = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 assert_matches = "1.4.0"
 
 [features]

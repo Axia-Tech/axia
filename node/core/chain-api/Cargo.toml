@@ -7,12 +7,12 @@ edition = "2018"
 [dependencies]
 futures = "0.3.17"
 tracing = "0.1.29"
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 axia-primitives = { path = "../../../primitives" }
 axia-subsystem = { package = "axia-node-subsystem", path = "../../subsystem" }
 axia-node-subsystem-util = { path = "../../subsystem-util" }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
-sc-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+sc-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [dev-dependencies]
 futures = { version = "0.3.17", features = ["thread-pool"] }
@@ -20,4 +20,4 @@ maplit = "1.0.2"
 parity-scale-codec = "2.3.1"
 axia-node-primitives = { path = "../../primitives" }
 axia-node-subsystem-test-helpers = { path = "../../subsystem-test-helpers" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }

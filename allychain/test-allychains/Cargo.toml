@@ -13,7 +13,7 @@ adder = { package = "test-allychain-adder", path = "adder" }
 halt = { package = "test-allychain-halt", path = "halt" }
 
 [dev-dependencies]
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "axia-v0.9.12" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 
 [features]
 default = ["std"]
