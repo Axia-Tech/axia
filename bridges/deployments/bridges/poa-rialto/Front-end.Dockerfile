@@ -5,7 +5,7 @@ RUN set -eux; \
 	apt-get install -y git
 
 # clone UI repo
-RUN cd /usr/src/ && git clone https://github.com/axiatech/bridge-ui.git
+RUN cd /usr/src/ && git clone https://github.com/axia/bridge-ui.git
 WORKDIR /usr/src/bridge-ui
 RUN yarn
 ARG SUBSTRATE_PROVIDER

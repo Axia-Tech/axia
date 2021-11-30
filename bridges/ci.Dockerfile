@@ -42,12 +42,12 @@ ARG VERSION=""
 
 LABEL org.opencontainers.image.title="${PROJECT}" \
     org.opencontainers.image.description="${PROJECT} - component of Parity Bridges Common" \
-    org.opencontainers.image.source="https://github.com/axiatech/axia-bridges-common/blob/${VCS_REF}/ci.Dockerfile" \
-    org.opencontainers.image.url="https://github.com/axiatech/axia-bridges-common/blob/${VCS_REF}/ci.Dockerfile" \
-    org.opencontainers.image.documentation="https://github.com/axiatech/axia-bridges-common/blob/${VCS_REF}/README.md" \
+    org.opencontainers.image.source="https://github.com/axia/axia-bridges-common/blob/${VCS_REF}/ci.Dockerfile" \
+    org.opencontainers.image.url="https://github.com/axia/axia-bridges-common/blob/${VCS_REF}/ci.Dockerfile" \
+    org.opencontainers.image.documentation="https://github.com/axia/axia-bridges-common/blob/${VCS_REF}/README.md" \
     org.opencontainers.image.created="${BUILD_DATE}" \
     org.opencontainers.image.version="${VERSION}" \
     org.opencontainers.image.revision="${VCS_REF}" \
     org.opencontainers.image.authors="devops-team@axiacoin.network" \
-    org.opencontainers.image.vendor="Parity Technologies" \
+    org.opencontainers.image.vendor="AXIA Technologies" \
     org.opencontainers.image.licenses="GPL-3.0 License"

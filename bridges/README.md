@@ -32,7 +32,7 @@ rustup target add wasm32-unknown-unknown --toolchain nightly
 Once this is configured you can build and test the repo as follows:
 
 ```
-git clone https://github.com/axiatech/axia-bridges-common.git
+git clone https://github.com/axia/axia-bridges-common.git
 cd axia-bridges-common
 cargo build --all
 cargo test --all
@@ -138,17 +138,17 @@ Rialto Substrate chain.
 ### Local Docker Setup
 
 To get up and running quickly you can use published Docker images for the bridge nodes and relayer.
-The images are published on [Docker Hub](https://hub.docker.com/u/axiatech).
+The images are published on [Docker Hub](https://hub.docker.com/u/axia).
 
 To run the dev network we first run the two bridge nodes:
 
 ```bash
 docker run -p 30333:30333 -p 9933:9933 -p 9944:9944 \
-           -it axiatech/rialto-bridge-node --dev --tmp \
+           -it axia/rialto-bridge-node --dev --tmp \
            --rpc-cors=all --unsafe-rpc-external --unsafe-ws-external
 
 docker run -p 30334:30333 -p 9934:9933 -p 9945:9944 \
-           -it axiatech/millau-bridge-node --dev --tmp \
+           -it axia/millau-bridge-node --dev --tmp \
            --rpc-cors=all --unsafe-rpc-external --unsafe-ws-external
 ```
 
@@ -159,7 +159,7 @@ Then we need to initialize and run the relayer:
 
 ```bash
 docker run --network=host -it \
-        axiatech/substrate-relay init-bridge RialtoToMillau \
+        axia/substrate-relay init-bridge RialtoToMillau \
         --target-host localhost \
         --target-port 9945 \
         --source-host localhost \
@@ -167,7 +167,7 @@ docker run --network=host -it \
         --target-signer //Alice
 
 docker run --network=host -it \
-        axiatech/substrate-relay relay-headers RialtoToMillau \
+        axia/substrate-relay relay-headers RialtoToMillau \
         --target-host localhost \
         --target-port 9945 \
         --source-host localhost \
@@ -190,7 +190,7 @@ docker build . -t local/substrate-relay --build-arg PROJECT=substrate-relay
 _Note: Building the node images will take a long time, so make sure you have some coffee handy._
 
 Once you have the images built you can use them in the previous commands by replacing
-`axiatech/<component_name>` with `local/<component_name>` everywhere.
+`axia/<component_name>` with `local/<component_name>` everywhere.
 
 ### Full Network Docker Compose Setup
 

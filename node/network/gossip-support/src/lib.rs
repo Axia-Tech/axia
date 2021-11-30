@@ -1,4 +1,4 @@
-// Copyright 2021 Parity Technologies (UK) Ltd.
+// Copyright 2021 AXIA Technologies (UK) Ltd.
 // This file is part of AXIA.
 
 // AXIA is free software: you can redistribute it and/or modify
@@ -330,7 +330,7 @@ where
 			.filter(|(a, _)| !self.connected_authorities.contains_key(a));
 		// TODO: Make that warning once connectivity issues are fixed (no point in warning, if
 		// we already know it is broken.
-		// https://github.com/axiatech/axia/issues/3921
+		// https://github.com/axia/axia/issues/3921
 		if connected_ratio <= LOW_CONNECTIVITY_WARN_THRESHOLD {
 			tracing::debug!(
 				target: LOG_TARGET,

@@ -1,6 +1,6 @@
 name: ethsub-bridge
 version: "0.1.0"
-author: Parity Technologies <admin@axiacoin.network>
+author: AXIA Technologies <admin@axiacoin.network>
 about: Parity Ethereum (PoA) <-> Substrate bridge
 subcommands:
     - eth-to-sub:

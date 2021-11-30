@@ -1,4 +1,4 @@
-// Copyright 2020 Parity Technologies (UK) Ltd.
+// Copyright 2020 AXIA Technologies (UK) Ltd.
 // This file is part of AXIA.
 
 // AXIA is free software: you can redistribute it and/or modify
@@ -692,7 +692,7 @@ async fn scrape_on_chain_votes(
 			overlay_db,
 			state,
 			candidate_hash,
-			// TODO <https://github.com/axiatech/axia/issues/4011>
+			// TODO <https://github.com/axia/axia/issues/4011>
 			MaybeCandidateReceipt::AssumeBackingVotePresent,
 			session,
 			statements,

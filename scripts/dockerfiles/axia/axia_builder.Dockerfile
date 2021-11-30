@@ -1,5 +1,5 @@
 # This is the build stage for AXIA. Here we create the binary in a temporary image.
-FROM docker.io/axiatech/ci-linux:production as builder
+FROM docker.io/axia/ci-linux:production as builder
 
 WORKDIR /axia
 COPY . /axia
@@ -12,10 +12,10 @@ FROM docker.io/library/ubuntu:20.04
 LABEL description="Multistage Docker image for AXIA: a platform for web3" \
 	io.axia.image.type="builder" \
 	io.axia.image.authors="chevdor@gmail.com, devops-team@axiacoin.network" \
-	io.axia.image.vendor="Parity Technologies" \
+	io.axia.image.vendor="AXIA Technologies" \
 	io.axia.image.description="AXIA: a platform for web3" \
-	io.axia.image.source="https://github.com/axiatech/axia/blob/${VCS_REF}/scripts/dockerfiles/axia/axia_builder.Dockerfile" \
-	io.axia.image.documentation="https://github.com/axiatech/axia/"
+	io.axia.image.source="https://github.com/axia/axia/blob/${VCS_REF}/scripts/dockerfiles/axia/axia_builder.Dockerfile" \
+	io.axia.image.documentation="https://github.com/axia/axia/"
 
 COPY --from=builder /axia/target/release/axia /usr/local/bin
 

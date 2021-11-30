@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -233,6 +233,6 @@ where
 		_total_dispatch_weight: Weight,
 		_total_size: u32,
 	) -> P::SourceChainBalance {
-		num_traits::Zero::zero() // TODO: https://github.com/axiatech/axia-bridges-common/issues/997
+		num_traits::Zero::zero() // TODO: https://github.com/axia/axia-bridges-common/issues/997
 	}
 }

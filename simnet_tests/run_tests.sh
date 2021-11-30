@@ -18,7 +18,7 @@ NAMESPACE=${1:-gurke-"$(random_string)"-runtest}
 IMAGE=${2:-"docker.io/axiapr/synth-wave:master"}
 LOG_PATH=${3:-"${SCRIPT_PATH}/logs"}
 COLIMAGE=${4:-"docker.io/axiapr/colander:master"}
-SCRIPTSIMAGE=${5:-"docker.io/axiatech/simnet:latest"}
+SCRIPTSIMAGE=${5:-"docker.io/axia/simnet:latest"}
 
 mkdir -p "${SCRIPT_PATH}"/logs
 

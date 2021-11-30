@@ -19,7 +19,7 @@ services:
       LETSENCRYPT_EMAIL: admin@axiacoin.network
 
   relay-millau-rialto: &sub-bridge-relay
-    image: axiatech/substrate-relay
+    image: axia/substrate-relay
     entrypoint: /entrypoints/relay-millau-rialto-entrypoint.sh
     volumes:
       - ./bridges/rialto-millau/entrypoints:/entrypoints

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -82,7 +82,7 @@ pub fn accept_aura_header_into_pool<S: Storage, CT: ChainTime>(
 	}
 
 	// TODO: only accept new headers when we're at the tip of PoA chain
-	// https://github.com/axiatech/axia-bridges-common/issues/38
+	// https://github.com/axia/axia-bridges-common/issues/38
 
 	// we want to see at most one header with given number from single authority
 	// => every header is providing tag (block_number + authority)

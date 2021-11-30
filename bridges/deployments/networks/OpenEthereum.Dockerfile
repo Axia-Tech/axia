@@ -31,7 +31,7 @@ RUN rustc -vV && \
 WORKDIR /openethereum
 
 ### Build from the repo
-ARG ETHEREUM_REPO=https://github.com/axiatech/openethereum.git
+ARG ETHEREUM_REPO=https://github.com/axia/openethereum.git
 ARG ETHEREUM_HASH=344991dbba2bc8657b00916f0e4b029c66f159e8
 RUN git clone $ETHEREUM_REPO /openethereum && git checkout $ETHEREUM_HASH
 
@@ -42,7 +42,7 @@ WORKDIR /axia-bridges-common
 
 ### Build from the repo
 # Build using `master` initially.
-ARG BRIDGE_REPO=https://github.com/axiatech/axia-bridges-common
+ARG BRIDGE_REPO=https://github.com/axia/axia-bridges-common
 RUN git clone $BRIDGE_REPO /axia-bridges-common && git checkout master
 
 WORKDIR /openethereum

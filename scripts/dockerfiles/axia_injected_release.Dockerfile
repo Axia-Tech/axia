@@ -8,13 +8,13 @@ ARG AXIA_GPGKEY=9D4B2B6EB8F97156D19669A9FF0812D491B96798
 ARG GPG_KEYSERVER="hkps://keys.mailvelope.com"
 
 LABEL io.axia.image.authors="devops-team@axiacoin.network" \
-	io.axia.image.vendor="Parity Technologies" \
+	io.axia.image.vendor="AXIA Technologies" \
 	io.axia.image.title="axia/axia" \
 	io.axia.image.description="AXIA: a platform for web3. This is the official Parity image with an injected binary." \
-	io.axia.image.source="https://github.com/axiatech/axia/blob/${VCS_REF}/scripts/dockerfiles/axia_injected_release.Dockerfile" \
+	io.axia.image.source="https://github.com/axia/axia/blob/${VCS_REF}/scripts/dockerfiles/axia_injected_release.Dockerfile" \
 	io.axia.image.revision="${VCS_REF}" \
 	io.axia.image.created="${BUILD_DATE}" \
-	io.axia.image.documentation="https://github.com/axiatech/axia/"
+	io.axia.image.documentation="https://github.com/axia/axia/"
 
 # show backtraces
 ENV RUST_BACKTRACE 1

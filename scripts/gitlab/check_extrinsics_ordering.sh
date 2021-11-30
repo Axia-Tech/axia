@@ -16,10 +16,10 @@ runtimes=(
 )
 
 # First we fetch the latest released binary
-latest_release=$(latest_release 'axiatech/axia')
+latest_release=$(latest_release 'axia/axia')
 RELEASE_BIN="./axia-$latest_release"
 echo "[+] Fetching binary for AXIA version $latest_release"
-curl -L "https://github.com/axiatech/axia/releases/download/$latest_release/axia" > "$RELEASE_BIN" || exit 1
+curl -L "https://github.com/axia/axia/releases/download/$latest_release/axia" > "$RELEASE_BIN" || exit 1
 chmod +x "$RELEASE_BIN"
 
 

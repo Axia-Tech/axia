@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -395,7 +395,7 @@ pub trait Config<I = DefaultInstance>: frame_system::Config {
 decl_module! {
 	pub struct Module<T: Config<I>, I: Instance = DefaultInstance> for enum Call where origin: T::Origin {
 		/// Import single Aura header. Requires transaction to be **UNSIGNED**.
-		#[weight = 0] // TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+		#[weight = 0] // TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 		pub fn import_unsigned_header(origin, header: AuraHeader, receipts: Option<Vec<Receipt>>) {
 			frame_system::ensure_none(origin)?;
 
@@ -417,7 +417,7 @@ decl_module! {
 		///
 		/// This should be used with caution - passing too many headers could lead to
 		/// enormous block production/import time.
-		#[weight = 0] // TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+		#[weight = 0] // TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 		pub fn import_signed_headers(origin, headers_with_receipts: Vec<(AuraHeader, Option<Vec<Receipt>>)>) {
 			let submitter = frame_system::ensure_signed(origin)?;
 			let mut finalized_headers = BTreeMap::new();

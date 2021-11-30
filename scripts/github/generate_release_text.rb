@@ -55,7 +55,7 @@ logger("Last ref: " + last_ref)
 
 logger("Generate changelog for AXIA")
 axia_cl = Changelog.new(
-  'axiatech/axia', last_ref, current_ref, token: token
+  'axia/axia', last_ref, current_ref, token: token
 )
 
 # Gets the substrate commit hash used for a given axia ref
@@ -77,7 +77,7 @@ substrate_cur_sha = get_substrate_commit(github_client, current_ref)
 
 logger("Generate changelog for Substrate")
 substrate_cl = Changelog.new(
-  'axiatech/substrate', substrate_prev_sha, substrate_cur_sha,
+  'axia/substrate', substrate_prev_sha, substrate_cur_sha,
   token: token,
   prefix: true
 )

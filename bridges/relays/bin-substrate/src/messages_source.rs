@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -242,7 +242,7 @@ where
 	}
 
 	async fn estimate_confirmation_transaction(&self) -> P::SourceChainBalance {
-		num_traits::Zero::zero() // TODO: https://github.com/axiatech/axia-bridges-common/issues/997
+		num_traits::Zero::zero() // TODO: https://github.com/axia/axia-bridges-common/issues/997
 	}
 }
 
@@ -346,7 +346,7 @@ fn make_message_details_map<C: Chain>(
 			MessageDetails {
 				dispatch_weight: details.dispatch_weight,
 				size: details.size as _,
-				// TODO: https://github.com/axiatech/axia-bridges-common/issues/997
+				// TODO: https://github.com/axia/axia-bridges-common/issues/997
 				reward: num_traits::Zero::zero(),
 				dispatch_fee_payment: DispatchFeePayment::AtSourceChain,
 			},

@@ -1,7 +1,7 @@
 [Unit]
 Description=AXIA Node
 After=network.target
-Documentation=https://github.com/axiatech/axia
+Documentation=https://github.com/axia/axia
 
 [Service]
 EnvironmentFile=-/etc/default/axia

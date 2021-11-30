@@ -15,7 +15,7 @@ variables:                         &default-vars
   GIT_DEPTH:                       100
   CARGO_INCREMENTAL:               0
   ARCH:                            "x86_64"
-  CI_IMAGE:                        "axiatech/bridges-ci:production"
+  CI_IMAGE:                        "axia/bridges-ci:production"
   RUST_BACKTRACE:                  full
 
 default:
@@ -222,7 +222,7 @@ build-nightly:
   variables:                       &image-variables
     GIT_STRATEGY:                  none
     DOCKERFILE:                    ci.Dockerfile
-    IMAGE_NAME:                    docker.io/axiatech/$CI_JOB_NAME
+    IMAGE_NAME:                    docker.io/axia/$CI_JOB_NAME
   needs:
     - job:                         build
       artifacts:                   true

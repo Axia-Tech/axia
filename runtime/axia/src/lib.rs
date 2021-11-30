@@ -1,4 +1,4 @@
-// Copyright 2017-2020 Parity Technologies (UK) Ltd.
+// Copyright 2017-2020 AXIA Technologies (UK) Ltd.
 // This file is part of AXIA.
 
 // AXIA is free software: you can redistribute it and/or modify
@@ -1426,7 +1426,7 @@ impl OnRuntimeUpgrade for SetInitialHostConfiguration {
 			// the situation where the same storage structure has version 0 on AXIA and
 			// version 1 on Kusama we need to set the storage version explicitly.
 			//
-			// [#3575]: https://github.com/axiatech/axia/pull/3575
+			// [#3575]: https://github.com/axia/axia/pull/3575
 			use frame_support::traits::StorageVersion;
 			StorageVersion::new(1).put::<Configuration>();
 		}

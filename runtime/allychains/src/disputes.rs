@@ -1,4 +1,4 @@
-// Copyright 2021 Parity Technologies (UK) Ltd.
+// Copyright 2021 AXIA Technologies (UK) Ltd.
 // This file is part of AXIA.
 
 // AXIA is free software: you can redistribute it and/or modify
@@ -692,7 +692,7 @@ impl<T: Config> Pallet<T> {
 				<Disputes<T>>::remove_prefix(to_prune, None);
 
 				// This is larger, and will be extracted to the `shared` module for more proper pruning.
-				// TODO: https://github.com/axiatech/axia/issues/3469
+				// TODO: https://github.com/axia/axia/issues/3469
 				<Included<T>>::remove_prefix(to_prune, None);
 				SpamSlots::<T>::remove(to_prune);
 			}

@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Parity Technologies (UK) Ltd.
+// Copyright 2020-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -244,9 +244,9 @@ fn same_result_when_authority_equivocates_twice_in_a_round() {
 	let mut justification = make_default_justification(&test_header(1));
 	// there's some code in the original implementation that should return an error when
 	// same authority submits more than two different votes in a single round:
-	// https://github.com/axiatech/finality-grandpa/blob/6aeea2d1159d0f418f0b86e70739f2130629ca09/src/lib.rs#L473
+	// https://github.com/axia/finality-grandpa/blob/6aeea2d1159d0f418f0b86e70739f2130629ca09/src/lib.rs#L473
 	// but there's also a code that prevents this from happening:
-	// https://github.com/axiatech/finality-grandpa/blob/6aeea2d1159d0f418f0b86e70739f2130629ca09/src/round.rs#L287
+	// https://github.com/axia/finality-grandpa/blob/6aeea2d1159d0f418f0b86e70739f2130629ca09/src/round.rs#L287
 	// => so now we are also just ignoring all votes from the same authority, except the first one
 	justification.commit.precommits.push(signed_precommit::<TestHeader>(
 		&ALICE,

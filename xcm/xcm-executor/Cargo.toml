@@ -1,5 +1,5 @@
 [package]
-authors = ["Parity Technologies <admin@axiacoin.network>"]
+authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"
 name = "xcm-executor"
 description = "An abstract and configurable XCM message executor."

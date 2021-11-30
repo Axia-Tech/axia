@@ -15,7 +15,7 @@ stages:
   - publish
   - deploy
 
-image:                             axiatech/ci-linux:production
+image:                             axia/ci-linux:production
 
 workflow:
   rules:
@@ -141,7 +141,7 @@ default:
 
 check-runtime:
   stage:                           test
-  image:                           axiatech/tools:latest
+  image:                           axia/tools:latest
   <<:                              *kubernetes-env
   <<:                              *rules-pr-only
   <<:                              *vault-secrets
@@ -154,7 +154,7 @@ check-runtime:
 
 check-line-width:
   stage:                           test
-  image:                           axiatech/tools:latest
+  image:                           axia/tools:latest
   <<:                              *kubernetes-env
   <<:                              *rules-pr-only
   script:
@@ -279,9 +279,9 @@ build-adder-collator:
     - git clone
         --depth=1
         "--branch=$PIPELINE_SCRIPTS_TAG"
-        https://github.com/axiatech/pipeline-scripts
+        https://github.com/axia/pipeline-scripts
     - ./pipeline-scripts/check_dependent_project.sh
-        axiatech
+        axia
         axia
         --axia
         "$DEPENDENT_REPO"
@@ -295,7 +295,7 @@ check-dependent-cumulus:
 
 check-transaction-versions:
   # image must be ubuntu:20.04 based to match the linkers, this image has npm installed
-  image:                           axiatech/contracts-ci-linux:production
+  image:                           axia/contracts-ci-linux:production
   stage:                           build
   <<:                              *rules-test
   <<:                              *docker-env
@@ -475,7 +475,7 @@ publish-s3-release:                &publish-s3
       artifacts:                   true
   <<:                              *kubernetes-env
   <<:                              *vault-secrets
-  image:                           axiatech/awscli:latest
+  image:                           axia/awscli:latest
   variables:
     GIT_STRATEGY:                  none
     PREFIX:                        "builds/axia/${ARCH}-${DOCKER_OS}"
@@ -511,7 +511,7 @@ publish-rustdoc:
   stage:                           publish
   <<:                              *kubernetes-env
   <<:                              *vault-secrets
-  image:                           axiatech/tools:latest
+  image:                           axia/tools:latest
   variables:
     GIT_DEPTH:                     100
   rules:
@@ -528,7 +528,7 @@ publish-rustdoc:
     - rm -rf .git/config
     - git config user.email "devops-team@axiacoin.network"
     - git config user.name "${GITHUB_USER}"
-    - git config remote.origin.url "https://${GITHUB_TOKEN}@github.com/axiatech/axia.git"
+    - git config remote.origin.url "https://${GITHUB_TOKEN}@github.com/axia/axia.git"
     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
     - git fetch origin gh-pages
     # Save README and docs
@@ -568,7 +568,7 @@ deploy-polkasync-kusama:
 
 simnet-tests:
   stage:                           deploy
-  image:                           "docker.io/axiatech/simnet:${SIMNET_REF}"
+  image:                           "docker.io/axia/simnet:${SIMNET_REF}"
   <<:                              *kubernetes-env
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -592,11 +592,11 @@ simnet-tests:
         ${COLLATOR_IMAGE_NAME} ${COLLATOR_IMAGE_TAG}"
   script:
     - /home/nonroot/simnet/gurke/scripts/run-test-environment-manager.sh
-        --github-remote-dir="https://github.com/axiatech/axia/tree/master/simnet_tests"
+        --github-remote-dir="https://github.com/axia/axia/tree/master/simnet_tests"
         --config="simnet_tests/configs/simple_betanet_testnet.toml"
         --image="${PARACHAINS_IMAGE_NAME}:${PARACHAINS_IMAGE_TAG}"
         --image-2="${COLLATOR_IMAGE_NAME}:${COLLATOR_IMAGE_TAG}"
-        --image-simnet="docker.io/axiatech/simnet:${SIMNET_REF}"
+        --image-simnet="docker.io/axia/simnet:${SIMNET_REF}"
   allow_failure:                   true
   retry: 2
   tags:

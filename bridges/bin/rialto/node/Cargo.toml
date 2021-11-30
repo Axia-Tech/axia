@@ -2,11 +2,11 @@
 name = "rialto-bridge-node"
 description = "Substrate node compatible with Rialto runtime"
 version = "0.1.0"
-authors = ["Parity Technologies <admin@axiacoin.network>"]
+authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"
 build = "build.rs"
 homepage = "https://substrate.dev"
-repository = "https://github.com/axiatech/axia-bridges-common/"
+repository = "https://github.com/axia/axia-bridges-common/"
 license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 
 [dependencies]

@@ -6,8 +6,8 @@ path = "src/main.rs"
 name = "axia"
 description = "Implementation of a https://axia.network node in Rust based on the Substrate framework."
 license = "GPL-3.0-only"
-version = "0.9.12"
-authors = ["Parity Technologies <admin@axiacoin.network>"]
+version = "0.1.0"
+authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"
 readme = "README.md"
 

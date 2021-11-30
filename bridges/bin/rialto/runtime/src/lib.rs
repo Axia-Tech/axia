@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -198,7 +198,7 @@ impl frame_system::Config for Runtime {
 	type OnKilledAccount = ();
 	/// The data to be stored in an account.
 	type AccountData = pallet_balances::AccountData<Balance>;
-	// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+	// TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 	/// Weight information for the extrinsics of this pallet.
 	type SystemWeightInfo = ();
 	/// Block and extrinsics weights: base values and limits.
@@ -351,7 +351,7 @@ impl pallet_grandpa::Config for Runtime {
 		GrandpaId,
 	)>>::IdentificationTuple;
 	type HandleEquivocation = ();
-	// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+	// TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;
 }
@@ -365,7 +365,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = MinimumPeriod;
-	// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+	// TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 	type WeightInfo = ();
 }
 
@@ -385,7 +385,7 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+	// TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 	type WeightInfo = ();
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
@@ -423,7 +423,7 @@ impl pallet_session::Config for Runtime {
 	type SessionManager = pallet_shift_session_manager::Pallet<Runtime>;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+	// TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 	type WeightInfo = ();
 }
 

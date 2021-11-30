@@ -22,16 +22,16 @@ by this step in the cucumber file:
 
 `run_test.sh` is an entry point for running all tests in the folder.
 Any setup required for tests (but cannot be done in configs) is performed
-here. The main script's responsibility is to run [Gurke](https://github.com/axiatech/gurke)
+here. The main script's responsibility is to run [Gurke](https://github.com/axia/gurke)
 with passed parameters.
 In order to use this script locally, you need to install
-[Gurke](https://github.com/axiatech/gurke)
+[Gurke](https://github.com/axia/gurke)
 Once you have access to a kubernetes cluster (meaning you can do `kubectl get pods`)
 you can run this script with no arguments, like `./run_test.sh` and tests should run.
 Kubernetes cluster can be local, spawned with
 [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 or an instance living in the
-[cloud](https://github.com/axiatech/gurke/blob/main/docs/How-to-setup-access-to-gke-k8s-cluster.md)
+[cloud](https://github.com/axia/gurke/blob/main/docs/How-to-setup-access-to-gke-k8s-cluster.md)
 
 ### [Here is link to barcamp presentation of Simnet](https://www.crowdcast.io/e/ph49xu01)
 

@@ -1,6 +1,6 @@
 [package]
 name = "pallet-xcm-benchmarks"
-authors = ["Parity Technologies <admin@axiacoin.network>"]
+authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"
 version = "0.9.8"
 

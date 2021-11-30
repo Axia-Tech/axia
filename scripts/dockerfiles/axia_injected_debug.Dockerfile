@@ -6,13 +6,13 @@ ARG BUILD_DATE
 ARG IMAGE_NAME
 
 LABEL io.axia.image.authors="devops-team@axiacoin.network" \
-	io.axia.image.vendor="Parity Technologies" \
+	io.axia.image.vendor="AXIA Technologies" \
 	io.axia.image.title="${IMAGE_NAME}" \
 	io.axia.image.description="AXIA: a platform for web3" \
-	io.axia.image.source="https://github.com/axiatech/axia/blob/${VCS_REF}/scripts/docker/axia_injected_debug.Dockerfile" \
+	io.axia.image.source="https://github.com/axia/axia/blob/${VCS_REF}/scripts/docker/axia_injected_debug.Dockerfile" \
 	io.axia.image.revision="${VCS_REF}" \
 	io.axia.image.created="${BUILD_DATE}" \
-	io.axia.image.documentation="https://github.com/axiatech/axia/"
+	io.axia.image.documentation="https://github.com/axia/axia/"
 
 # show backtraces
 ENV RUST_BACKTRACE 1

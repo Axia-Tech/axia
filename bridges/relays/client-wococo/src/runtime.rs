@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ where
 /// All entries here (like pretty much in the entire file) must be kept in sync with BetaNet
 /// `construct_runtime`, so that we maintain SCALE-compatibility.
 ///
-/// See: https://github.com/axiatech/axia/blob/master/runtime/betanet/src/lib.rs
+/// See: https://github.com/axia/axia/blob/master/runtime/betanet/src/lib.rs
 #[allow(clippy::large_enum_variant)]
 #[derive(Encode, Decode, Debug, PartialEq, Eq, Clone)]
 pub enum Call {

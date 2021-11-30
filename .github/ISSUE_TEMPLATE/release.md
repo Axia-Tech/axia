@@ -42,7 +42,7 @@ candidate branch or started an additional release candidate branch (rc-2, rc-3, 
 - [ ] Check that the new client versions have [run on the network](#burn-in)
     without issue for 12 hours.
 - [ ] Check that a draft release has been created at
-    https://github.com/axiatech/axia/releases with relevant [release
+    https://github.com/axia/axia/releases with relevant [release
     notes](#release-notes)
 - [ ] Check that [build artifacts](#build-artifacts) have been added to the
     draft-release
@@ -105,7 +105,7 @@ functions. Compare the metadata of the current and new runtimes and ensure that
 the `module index, call index` tuples map to the same set of functions. In case
 of a breaking change, increase `transaction_version`.
 
-To verify the order has not changed, you may manually start the following [Github Action](https://github.com/axiatech/axia/actions/workflows/extrinsic-ordering-check-from-bin.yml). It takes around a minute to run and will produce the report as artifact you need to manually check.
+To verify the order has not changed, you may manually start the following [Github Action](https://github.com/axia/axia/actions/workflows/extrinsic-ordering-check-from-bin.yml). It takes around a minute to run and will produce the report as artifact you need to manually check.
 
 The things to look for in the output are lines like:
   - `[Identity] idx 28 -> 25 (calls 15)` - indicates the index for `Identity` has changed

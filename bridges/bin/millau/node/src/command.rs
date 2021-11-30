@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -35,11 +35,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn author() -> String {
-		"Parity Technologies".into()
+		"AXIA Technologies".into()
 	}
 
 	fn support_url() -> String {
-		"https://github.com/axiatech/axia-bridges-common/".into()
+		"https://github.com/axia/axia-bridges-common/".into()
 	}
 
 	fn copyright_start_year() -> i32 {

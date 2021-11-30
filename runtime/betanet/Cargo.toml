@@ -1,7 +1,7 @@
 [package]
 name = "betanet-runtime"
 version = "0.9.12"
-authors = ["Parity Technologies <admin@axiacoin.network>"]
+authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"
 build = "build.rs"
 

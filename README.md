@@ -16,7 +16,7 @@ specific guides, like how to be a validator, see the
 
 If you just wish to run a AXIA node without compiling it yourself, you may
 either run the latest binary from our
-[releases](https://github.com/axiatech/axia/releases) page, or install
+[releases](https://github.com/axia/axia/releases) page, or install
 AXIA from one of our package repositories.
 
 Installation from the Debian or rpm repositories will create a `systemd`
@@ -73,7 +73,7 @@ below this section.
 If you want to install AXIA in your PATH, you can do so with with:
 
 ```bash
-cargo install --git https://github.com/axiatech/axia --tag <version> axia --locked
+cargo install --git https://github.com/axia/axia --tag <version> axia --locked
 ```
 
 ### Build from Source
@@ -111,18 +111,18 @@ Note that compilation is a memory intensive process. We recommend having 4 GiB o
 #### Build from Source with Docker
 
 You can also build from source using 
-[Parity CI docker image](https://github.com/axiatech/scripts/tree/master/dockerfiles/ci-linux):
+[Parity CI docker image](https://github.com/axia/scripts/tree/master/dockerfiles/ci-linux):
 
 ```bash
 git checkout <latest tagged release>
 docker run --rm -it -w /shellhere/axia \
                     -v $(pwd):/shellhere/axia \
-                    axiatech/ci-linux:production cargo build --release
+                    axia/ci-linux:production cargo build --release
 sudo chown -R $(id -u):$(id -g) target/
 ```
 
 If you want to reproduce other steps of CI process you can use the following 
-[guide](https://github.com/axiatech/scripts#gitlab-ci-for-building-docker-images).
+[guide](https://github.com/axia/scripts#gitlab-ci-for-building-docker-images).
 
 ## Networks
 
@@ -185,7 +185,7 @@ curl https://getsubstrate.io -sSf | bash -s -- --fast
 Then, grab the AXIA source code:
 
 ```bash
-git clone https://github.com/axiatech/axia.git
+git clone https://github.com/axia/axia.git
 cd axia
 ```
 

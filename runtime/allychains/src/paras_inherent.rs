@@ -1,4 +1,4 @@
-// Copyright 2020 Parity Technologies (UK) Ltd.
+// Copyright 2020 AXIA Technologies (UK) Ltd.
 // This file is part of AXIA.
 
 // AXIA is free software: you can redistribute it and/or modify
@@ -120,7 +120,7 @@ pub mod pallet {
 			T::DisputesHandler::filter_multi_dispute_data(&mut inherent_data.disputes);
 
 			// Sanity check: session changes can invalidate an inherent, and we _really_ don't want that to happen.
-			// See github.com/axiatech/axia/issues/1327
+			// See github.com/axia/axia/issues/1327
 			let inherent_data =
 				match Self::enter(frame_system::RawOrigin::None.into(), inherent_data.clone()) {
 					Ok(_) => inherent_data,

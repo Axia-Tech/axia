@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -86,7 +86,7 @@ decl_error! {
 decl_module! {
 	pub struct Module<T: Config<I>, I: Instance = DefaultInstance> for enum Call where origin: T::Origin {
 		/// Imports lock fund transaction of the peer blockchain.
-		#[weight = 0] // TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/78)
+		#[weight = 0] // TODO: update me (https://github.com/axia/axia-bridges-common/issues/78)
 		pub fn import_peer_transaction(
 			origin,
 			proof: <<T as Config<I>>::PeerBlockchain as InclusionProofVerifier>::TransactionInclusionProof,

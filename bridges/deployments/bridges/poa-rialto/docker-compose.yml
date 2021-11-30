@@ -24,7 +24,7 @@ services:
       LETSENCRYPT_EMAIL: admin@axiacoin.network
 
   relay-headers-poa-to-rialto: &eth-poa-relay
-    image: axiatech/ethereum-poa-relay
+    image: axia/ethereum-poa-relay
     entrypoint: /entrypoints/relay-headers-poa-to-rialto-entrypoint.sh
     volumes:
       - ./bridges/poa-rialto/entrypoints:/entrypoints

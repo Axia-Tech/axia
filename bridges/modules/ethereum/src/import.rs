@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 /// we have NOT imported.
 /// Returns error if fatal error has occured during import. Some valid headers may be
 /// imported in this case.
-/// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/415)
+/// TODO: update me (https://github.com/axia/axia-bridges-common/issues/415)
 #[allow(clippy::too_many_arguments)]
 pub fn import_headers<S: Storage, PS: PruningStrategy, CT: ChainTime>(
 	storage: &mut S,
@@ -83,7 +83,7 @@ pub type FinalizedHeaders<S> = Vec<(HeaderId, Option<<S as Storage>::Submitter>)
 /// has returned true.
 ///
 /// Returns imported block id and list of all finalized headers.
-/// TODO: update me (https://github.com/axiatech/axia-bridges-common/issues/415)
+/// TODO: update me (https://github.com/axia/axia-bridges-common/issues/415)
 #[allow(clippy::too_many_arguments)]
 pub fn import_header<S: Storage, PS: PruningStrategy, CT: ChainTime>(
 	storage: &mut S,

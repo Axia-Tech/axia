@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
 // This file is part of Parity Bridges Common.
 
 // Parity Bridges Common is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 /// All entries here (like pretty much in the entire file) must be kept in sync with AlphaNet
 /// `construct_runtime`, so that we maintain SCALE-compatibility.
 ///
-/// See: https://github.com/axiatech/axia/blob/master/runtime/alphanet/src/lib.rs
+/// See: https://github.com/axia/axia/blob/master/runtime/alphanet/src/lib.rs
 #[derive(parity_scale_codec::Encode, parity_scale_codec::Decode, Debug, PartialEq, Eq, Clone)]
 pub enum Call {
 	/// BetaNet bridge pallet.

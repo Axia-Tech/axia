@@ -8,7 +8,7 @@ AXIA Release Process
   and tagged with the new version. Named literally `release`.
 
 ### Notes
-* The release-candidate branch *must* be made in the axiatech/axia repo in
+* The release-candidate branch *must* be made in the axia/axia repo in
 order for release automation to work correctly
 * Any new pushes/merges to the release-candidate branch (for example,
 refs/heads/release-v0.8.26) will result in the rc index being bumped (e.g., v0.8.26-rc1
