@@ -138,7 +138,7 @@ Connect to the global AXIA Mainnet network by running:
 
 You can see your node on [telemetry] (set a custom name with `--name "my custom name"`).
 
-[telemetry]: https://telemetry.axia.io/#list/AXIA
+[telemetry]: https://telemetry.axiacoin.network/#list/AXIA
 
 ### Connect to the "Kusama" Canary Network
 
@@ -150,7 +150,7 @@ Connect to the global Kusama canary network by running:
 
 You can see your node on [telemetry] (set a custom name with `--name "my custom name"`).
 
-[telemetry]: https://telemetry.axia.io/#list/Kusama
+[telemetry]: https://telemetry.axiacoin.network/#list/Kusama
 
 ### Connect to the AlphaNet Testnet
 
@@ -162,7 +162,7 @@ Connect to the global AlphaNet testnet by running:
 
 You can see your node on [telemetry] (set a custom name with `--name "my custom name"`).
 
-[telemetry]: https://telemetry.axia.io/#list/AlphaNet
+[telemetry]: https://telemetry.axiacoin.network/#list/AlphaNet
 
 ### Obtaining AXCs
 

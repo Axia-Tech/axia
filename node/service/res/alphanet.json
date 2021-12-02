@@ -13,7 +13,7 @@
   ],
   "telemetryEndpoints": [
     [
-      "wss://telemetry.axia.io/submit/",
+      "wss://telemetry.axiacoin.network/submit/",
       0
     ]
   ],
