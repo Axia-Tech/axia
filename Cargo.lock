@@ -1696,7 +1696,7 @@ dependencies = [
 name = "axia-statement-distribution"
 version = "0.9.12"
 dependencies = [
- "arrayvec 0.5.2",
+ "arrayvec 0.7.2",
  "assert_matches",
  "axia-node-network-protocol",
  "axia-node-primitives",
