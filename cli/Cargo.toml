@@ -17,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 log = "0.4.13"
 thiserror = "1.0.30"
 structopt = { version = "0.3.23", optional = true }
-futures = "0.3.17"
+futures = "0.3.18"
 
 service = { package = "axia-service", path = "../node/service", default-features = false, optional = true }
 axia-node-core-pvf = { path = "../node/core/pvf", optional = true }

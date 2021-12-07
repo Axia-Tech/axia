@@ -15,5 +15,5 @@ sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sc-authority-discovery = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
 strum = { version = "0.22", features = ["derive"] }
 derive_more = "0.99.11"
-futures = "0.3.17"
+futures = "0.3.18"
 thiserror = "1.0.30"

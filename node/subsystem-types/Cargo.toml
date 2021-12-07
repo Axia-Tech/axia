@@ -7,7 +7,7 @@ description = "Subsystem traits and message definitions"
 
 [dependencies]
 derive_more = "0.99.11"
-futures = "0.3.17"
+futures = "0.3.18"
 axia-primitives = { path = "../../primitives" }
 axia-node-primitives = { path = "../primitives" }
 axia-node-network-protocol = { path = "../network/protocol" }
