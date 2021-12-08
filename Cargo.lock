@@ -100,7 +100,7 @@ dependencies = [
  "axia-runtime-allychains",
  "axia-runtime-common",
  "beefy-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -557,7 +557,7 @@ dependencies = [
  "axia-node-subsystem-test-helpers",
  "axia-node-subsystem-util",
  "axia-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "env_logger 0.9.0",
  "futures 0.3.17",
  "log",
@@ -849,7 +849,7 @@ dependencies = [
  "axia-node-subsystem-util",
  "axia-overseer",
  "axia-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "derive_more",
  "futures 0.3.17",
  "futures-timer 3.0.2",
@@ -885,7 +885,7 @@ dependencies = [
  "axia-node-subsystem-util",
  "axia-overseer",
  "axia-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "env_logger 0.9.0",
  "futures 0.3.17",
  "futures-timer 3.0.2",
@@ -912,7 +912,7 @@ dependencies = [
  "axia-node-subsystem-util",
  "axia-primitives",
  "axia-statement-table",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "futures 0.3.17",
  "sc-keystore",
  "sp-application-crypto",
@@ -1010,7 +1010,7 @@ dependencies = [
  "axia-node-subsystem-test-helpers",
  "axia-node-subsystem-util",
  "axia-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "derive_more",
  "futures 0.3.17",
  "kvdb",
@@ -1048,7 +1048,7 @@ dependencies = [
  "axia-node-subsystem-test-helpers",
  "axia-node-subsystem-util",
  "axia-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "futures 0.3.17",
  "futures-timer 3.0.2",
  "sp-application-crypto",
@@ -1309,7 +1309,7 @@ version = "0.9.12"
 dependencies = [
  "axia-allychain",
  "axia-core-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "frame-system",
  "hex-literal",
  "parity-scale-codec",
@@ -1370,7 +1370,7 @@ dependencies = [
  "axia-runtime-allychains",
  "axia-runtime-common",
  "beefy-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -1450,7 +1450,7 @@ version = "0.9.12"
 dependencies = [
  "axia-primitives",
  "bitflags",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "derive_more",
  "frame-benchmarking",
  "frame-support",
@@ -1494,7 +1494,7 @@ dependencies = [
  "axia-primitives",
  "axia-runtime-allychains",
  "beefy-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-support",
@@ -1784,7 +1784,7 @@ dependencies = [
  "axia-runtime-allychains",
  "axia-runtime-common",
  "beefy-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "frame-election-provider-support",
  "frame-executive",
  "frame-support",
@@ -2158,6 +2158,18 @@ name = "bitvec"
 version = "0.20.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7774144344a4faa177370406a7ff5f1da24303817368584c6206c8303eb07848"
+dependencies = [
+ "funty",
+ "radium 0.6.2",
+ "tap",
+ "wyz",
+]
+
+[[package]]
+name = "bitvec"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35a2e31dce162f8f238c3c35a6600f1df4cb30f8929a6c464b0a8118d17c2502"
 dependencies = [
  "funty",
  "radium 0.6.2",
@@ -4679,7 +4691,7 @@ dependencies = [
  "axia-runtime-allychains",
  "axia-runtime-common",
  "beefy-primitives",
- "bitvec 0.20.4",
+ "bitvec 0.21.0",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",

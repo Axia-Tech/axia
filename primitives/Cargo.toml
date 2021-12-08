@@ -24,7 +24,7 @@ runtime_primitives = { package = "sp-runtime", git = "https://github.com/parityt
 axia-allychain = { path = "../allychain", default-features = false }
 axia-core-primitives = { path = "../core-primitives", default-features = false }
 trie = { package = "sp-trie", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-bitvec = { version = "0.20.1", default-features = false, features = ["alloc"] }
+bitvec = { version = "0.21.0", default-features = false, features = ["alloc"] }
 frame-system = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
 hex-literal = "0.3.3"
 parity-util-mem = { version = "0.10.0", default-features = false, optional = true }
