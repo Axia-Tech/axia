@@ -3,8 +3,9 @@
   "id": "testnet",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/full1.p2p.test.axiacoin.network/tcp/443/p2p/12D3KooWMxS3YEAf7qNsxk5rx4NeZAhdnn7a6uyNQZWu2EcJC9ad",
-    "/dns/full2.p2p.test.axiacoin.network/tcp/443/p2p/12D3KooWMGNDdmWjiCzdMuhedTVbiLD2dzaX4uSdsE4Yvz1FDfzf"
+    "/dns/full1.p2p.test.axiacoin.network/tcp/22001/p2p/12D3KooWMxS3YEAf7qNsxk5rx4NeZAhdnn7a6uyNQZWu2EcJC9ad",
+    "/dns/full2.p2p.test.axiacoin.network/tcp/22002/p2p/12D3KooWMGNDdmWjiCzdMuhedTVbiLD2dzaX4uSdsE4Yvz1FDfzf",
+    "/dns/full3.p2p.test.axiacoin.network/tcp/22003/p2p/12D3KooWKCzZD1MvJSabxANtLA67uqqrMZUKSPtHjzQzVC83kKjR"
   ],
   "telemetryEndpoints": [
     [
