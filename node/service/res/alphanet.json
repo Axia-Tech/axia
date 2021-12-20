@@ -4,7 +4,8 @@
   "chainType": "Live",
   "bootNodes": [
     "/dns/full1.p2p.test.axiacoin.network/tcp/443/p2p/12D3KooWMxS3YEAf7qNsxk5rx4NeZAhdnn7a6uyNQZWu2EcJC9ad",
-    "/dns/full2.p2p.test.axiacoin.network/tcp/443/p2p/12D3KooWMGNDdmWjiCzdMuhedTVbiLD2dzaX4uSdsE4Yvz1FDfzf",],
+    "/dns/full2.p2p.test.axiacoin.network/tcp/443/p2p/12D3KooWMGNDdmWjiCzdMuhedTVbiLD2dzaX4uSdsE4Yvz1FDfzf"
+  ],
   "telemetryEndpoints": [
     [
       "/dns/shard.telemetry.test.axiacoin.network/tcp/443/x-parity-wss/%2Fsubmit%2F",
