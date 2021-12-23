@@ -53,7 +53,7 @@ fn get_exec_name() -> Option<String> {
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"Parity AXIA".into()
+		"AXIA Systems".into()
 	}
 
 	fn impl_version() -> String {
@@ -69,7 +69,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/axia/axia/issues/new".into()
+		"https://github.com/axia-tech/axia/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {

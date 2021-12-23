@@ -102,8 +102,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 // AXIA version identifier;
 /// Runtime version (AXIA).
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("polkadot"),
-	impl_name: create_runtime_str!("axia-axia"),
+	spec_name: create_runtime_str!("axia"),
+	impl_name: create_runtime_str!("axia"),
 	authoring_version: 0,
 	spec_version: 9122,
 	impl_version: 0,
