@@ -13,7 +13,7 @@ axia-node-jaeger = { path = "../../jaeger" }
 parity-scale-codec = { version = "2.3.1", default-features = false, features = ["derive"] }
 sc-network = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
 sc-authority-discovery = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
-strum = { version = "0.22", features = ["derive"] }
+strum = { version = "0.23", features = ["derive"] }
 derive_more = "0.99.11"
 futures = "0.3.17"
 thiserror = "1.0.30"
