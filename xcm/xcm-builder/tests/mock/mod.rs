@@ -111,16 +111,16 @@ impl configuration::Config for Runtime {
 	type WeightInfo = configuration::TestWeightInfo;
 }
 
-// aims to closely emulate the AXIATest XcmConfig
+// aims to closely emulate the AXIATEST XcmConfig
 parameter_types! {
 	pub const KsmLocation: MultiLocation = MultiLocation::here();
-	pub const AXIATestNetwork: NetworkId = NetworkId::AXIATest;
+	pub const AXIATESTNetwork: NetworkId = NetworkId::AXIATEST;
 	pub Ancestry: MultiLocation = Here.into();
 	pub CheckAccount: AccountId = XcmPallet::check_account();
 }
 
 pub type SovereignAccountOf =
-	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AXIATestNetwork, AccountId>);
+	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AXIATESTNetwork, AccountId>);
 
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	Balances,
@@ -133,7 +133,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, Origin>,
 	ChildParachainAsNative<origin::Origin, Origin>,
-	SignedAccountId32AsNative<AXIATestNetwork, Origin>,
+	SignedAccountId32AsNative<AXIATESTNetwork, Origin>,
 	ChildSystemParachainAsSuperuser<ParaId, Origin>,
 );
 
@@ -150,11 +150,11 @@ pub type Barrier = (
 );
 
 parameter_types! {
-	pub const AXIATestForStatemint: (MultiAssetFilter, MultiLocation) =
+	pub const AXIATESTForStatemint: (MultiAssetFilter, MultiLocation) =
 		(MultiAssetFilter::Wild(WildMultiAsset::AllOf { id: Concrete(MultiLocation::here()), fun: WildFungible }), X1(Parachain(1000)).into());
 	pub const MaxInstructions: u32 = 100;
 }
-pub type TrustedTeleporters = (xcm_builder::Case<AXIATestForStatemint>,);
+pub type TrustedTeleporters = (xcm_builder::Case<AXIATESTForStatemint>,);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -174,7 +174,7 @@ impl xcm_executor::Config for XcmConfig {
 	type SubscriptionService = XcmPallet;
 }
 
-pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, AXIATestNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, AXIATESTNetwork>;
 
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;

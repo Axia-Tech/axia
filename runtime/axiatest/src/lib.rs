@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA. If not, see <http://www.gnu.org/licenses/>.
 
-//! The AXIATest runtime. This can be compiled with `#[no_std]`, ready for Wasm.
+//! The AXIATEST runtime. This can be compiled with `#[no_std]`, ready for Wasm.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
@@ -111,7 +111,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-/// Runtime version (AXIATest).
+/// Runtime version (AXIATEST).
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("axiatest"),
 	impl_name: create_runtime_str!("axia-axiatest"),
@@ -350,7 +350,7 @@ parameter_types! {
 	pub const SignedMaxSubmissions: u32 = 16;
 	pub const SignedDepositBase: Balance = deposit(2, 0);
 	pub const SignedDepositByte: Balance = deposit(0, 10) / 1024;
-	// Each good submission will get 1/10 KSM as reward
+	// Each good submission will get 1/10 AXCT as reward
 	pub SignedRewardBase: Balance =  UNITS / 10;
 	pub SolutionImprovementThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
 
@@ -868,7 +868,7 @@ where
 }
 
 parameter_types! {
-	pub Prefix: &'static [u8] = b"Pay KSMs to the AXIATest account:";
+	pub Prefix: &'static [u8] = b"Pay AXCTs to the AXIATEST account:";
 }
 
 impl claims::Config for Runtime {
@@ -881,7 +881,7 @@ impl claims::Config for Runtime {
 }
 
 parameter_types! {
-	// Minimum 100 bytes/KSM deposited (1 CENT/byte)
+	// Minimum 100 bytes/AXCT deposited (1 CENT/byte)
 	pub const BasicDeposit: Balance = 1000 * CENTS;       // 258 bytes on-chain
 	pub const FieldDeposit: Balance = 250 * CENTS;        // 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = 200 * CENTS;   // 53 bytes on-chain
@@ -1213,8 +1213,8 @@ impl slots::Config for Runtime {
 
 parameter_types! {
 	pub const CrowdloanId: PalletId = PalletId(*b"py/cfund");
-	pub const SubmissionDeposit: Balance = 3 * GRAND; // ~ 10 KSM
-	pub const MinContribution: Balance = 3_000 * CENTS; // ~ .1 KSM
+	pub const SubmissionDeposit: Balance = 3 * GRAND; // ~ 10 AXCT
+	pub const MinContribution: Balance = 3_000 * CENTS; // ~ .1 AXCT
 	pub const RemoveKeysLimit: u32 = 1000;
 	// Allow 32 bytes for an additional memo to a crowdloan.
 	pub const MaxMemoLength: u8 = 32;
@@ -1258,14 +1258,14 @@ impl auctions::Config for Runtime {
 }
 
 parameter_types! {
-	/// The location of the KSM token, from the context of this chain. Since this token is native to this
+	/// The location of the AXCT token, from the context of this chain. Since this token is native to this
 	/// chain, we make it synonymous with it and thus it is the `Here` location, which means "equivalent to
 	/// the context".
 	pub const KsmLocation: MultiLocation = Here.into();
-	/// The AXIATest network ID. This is named.
-	pub const AXIATestNetwork: NetworkId = NetworkId::AXIATest;
+	/// The AXIATEST network ID. This is named.
+	pub const AXIATESTNetwork: NetworkId = NetworkId::AXIATEST;
 	/// Our XCM location ancestry - i.e. what, if anything, `Parent` means evaluated in our context. Since
-	/// AXIATest is a top-level relay-chain, there is no ancestry.
+	/// AXIATEST is a top-level relay-chain, there is no ancestry.
 	pub const Ancestry: MultiLocation = Here.into();
 	/// The check account, which holds any native assets that have been teleported out and not back in (yet).
 	pub CheckAccount: AccountId = XcmPallet::check_account();
@@ -1277,7 +1277,7 @@ pub type SovereignAccountOf = (
 	// We can convert a child allychain using the standard `AccountId` conversion.
 	ChildParachainConvertsVia<ParaId, AccountId>,
 	// We can directly alias an `AccountId32` into a local account.
-	AccountId32Aliases<AXIATestNetwork, AccountId>,
+	AccountId32Aliases<AXIATESTNetwork, AccountId>,
 );
 
 /// Our asset transactor. This is what allows us to interest with the runtime facilities from the point of
@@ -1304,7 +1304,7 @@ type LocalOriginConverter = (
 	// A child allychain, natively expressed, has the `Parachain` origin.
 	ChildParachainAsNative<allychains_origin::Origin, Origin>,
 	// The AccountId32 location type can be expressed natively as a `Signed` origin.
-	SignedAccountId32AsNative<AXIATestNetwork, Origin>,
+	SignedAccountId32AsNative<AXIATESTNetwork, Origin>,
 	// A system child allychain, expressed as a Superuser, converts to the `Root` origin.
 	ChildSystemParachainAsSuperuser<ParaId, Origin>,
 );
@@ -1325,10 +1325,10 @@ pub type XcmRouter = (
 );
 
 parameter_types! {
-	pub const AXIATest: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
-	pub const AXIATestForStatemint: (MultiAssetFilter, MultiLocation) = (AXIATest::get(), Parachain(1000).into());
+	pub const AXIATEST: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
+	pub const AXIATESTForStatemint: (MultiAssetFilter, MultiLocation) = (AXIATEST::get(), Parachain(1000).into());
 }
-pub type TrustedTeleporters = (xcm_builder::Case<AXIATestForStatemint>,);
+pub type TrustedTeleporters = (xcm_builder::Case<AXIATESTForStatemint>,);
 
 match_type! {
 	pub type OnlyParachains: impl Contains<MultiLocation> = {
@@ -1384,7 +1384,7 @@ pub type LocalOriginToLocation = (
 		CouncilBodyId,
 	>,
 	// And a usual Signed origin to be used in XCM as a corresponding AccountId32
-	SignedToAccountId32<Origin, AccountId, AXIATestNetwork>,
+	SignedToAccountId32<Origin, AccountId, AXIATESTNetwork>,
 );
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;
@@ -2014,7 +2014,7 @@ mod tests_fess {
 	#[test]
 	fn signed_deposit_is_sensible() {
 		// ensure this number does not change, or that it is checked after each change.
-		// a 1 MB solution should need around 0.16 KSM deposit
+		// a 1 MB solution should need around 0.16 AXCT deposit
 		let deposit = SignedDepositBase::get() + (SignedDepositByte::get() * 1024 * 1024);
 		assert_eq_error_rate!(deposit, UNITS * 16 / 100, UNITS / 100);
 	}

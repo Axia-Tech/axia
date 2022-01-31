@@ -81,12 +81,12 @@ pub use axia_client::BetaNetExecutorDispatch;
 pub use axia_client::AlphaNetExecutorDispatch;
 
 #[cfg(feature = "axiatest-native")]
-pub use axia_client::AXIATestExecutorDispatch;
+pub use axia_client::AXIATESTExecutorDispatch;
 
 #[cfg(feature = "axia-native")]
 pub use axia_client::AXIAExecutorDispatch;
 
-pub use chain_spec::{AXIATestChainSpec, AXIAChainSpec, BetaNetChainSpec, AlphaNetChainSpec};
+pub use chain_spec::{AXIATESTChainSpec, AXIAChainSpec, BetaNetChainSpec, AlphaNetChainSpec};
 pub use consensus_common::{block_validation::Chain, Proposal, SelectChain};
 #[cfg(feature = "full-node")]
 pub use axia_client::{
@@ -240,7 +240,7 @@ pub enum Error {
 
 /// Can be called for a `Configuration` to identify which network the configuration targets.
 pub trait IdentifyVariant {
-	/// Returns if this is a configuration for the `AXIATest` network.
+	/// Returns if this is a configuration for the `AXIATEST` network.
 	fn is_axiatest(&self) -> bool;
 
 	/// Returns if this is a configuration for the `AlphaNet` network.
@@ -1340,7 +1340,7 @@ pub fn new_chain_ops(
 
 	#[cfg(feature = "axiatest-native")]
 	if config.chain_spec.is_axiatest() {
-		return chain_ops!(config, jaeger_agent, telemetry_worker_handle; axiatest_runtime, AXIATestExecutorDispatch, AXIATest)
+		return chain_ops!(config, jaeger_agent, telemetry_worker_handle; axiatest_runtime, AXIATESTExecutorDispatch, AXIATEST)
 	}
 
 	#[cfg(feature = "alphanet-native")]
@@ -1366,7 +1366,7 @@ pub fn build_light(config: Configuration) -> Result<(TaskManager, RpcHandlers), 
 
 	#[cfg(feature = "axiatest-native")]
 	if config.chain_spec.is_axiatest() {
-		return new_light::<axiatest_runtime::RuntimeApi, AXIATestExecutorDispatch>(config)
+		return new_light::<axiatest_runtime::RuntimeApi, AXIATESTExecutorDispatch>(config)
 	}
 
 	#[cfg(feature = "alphanet-native")]
@@ -1410,7 +1410,7 @@ pub fn build_full(
 
 	#[cfg(feature = "axiatest-native")]
 	if config.chain_spec.is_axiatest() {
-		return new_full::<axiatest_runtime::RuntimeApi, AXIATestExecutorDispatch, _>(
+		return new_full::<axiatest_runtime::RuntimeApi, AXIATESTExecutorDispatch, _>(
 			config,
 			is_collator,
 			grandpa_pause,
@@ -1420,7 +1420,7 @@ pub fn build_full(
 			None,
 			overseer_gen,
 		)
-		.map(|full| full.with_client(Client::AXIATest))
+		.map(|full| full.with_client(Client::AXIATEST))
 	}
 
 	#[cfg(feature = "alphanet-native")]

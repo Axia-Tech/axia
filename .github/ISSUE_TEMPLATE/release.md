@@ -7,7 +7,7 @@ title: AXIA {{ env.VERSION }} Release checklist
 
 This is the release checklist for AXIA {{ env.VERSION }}. **All** following
 checks should be completed before publishing a new release of the
-AXIA/AXIATest/AlphaNet runtime or client. The current release candidate can be
+AXIA/AXIATEST/AlphaNet runtime or client. The current release candidate can be
 checked out with `git checkout release-{{ env.VERSION }}`
 
 ### Runtime Releases
@@ -51,7 +51,7 @@ candidate branch or started an additional release candidate branch (rc-2, rc-3, 
 
 ### Burn In
 
-Ensure that AXIA DevOps has run the new release on AlphaNet, AXIATest, and
+Ensure that AXIA DevOps has run the new release on AlphaNet, AXIATEST, and
 AXIA validators for at least 12 hours prior to publishing the release.
 
 ### Build Artifacts

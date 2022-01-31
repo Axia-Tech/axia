@@ -171,7 +171,7 @@
           "exemplar": true,
           "expr": "AlphaNet_to_Millau_Sync_axiatest_to_base_conversion_rate / AlphaNet_to_Millau_Sync_axia_to_base_conversion_rate",
           "interval": "",
-          "legendFormat": "Outside of runtime (actually AXIA -> AXIATest)",
+          "legendFormat": "Outside of runtime (actually AXIA -> AXIATEST)",
           "refId": "A"
         },
         {
@@ -379,7 +379,7 @@
           "exemplar": true,
           "expr": "AlphaNet_to_Millau_Sync_axia_to_base_conversion_rate / AlphaNet_to_Millau_Sync_axiatest_to_base_conversion_rate",
           "interval": "",
-          "legendFormat": "Outside of runtime (actually AXIATest -> AXIA)",
+          "legendFormat": "Outside of runtime (actually AXIATEST -> AXIA)",
           "refId": "A"
         },
         {

@@ -102,7 +102,7 @@ parameter_types! {
 
 parameter_types! {
 	pub const KsmLocation: MultiLocation = MultiLocation::parent();
-	pub const RelayNetwork: NetworkId = NetworkId::AXIATest;
+	pub const RelayNetwork: NetworkId = NetworkId::AXIATEST;
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::allychain_id().into()).into();
 }
 

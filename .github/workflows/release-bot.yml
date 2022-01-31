@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         channel:
-        - '!LhjZccBOqFNYKLdmbb:axia.builders' # #AXIATestValidatorLounge:axia.builders
+        - '!LhjZccBOqFNYKLdmbb:axia.builders' # #AXIATESTValidatorLounge:axia.builders
         - '!FMwxpQnYhRCNDRsYGI:matrix.axiacoin.network' # #axiatest-announcements:matrix.axiacoin.network
         - '!NZrbtteFeqYKCUGQtr:matrix.axiacoin.network' # #axiavalidatorlounge:web3.foundation
         - '!UqHPWiCBGZWxrmYBkF:matrix.axiacoin.network' # #axia-announcements:matrix.axiacoin.network

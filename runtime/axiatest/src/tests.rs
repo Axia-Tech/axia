@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA. If not, see <http://www.gnu.org/licenses/>.
 
-//! Tests for the AXIATest Runtime Configuration
+//! Tests for the AXIATEST Runtime Configuration
 
 use crate::*;
 use frame_support::weights::{GetDispatchInfo, WeightToFeePolynomial};

@@ -28,7 +28,7 @@ use sp_storage::well_known_keys;
 const LOG_TARGET: &'static str = "remote-ext-tests::bags-list";
 
 /// Test voter bags migration. `currency_unit` is the number of planks per the
-/// the runtimes `UNITS` (i.e. number of decimal places per AXC, KSM etc)
+/// the runtimes `UNITS` (i.e. number of decimal places per AXC, AXCT etc)
 pub(crate) async fn test_voter_bags_migration<
 	Runtime: pallet_staking::Config + pallet_bags_list::Config + EPM::Config,
 	Block: BlockT,
@@ -79,7 +79,7 @@ pub(crate) async fn test_voter_bags_migration<
 		// and log some info about how voters are distributed within the bags.
 		let mut seen_in_bags = 0;
 		for vote_weight_thresh in <Runtime as pallet_bags_list::Config>::BagThresholds::get() {
-			// threshold in terms of UNITS (e.g. KSM, AXC etc)
+			// threshold in terms of UNITS (e.g. AXCT, AXC etc)
 			let vote_weight_thresh_as_unit = *vote_weight_thresh as f64 / currency_unit as f64;
 			let pretty_thresh = format!("Threshold: {}.", vote_weight_thresh_as_unit);
 

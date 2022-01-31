@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA Bridges Common.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Types used to connect to the AXIATest chain.
+//! Types used to connect to the AXIATEST chain.
 
 use relay_substrate_client::{Chain, ChainBase};
 use std::time::Duration;
 
-/// AXIATest header id.
+/// AXIATEST header id.
 pub type HeaderId = relay_utils::HeaderId<bp_axiatest::Hash, bp_axiatest::BlockNumber>;
 
-/// AXIATest chain definition
+/// AXIATEST chain definition
 #[derive(Debug, Clone, Copy)]
-pub struct AXIATest;
+pub struct AXIATEST;
 
-impl ChainBase for AXIATest {
+impl ChainBase for AXIATEST {
 	type BlockNumber = bp_axiatest::BlockNumber;
 	type Hash = bp_axiatest::Hash;
 	type Hasher = bp_axiatest::Hasher;
 	type Header = bp_axiatest::Header;
 }
 
-impl Chain for AXIATest {
-	const NAME: &'static str = "AXIATest";
+impl Chain for AXIATEST {
+	const NAME: &'static str = "AXIATEST";
 	const AVERAGE_BLOCK_INTERVAL: Duration = Duration::from_secs(6);
 
 	type AccountId = bp_axiatest::AccountId;
@@ -44,5 +44,5 @@ impl Chain for AXIATest {
 	type Balance = bp_axiatest::Balance;
 }
 
-/// AXIATest header type used in headers sync.
+/// AXIATEST header type used in headers sync.
 pub type SyncHeader = relay_substrate_client::SyncHeader<bp_axiatest::Header>;

@@ -53,11 +53,11 @@ use substrate_test_client::{
 	BlockchainEventsExt, RpcHandlersExt, RpcTransactionError, RpcTransactionOutput,
 };
 
-/// Declare an instance of the native executor named `AXIATestExecutorDispatch`. Include the wasm binary as the
+/// Declare an instance of the native executor named `AXIATESTExecutorDispatch`. Include the wasm binary as the
 /// equivalent wasm code.
-pub struct AXIATestExecutorDispatch;
+pub struct AXIATESTExecutorDispatch;
 
-impl sc_executor::NativeExecutionDispatch for AXIATestExecutorDispatch {
+impl sc_executor::NativeExecutionDispatch for AXIATESTExecutorDispatch {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
@@ -70,7 +70,7 @@ impl sc_executor::NativeExecutionDispatch for AXIATestExecutorDispatch {
 }
 
 /// The client type being used by the test service.
-pub type Client = FullClient<axia_test_runtime::RuntimeApi, AXIATestExecutorDispatch>;
+pub type Client = FullClient<axia_test_runtime::RuntimeApi, AXIATESTExecutorDispatch>;
 
 pub use axia_service::FullBackend;
 
@@ -81,7 +81,7 @@ pub fn new_full(
 	is_collator: IsCollator,
 	worker_program_path: Option<PathBuf>,
 ) -> Result<NewFull<Arc<Client>>, Error> {
-	axia_service::new_full::<axia_test_runtime::RuntimeApi, AXIATestExecutorDispatch, _>(
+	axia_service::new_full::<axia_test_runtime::RuntimeApi, AXIATESTExecutorDispatch, _>(
 		config,
 		is_collator,
 		None,
@@ -207,7 +207,7 @@ pub fn run_validator_node(
 	storage_update_func: impl Fn(),
 	boot_nodes: Vec<MultiaddrWithPeerId>,
 	worker_program_path: Option<PathBuf>,
-) -> AXIATestNode {
+) -> AXIATESTNode {
 	let config = node_config(storage_update_func, tokio_handle, key, boot_nodes, true);
 	let multiaddr = config.network.listen_addresses[0].clone();
 	let NewFull { task_manager, client, network, rpc_handlers, overseer_handle, .. } =
@@ -218,7 +218,7 @@ pub fn run_validator_node(
 	let peer_id = network.local_peer_id().clone();
 	let addr = MultiaddrWithPeerId { multiaddr, peer_id };
 
-	AXIATestNode { task_manager, client, overseer_handle, addr, rpc_handlers }
+	AXIATESTNode { task_manager, client, overseer_handle, addr, rpc_handlers }
 }
 
 /// Run a test collator node that uses the test runtime.
@@ -232,14 +232,14 @@ pub fn run_validator_node(
 /// # Note
 ///
 /// The collator functionality still needs to be registered at the node! This can be done using
-/// [`AXIATestNode::register_collator`].
+/// [`AXIATESTNode::register_collator`].
 pub fn run_collator_node(
 	tokio_handle: tokio::runtime::Handle,
 	key: Sr25519Keyring,
 	storage_update_func: impl Fn(),
 	boot_nodes: Vec<MultiaddrWithPeerId>,
 	collator_pair: CollatorPair,
-) -> AXIATestNode {
+) -> AXIATESTNode {
 	let config = node_config(storage_update_func, tokio_handle, key, boot_nodes, false);
 	let multiaddr = config.network.listen_addresses[0].clone();
 	let NewFull { task_manager, client, network, rpc_handlers, overseer_handle, .. } =
@@ -250,11 +250,11 @@ pub fn run_collator_node(
 	let peer_id = network.local_peer_id().clone();
 	let addr = MultiaddrWithPeerId { multiaddr, peer_id };
 
-	AXIATestNode { task_manager, client, overseer_handle, addr, rpc_handlers }
+	AXIATESTNode { task_manager, client, overseer_handle, addr, rpc_handlers }
 }
 
 /// A AXIA test node instance used for testing.
-pub struct AXIATestNode {
+pub struct AXIATESTNode {
 	/// `TaskManager`'s instance.
 	pub task_manager: TaskManager,
 	/// Client's instance.
@@ -267,7 +267,7 @@ pub struct AXIATestNode {
 	pub rpc_handlers: RpcHandlers,
 }
 
-impl AXIATestNode {
+impl AXIATESTNode {
 	/// Send an extrinsic to this node.
 	pub async fn send_extrinsic(
 		&self,

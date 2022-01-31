@@ -80,7 +80,7 @@ pub struct RunCmd {
 	#[structopt(flatten)]
 	pub base: sc_cli::RunCmd,
 
-	/// Force using AXIATest native runtime.
+	/// Force using AXIATEST native runtime.
 	#[structopt(long = "force-axiatest")]
 	pub force_axiatest: bool,
 

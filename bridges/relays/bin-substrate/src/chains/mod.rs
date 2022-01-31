@@ -39,7 +39,7 @@ pub(crate) fn add_axia_axiatest_price_metrics<T: finality_relay::FinalitySyncPip
 ) -> anyhow::Result<MetricsParams> {
 	Ok(
 		relay_utils::relay_metrics(Some(finality_relay::metrics_prefix::<T>()), params)
-			// AXIA/AXIATest prices are added as metrics here, because atm we don't have AXIA <-> AXIATest
+			// AXIA/AXIATEST prices are added as metrics here, because atm we don't have AXIA <-> AXIATEST
 			// relays, but we want to test metrics/dashboards in advance
 			.standalone_metric(|registry, prefix| {
 				FloatJsonValueMetric::new(
@@ -56,10 +56,10 @@ pub(crate) fn add_axia_axiatest_price_metrics<T: finality_relay::FinalitySyncPip
 				FloatJsonValueMetric::new(
 					registry,
 					prefix,
-					"https://api.coingecko.com/api/v3/simple/price?ids=AXIATest&vs_currencies=btc".into(),
+					"https://api.coingecko.com/api/v3/simple/price?ids=AXIATEST&vs_currencies=btc".into(),
 					"$.axiatest.btc".into(),
 					"axiatest_to_base_conversion_rate".into(),
-					"Rate used to convert from KSM to some BASE tokens".into(),
+					"Rate used to convert from AXCT to some BASE tokens".into(),
 				)
 			})
 			.map_err(|e| anyhow::format_err!("{}", e))?

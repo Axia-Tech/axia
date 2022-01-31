@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Common runtime code for AXIA and AXIATest.
+//! Common runtime code for AXIA and AXIATEST.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

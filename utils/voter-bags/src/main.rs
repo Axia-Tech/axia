@@ -21,7 +21,7 @@
 //! quantity of bags, or if the existential deposit changes, etc.
 
 use generate_bags::generate_thresholds;
-use axiatest_runtime::Runtime as AXIATestRuntime;
+use axiatest_runtime::Runtime as AXIATESTRuntime;
 use axia_runtime::Runtime as AXIARuntime;
 use std::path::{Path, PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
@@ -31,7 +31,7 @@ arg_enum! {
 	#[derive(Debug)]
 	enum Runtime {
 		AlphaNet,
-		AXIATest,
+		AXIATEST,
 		AXIA,
 	}
 }
@@ -42,7 +42,7 @@ impl Runtime {
 	) -> Box<dyn FnOnce(usize, &Path, u128, u128) -> Result<(), std::io::Error>> {
 		match self {
 			Runtime::AlphaNet => Box::new(generate_thresholds::<AlphaNetRuntime>),
-			Runtime::AXIATest => Box::new(generate_thresholds::<AXIATestRuntime>),
+			Runtime::AXIATEST => Box::new(generate_thresholds::<AXIATESTRuntime>),
 			Runtime::AXIA => Box::new(generate_thresholds::<AXIARuntime>),
 		}
 	}

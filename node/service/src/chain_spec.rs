@@ -21,7 +21,7 @@ use grandpa::AuthorityId as GrandpaId;
 #[cfg(feature = "axiatest-native")]
 use axiatest_runtime as axiatest;
 #[cfg(feature = "axiatest-native")]
-use axiatest_runtime::constants::currency::UNITS as KSM;
+use axiatest_runtime::constants::currency::UNITS as AXCT;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_staking::Forcing;
 #[cfg(feature = "axia-native")]
@@ -49,7 +49,7 @@ use alphanet_runtime::constants::currency::UNITS as WND;
 #[cfg(feature = "axia-native")]
 const AXIA_STAGING_TELEMETRY_URL: &str = "ws://localhost:8001/submit/";
 #[cfg(feature = "axiatest-native")]
-const KUSAMA_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
+const AXIATEST_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
 #[cfg(feature = "alphanet-native")]
 const ALPHANET_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
 #[cfg(feature = "betanet-native")]
@@ -86,12 +86,12 @@ pub type AXIAChainSpec = DummyChainSpec;
 
 /// The `ChainSpec` parameterized for the axiatest runtime.
 #[cfg(feature = "axiatest-native")]
-pub type AXIATestChainSpec = service::GenericChainSpec<axiatest::GenesisConfig, Extensions>;
+pub type AXIATESTChainSpec = service::GenericChainSpec<axiatest::GenesisConfig, Extensions>;
 
 /// The `ChainSpec` parameterized for the axiatest runtime.
 // Dummy chain spec, but that is fine when we don't have the native runtime.
 #[cfg(not(feature = "axiatest-native"))]
-pub type AXIATestChainSpec = DummyChainSpec;
+pub type AXIATESTChainSpec = DummyChainSpec;
 
 /// The `ChainSpec` parameterized for the alphanet runtime.
 #[cfg(feature = "alphanet-native")]
@@ -139,8 +139,8 @@ pub fn axia_config() -> Result<AXIAChainSpec, String> {
 	AXIAChainSpec::from_json_bytes(&include_bytes!("../res/axia.json")[..])
 }
 
-pub fn axiatest_config() -> Result<AXIATestChainSpec, String> {
-	AXIATestChainSpec::from_json_bytes(&include_bytes!("../res/axiatest.json")[..])
+pub fn axiatest_config() -> Result<AXIATESTChainSpec, String> {
+	AXIATESTChainSpec::from_json_bytes(&include_bytes!("../res/axiatest.json")[..])
 }
 
 pub fn alphanet_config() -> Result<AlphaNetChainSpec, String> {
@@ -685,8 +685,8 @@ fn axiatest_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axiatest::Gene
 		),
 	];
 
-	const ENDOWMENT: u128 = 1_000_000 * KSM;
-	const STASH: u128 = 100 * KSM;
+	const ENDOWMENT: u128 = 1_000_000 * AXCT;
+	const STASH: u128 = 100 * AXCT;
 
 	axiatest::GenesisConfig {
 		system: axiatest::SystemConfig {
@@ -1097,19 +1097,19 @@ pub fn axia_staging_testnet_config() -> Result<AXIAChainSpec, String> {
 
 /// Staging testnet config.
 #[cfg(feature = "axiatest-native")]
-pub fn axiatest_staging_testnet_config() -> Result<AXIATestChainSpec, String> {
-	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATest development wasm not available")?;
+pub fn axiatest_staging_testnet_config() -> Result<AXIATESTChainSpec, String> {
+	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATEST development wasm not available")?;
 	let boot_nodes = vec![];
 
-	Ok(AXIATestChainSpec::from_genesis(
-		"AXIATest Staging Testnet",
+	Ok(AXIATESTChainSpec::from_genesis(
+		"AXIATEST Staging Testnet",
 		"axiatest_staging_testnet",
 		ChainType::Live,
 		move || axiatest_staging_testnet_config_genesis(wasm_binary),
 		boot_nodes,
 		Some(
-			TelemetryEndpoints::new(vec![(KUSAMA_STAGING_TELEMETRY_URL.to_string(), 0)])
-				.expect("AXIATest Staging telemetry url is valid; qed"),
+			TelemetryEndpoints::new(vec![(AXIATEST_STAGING_TELEMETRY_URL.to_string(), 0)])
+				.expect("AXIATEST Staging telemetry url is valid; qed"),
 		),
 		Some(DEFAULT_PROTOCOL_ID),
 		None,
@@ -1345,8 +1345,8 @@ pub fn axiatest_testnet_genesis(
 ) -> axiatest::GenesisConfig {
 	let endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(testnet_accounts);
 
-	const ENDOWMENT: u128 = 1_000_000 * KSM;
-	const STASH: u128 = 100 * KSM;
+	const ENDOWMENT: u128 = 1_000_000 * AXCT;
+	const STASH: u128 = 100 * AXCT;
 
 	axiatest::GenesisConfig {
 		system: axiatest::SystemConfig {
@@ -1645,12 +1645,12 @@ pub fn axia_development_config() -> Result<AXIAChainSpec, String> {
 	))
 }
 
-/// AXIATest development config (single validator Alice)
+/// AXIATEST development config (single validator Alice)
 #[cfg(feature = "axiatest-native")]
-pub fn axiatest_development_config() -> Result<AXIATestChainSpec, String> {
-	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATest development wasm not available")?;
+pub fn axiatest_development_config() -> Result<AXIATESTChainSpec, String> {
+	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATEST development wasm not available")?;
 
-	Ok(AXIATestChainSpec::from_genesis(
+	Ok(AXIATESTChainSpec::from_genesis(
 		"Development",
 		"axiatest_dev",
 		ChainType::Development,
@@ -1770,13 +1770,13 @@ fn axiatest_local_testnet_genesis(wasm_binary: &[u8]) -> axiatest::GenesisConfig
 	)
 }
 
-/// AXIATest local testnet config (multivalidator Alice + Bob)
+/// AXIATEST local testnet config (multivalidator Alice + Bob)
 #[cfg(feature = "axiatest-native")]
-pub fn axiatest_local_testnet_config() -> Result<AXIATestChainSpec, String> {
-	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATest development wasm not available")?;
+pub fn axiatest_local_testnet_config() -> Result<AXIATESTChainSpec, String> {
+	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATEST development wasm not available")?;
 
-	Ok(AXIATestChainSpec::from_genesis(
-		"AXIATest Local Testnet",
+	Ok(AXIATESTChainSpec::from_genesis(
+		"AXIATEST Local Testnet",
 		"axiatest_local_testnet",
 		ChainType::Local,
 		move || axiatest_local_testnet_genesis(wasm_binary),

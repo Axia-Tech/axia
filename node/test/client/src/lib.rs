@@ -29,7 +29,7 @@ pub use block_builder::*;
 pub use axia_test_runtime as runtime;
 pub use axia_test_service::{
 	construct_extrinsic, construct_transfer_extrinsic, Client, FullBackend,
-	AXIATestExecutorDispatch,
+	AXIATESTExecutorDispatch,
 };
 pub use substrate_test_client::*;
 
@@ -37,7 +37,7 @@ pub use substrate_test_client::*;
 pub type Executor = client::LocalCallExecutor<
 	Block,
 	FullBackend,
-	sc_executor::NativeElseWasmExecutor<AXIATestExecutorDispatch>,
+	sc_executor::NativeElseWasmExecutor<AXIATESTExecutorDispatch>,
 >;
 
 /// Test client builder for AXIA.

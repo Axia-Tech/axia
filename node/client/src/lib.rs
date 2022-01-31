@@ -66,11 +66,11 @@ impl sc_executor::NativeExecutionDispatch for AXIAExecutorDispatch {
 }
 
 #[cfg(feature = "axiatest")]
-/// The native executor instance for AXIATest.
-pub struct AXIATestExecutorDispatch;
+/// The native executor instance for AXIATEST.
+pub struct AXIATESTExecutorDispatch;
 
 #[cfg(feature = "axiatest")]
-impl sc_executor::NativeExecutionDispatch for AXIATestExecutorDispatch {
+impl sc_executor::NativeExecutionDispatch for AXIATESTExecutorDispatch {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
@@ -198,7 +198,7 @@ where
 
 /// Execute something with the client instance.
 ///
-/// As there exist multiple chains inside AXIA, like AXIA itself, AXIATest, AlphaNet etc,
+/// As there exist multiple chains inside AXIA, like AXIA itself, AXIATEST, AlphaNet etc,
 /// there can exist different kinds of client types. As these client types differ in the generics
 /// that are being used, we can not easily return them from a function. For returning them from a
 /// function there exists [`Client`]. However, the problem on how to use this client instance still
@@ -248,7 +248,7 @@ macro_rules! with_client {
 			#[cfg(feature = "alphanet")]
 			Self::AlphaNet($client) => { $( $code )* },
 			#[cfg(feature = "axiatest")]
-			Self::AXIATest($client) => { $( $code )* },
+			Self::AXIATEST($client) => { $( $code )* },
 			#[cfg(feature = "betanet")]
 			Self::BetaNet($client) => { $( $code )* },
 		}
@@ -265,7 +265,7 @@ pub enum Client {
 	#[cfg(feature = "alphanet")]
 	AlphaNet(Arc<FullClient<alphanet_runtime::RuntimeApi, AlphaNetExecutorDispatch>>),
 	#[cfg(feature = "axiatest")]
-	AXIATest(Arc<FullClient<axiatest_runtime::RuntimeApi, AXIATestExecutorDispatch>>),
+	AXIATEST(Arc<FullClient<axiatest_runtime::RuntimeApi, AXIATESTExecutorDispatch>>),
 	#[cfg(feature = "betanet")]
 	BetaNet(Arc<FullClient<betanet_runtime::RuntimeApi, BetaNetExecutorDispatch>>),
 }

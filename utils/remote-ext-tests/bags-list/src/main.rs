@@ -22,14 +22,14 @@ mod voter_bags;
 
 #[derive(StructOpt)]
 enum Runtime {
-	AXIATest,
+	AXIATEST,
 }
 
 impl std::str::FromStr for Runtime {
 	type Err = &'static str;
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		match s.to_lowercase().as_str() {
-			"axiatest" => Ok(Runtime::AXIATest),
+			"axiatest" => Ok(Runtime::AXIATEST),
 			_ => Err("wrong Runtime: can be 'axia' or 'axiatest'."),
 		}
 	}
@@ -47,7 +47,7 @@ struct Cli {
 async fn main() {
 	let options = Cli::from_args();
 	match options.runtime {
-		Runtime::AXIATest => {
+		Runtime::AXIATEST => {
 			use axiatest_runtime::{constants::currency::UNITS, Block, Runtime};
 			voter_bags::test_voter_bags_migration::<Runtime, Block>(
 				UNITS as u64,
