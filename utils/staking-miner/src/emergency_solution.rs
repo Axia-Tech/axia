@@ -60,5 +60,5 @@ macro_rules! emergency_solution_cmd_for { ($runtime:ident) => { paste::paste! {
 }}}
 
 emergency_solution_cmd_for!(axia);
-emergency_solution_cmd_for!(axiatestnet);
+emergency_solution_cmd_for!(axiatest);
 emergency_solution_cmd_for!(alphanet);

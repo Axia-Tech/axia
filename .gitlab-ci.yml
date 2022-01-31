@@ -456,10 +456,10 @@ publish-adder-collator-image:
 update_axia_weights:
   <<:                              *update-weights
 
-update_axiatestnet_weights:
+update_axiatest_weights:
   <<:                              *update-weights
   variables:
-    RUNTIME:                       axiatestnet
+    RUNTIME:                       axiatest
 
 update_alphanet_weights:
   <<:                              *update-weights
@@ -552,7 +552,7 @@ publish-rustdoc:
 
 #### stage:                        deploy
 
-deploy-polkasync-axiatestnet:
+deploy-polkasync-axiatest:
   stage:                           deploy
   rules:
     # former .rules-build

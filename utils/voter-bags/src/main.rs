@@ -21,7 +21,7 @@
 //! quantity of bags, or if the existential deposit changes, etc.
 
 use generate_bags::generate_thresholds;
-use axiatestnet_runtime::Runtime as KusamaRuntime;
+use axiatest_runtime::Runtime as KusamaRuntime;
 use axia_runtime::Runtime as AXIARuntime;
 use std::path::{Path, PathBuf};
 use structopt::{clap::arg_enum, StructOpt};

@@ -17,12 +17,12 @@
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 3.0.0
 //! DATE: 2021-07-01, STEPS: `[50, ]`, REPEAT: 20, LOW RANGE: `[]`, HIGH RANGE: `[]`
-//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: Some("axiatestnet-dev"), DB CACHE: 128
+//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: Some("axiatest-dev"), DB CACHE: 128
 
 // Executed Command:
 // target/release/axia
 // benchmark
-// --chain=axiatestnet-dev
+// --chain=axiatest-dev
 // --steps=50
 // --repeat=20
 // --pallet=runtime_common::auctions
@@ -31,7 +31,7 @@
 // --wasm-execution=compiled
 // --heap-pages=4096
 // --header=./file_header.txt
-// --output=./runtime/axiatestnet/src/weights/
+// --output=./runtime/axiatest/src/weights/
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]

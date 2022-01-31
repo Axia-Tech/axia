@@ -9,7 +9,7 @@ jobs:
       matrix:
         channel:
         - '!LhjZccBOqFNYKLdmbb:axia.builders' # #KusamaValidatorLounge:axia.builders
-        - '!FMwxpQnYhRCNDRsYGI:matrix.axiacoin.network' # #axiatestnet-announcements:matrix.axiacoin.network
+        - '!FMwxpQnYhRCNDRsYGI:matrix.axiacoin.network' # #axiatest-announcements:matrix.axiacoin.network
         - '!NZrbtteFeqYKCUGQtr:matrix.axiacoin.network' # #axiavalidatorlounge:web3.foundation
         - '!UqHPWiCBGZWxrmYBkF:matrix.axiacoin.network' # #axia-announcements:matrix.axiacoin.network
         - '!NTogofoetwjbTwOoPi:matrix.axiacoin.network' # Internal release-notes channel

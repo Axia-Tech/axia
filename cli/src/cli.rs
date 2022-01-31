@@ -81,8 +81,8 @@ pub struct RunCmd {
 	pub base: sc_cli::RunCmd,
 
 	/// Force using Kusama native runtime.
-	#[structopt(long = "force-axiatestnet")]
-	pub force_axiatestnet: bool,
+	#[structopt(long = "force-axiatest")]
+	pub force_axiatest: bool,
 
 	/// Force using AlphaNet native runtime.
 	#[structopt(long = "force-alphanet")]

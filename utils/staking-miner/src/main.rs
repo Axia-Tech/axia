@@ -126,12 +126,12 @@ fn signed_ext_builder_axia(
 	)
 }
 
-fn signed_ext_builder_axiatestnet(
+fn signed_ext_builder_axiatest(
 	nonce: Index,
 	tip: Balance,
 	era: sp_runtime::generic::Era,
-) -> axiatestnet_runtime_exports::SignedExtra {
-	use axiatestnet_runtime_exports::Runtime;
+) -> axiatest_runtime_exports::SignedExtra {
+	use axiatest_runtime_exports::Runtime;
 	(
 		frame_system::CheckSpecVersion::<Runtime>::new(),
 		frame_system::CheckTxVersion::<Runtime>::new(),
@@ -161,7 +161,7 @@ fn signed_ext_builder_alphanet(
 }
 
 construct_runtime_prelude!(axia);
-construct_runtime_prelude!(axiatestnet);
+construct_runtime_prelude!(axiatest);
 construct_runtime_prelude!(alphanet);
 
 // NOTE: this is no longer used extensively, most of the per-runtime stuff us delegated to
@@ -182,7 +182,7 @@ macro_rules! any_runtime {
 				},
 				$crate::AnyRuntime::Kusama => {
 					#[allow(unused)]
-					use $crate::axiatestnet_runtime_exports::*;
+					use $crate::axiatest_runtime_exports::*;
 					$($code)*
 				},
 				$crate::AnyRuntime::AlphaNet => {
@@ -209,7 +209,7 @@ macro_rules! any_runtime_unit {
 				},
 				$crate::AnyRuntime::Kusama => {
 					#[allow(unused)]
-					use $crate::axiatestnet_runtime_exports::*;
+					use $crate::axiatest_runtime_exports::*;
 					let _ = $($code)*;
 				},
 				$crate::AnyRuntime::AlphaNet => {
@@ -559,7 +559,7 @@ async fn main() {
 				RUNTIME = AnyRuntime::AXIA;
 			}
 		},
-		"axiatestnet" | "axiatestnet-dev" => {
+		"axiatest" | "axiatest-dev" => {
 			sp_core::crypto::set_default_ss58_version(
 				sp_core::crypto::Ss58AddressFormatRegistry::KusamaAccount.into(),
 			);
@@ -637,9 +637,9 @@ mod tests {
 		unsafe {
 			RUNTIME = AnyRuntime::Kusama;
 		}
-		let axiatestnet_version = any_runtime! { get_version::<Runtime>() };
+		let axiatest_version = any_runtime! { get_version::<Runtime>() };
 
 		assert_eq!(axia_version.spec_name, "axia".into());
-		assert_eq!(axiatestnet_version.spec_name, "axiatestnet".into());
+		assert_eq!(axiatest_version.spec_name, "axiatest".into());
 	}
 }

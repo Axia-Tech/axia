@@ -36,7 +36,7 @@ impl SubstrateFinalitySyncPipeline for BetaNetFinalityToWococo {
 	type TargetChain = Wococo;
 
 	fn customize_metrics(params: MetricsParams) -> anyhow::Result<MetricsParams> {
-		crate::chains::add_axia_axiatestnet_price_metrics::<Self>(params)
+		crate::chains::add_axia_axiatest_price_metrics::<Self>(params)
 	}
 
 	fn start_relay_guards(&self) {

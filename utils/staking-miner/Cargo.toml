@@ -38,7 +38,7 @@ core-primitives = { package = "axia-core-primitives", path = "../../core-primiti
 
 runtime-common = { package = "axia-runtime-common", path = "../../runtime/common" }
 axia-runtime = { path = "../../runtime/axia" }
-axiatestnet-runtime = { path = "../../runtime/axiatestnet" }
+axiatest-runtime = { path = "../../runtime/axiatest" }
 alphanet-runtime = { path = "../../runtime/alphanet" }
 
 sub-tokens = { git = "https://github.com/paritytech/substrate-debug-kit", branch = "master" }

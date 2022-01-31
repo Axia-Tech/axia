@@ -56,7 +56,7 @@ try-runtime = [ "service/try-runtime" ]
 #
 # Validators require the native runtime currently
 axia-native = [ "service/axia-native" ]
-axiatestnet-native = [ "service/axiatestnet-native" ]
+axiatest-native = [ "service/axiatest-native" ]
 alphanet-native = [ "service/alphanet-native" ]
 betanet-native = [ "service/betanet-native" ]
 

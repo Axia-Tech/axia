@@ -33,7 +33,7 @@ beefy-primitives = { git = "https://github.com/axia-tech/axia-core", branch = "d
 
 # AXIA Runtimes
 axia-runtime = { path = "../../runtime/axia", optional = true }
-axiatestnet-runtime = { path = "../../runtime/axiatestnet", optional = true }
+axiatest-runtime = { path = "../../runtime/axiatest", optional = true }
 alphanet-runtime = { path = "../../runtime/alphanet", optional = true }
 betanet-runtime = { path = "../../runtime/betanet", optional = true }
 
@@ -42,6 +42,6 @@ axia-primitives = { path = "../../primitives" }
 [features]
 default = ["axia"]
 axia = ["axia-runtime"]
-axiatestnet = ["axiatestnet-runtime"]
+axiatest = ["axiatest-runtime"]
 betanet = ["betanet-runtime"]
 alphanet = ["alphanet-runtime"]

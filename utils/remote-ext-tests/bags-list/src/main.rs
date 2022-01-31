@@ -29,17 +29,17 @@ impl std::str::FromStr for Runtime {
 	type Err = &'static str;
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		match s.to_lowercase().as_str() {
-			"axiatestnet" => Ok(Runtime::Kusama),
-			_ => Err("wrong Runtime: can be 'axia' or 'axiatestnet'."),
+			"axiatest" => Ok(Runtime::Kusama),
+			_ => Err("wrong Runtime: can be 'axia' or 'axiatest'."),
 		}
 	}
 }
 
 #[derive(StructOpt)]
 struct Cli {
-	#[structopt(long, default_value = "wss://rpc.axiatestnet.io")]
+	#[structopt(long, default_value = "wss://rpc.axiatest.io")]
 	uri: String,
-	#[structopt(long, short, default_value = "axiatestnet")]
+	#[structopt(long, short, default_value = "axiatest")]
 	runtime: Runtime,
 }
 
@@ -48,7 +48,7 @@ async fn main() {
 	let options = Cli::from_args();
 	match options.runtime {
 		Runtime::Kusama => {
-			use axiatestnet_runtime::{constants::currency::UNITS, Block, Runtime};
+			use axiatest_runtime::{constants::currency::UNITS, Block, Runtime};
 			voter_bags::test_voter_bags_migration::<Runtime, Block>(
 				UNITS as u64,
 				options.uri.clone(),

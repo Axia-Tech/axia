@@ -125,13 +125,13 @@ date to include them.
 
 There are three benchmarking machines reserved for updating the weights at
 release-time. To initialise a benchmark run for each production runtime
-(alphanet, axiatestnet, axia):
+(alphanet, axiatest, axia):
 * Go to https://gitlab.axiacoin.network/axia/axia/-/pipelines?page=1&scope=branches&ref=master
 * Click the link to the last pipeline run for master
 * Start each of the manual jobs:
   * 'update_alphanet_weights'
   * 'update_axia_weights'
-  * 'update_axiatestnet_weights'
+  * 'update_axiatest_weights'
 * When these jobs have completed (it takes a few hours), a git PATCH file will
     be available to download as an artifact. 
 * On your local machine, branch off master

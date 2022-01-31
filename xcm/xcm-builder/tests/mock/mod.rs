@@ -53,7 +53,7 @@ impl SendXcm for TestSendXcm {
 	}
 }
 
-// copied from axiatestnet constants
+// copied from axiatest constants
 pub const UNITS: Balance = 1_000_000_000_000;
 pub const CENTS: Balance = UNITS / 30_000;
 
@@ -212,7 +212,7 @@ construct_runtime!(
 	}
 );
 
-pub fn axiatestnet_like_with_balances(balances: Vec<(AccountId, Balance)>) -> sp_io::TestExternalities {
+pub fn axiatest_like_with_balances(balances: Vec<(AccountId, Balance)>) -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::default().build_storage::<Runtime>().unwrap();
 
 	pallet_balances::GenesisConfig::<Runtime> { balances }
