@@ -639,7 +639,7 @@ dependencies = [
  "alphanet-runtime",
  "axia-primitives",
  "axia-runtime",
- "axiatestnet-runtime",
+ "axiatest-runtime",
  "beefy-primitives",
  "betanet-runtime",
  "frame-benchmarking",
@@ -1570,7 +1570,7 @@ dependencies = [
  "axia-runtime-allychains",
  "axia-statement-distribution",
  "axia-test-client",
- "axiatestnet-runtime",
+ "axiatest-runtime",
  "beefy-gadget",
  "beefy-primitives",
  "betanet-runtime",
@@ -1891,14 +1891,14 @@ version = "0.9.0"
 dependencies = [
  "alphanet-runtime",
  "axia-runtime",
- "axiatestnet-runtime",
+ "axiatest-runtime",
  "generate-bags",
  "sp-io",
  "structopt",
 ]
 
 [[package]]
-name = "axiatestnet-runtime"
+name = "axiatest-runtime"
 version = "0.9.12"
 dependencies = [
  "axia-primitives",
@@ -7800,7 +7800,7 @@ name = "remote-ext-tests-bags-list"
 version = "0.9.12"
 dependencies = [
  "axia-runtime",
- "axiatestnet-runtime",
+ "axiatest-runtime",
  "frame-election-provider-support",
  "frame-support",
  "log",
@@ -10051,7 +10051,7 @@ dependencies = [
  "axia-core-primitives",
  "axia-runtime",
  "axia-runtime-common",
- "axiatestnet-runtime",
+ "axiatest-runtime",
  "env_logger 0.9.0",
  "frame-election-provider-support",
  "frame-support",

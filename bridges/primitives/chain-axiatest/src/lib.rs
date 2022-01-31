@@ -25,59 +25,59 @@ use sp_std::prelude::*;
 
 pub use bp_axia_core::*;
 
-/// Kusama Chain
-pub type Kusama = AXIALike;
+/// AXIATest Chain
+pub type AXIATest = AXIALike;
 
-// We use this to get the account on Kusama (target) which is derived from AXIA's (source)
+// We use this to get the account on AXIATest (target) which is derived from AXIA's (source)
 // account.
 pub fn derive_account_from_axia_id(id: bp_runtime::SourceAccount<AccountId>) -> AccountId {
 	let encoded_id = bp_runtime::derive_account_id(bp_runtime::AXIA_CHAIN_ID, id);
 	AccountIdConverter::convert(encoded_id)
 }
 
-/// Name of the `KusamaFinalityApi::best_finalized` runtime method.
-pub const BEST_FINALIZED_KUSAMA_HEADER_METHOD: &str = "KusamaFinalityApi_best_finalized";
-/// Name of the `KusamaFinalityApi::is_known_header` runtime method.
-pub const IS_KNOWN_KUSAMA_HEADER_METHOD: &str = "KusamaFinalityApi_is_known_header";
+/// Name of the `AXIATestFinalityApi::best_finalized` runtime method.
+pub const BEST_FINALIZED_KUSAMA_HEADER_METHOD: &str = "AXIATestFinalityApi_best_finalized";
+/// Name of the `AXIATestFinalityApi::is_known_header` runtime method.
+pub const IS_KNOWN_KUSAMA_HEADER_METHOD: &str = "AXIATestFinalityApi_is_known_header";
 
-/// Name of the `ToKusamaOutboundLaneApi::estimate_message_delivery_and_dispatch_fee` runtime method.
+/// Name of the `ToAXIATestOutboundLaneApi::estimate_message_delivery_and_dispatch_fee` runtime method.
 pub const TO_KUSAMA_ESTIMATE_MESSAGE_FEE_METHOD: &str =
-	"ToKusamaOutboundLaneApi_estimate_message_delivery_and_dispatch_fee";
-/// Name of the `ToKusamaOutboundLaneApi::message_details` runtime method.
-pub const TO_KUSAMA_MESSAGE_DETAILS_METHOD: &str = "ToKusamaOutboundLaneApi_message_details";
-/// Name of the `ToKusamaOutboundLaneApi::latest_generated_nonce` runtime method.
-pub const TO_KUSAMA_LATEST_GENERATED_NONCE_METHOD: &str = "ToKusamaOutboundLaneApi_latest_generated_nonce";
-/// Name of the `ToKusamaOutboundLaneApi::latest_received_nonce` runtime method.
-pub const TO_KUSAMA_LATEST_RECEIVED_NONCE_METHOD: &str = "ToKusamaOutboundLaneApi_latest_received_nonce";
+	"ToAXIATestOutboundLaneApi_estimate_message_delivery_and_dispatch_fee";
+/// Name of the `ToAXIATestOutboundLaneApi::message_details` runtime method.
+pub const TO_KUSAMA_MESSAGE_DETAILS_METHOD: &str = "ToAXIATestOutboundLaneApi_message_details";
+/// Name of the `ToAXIATestOutboundLaneApi::latest_generated_nonce` runtime method.
+pub const TO_KUSAMA_LATEST_GENERATED_NONCE_METHOD: &str = "ToAXIATestOutboundLaneApi_latest_generated_nonce";
+/// Name of the `ToAXIATestOutboundLaneApi::latest_received_nonce` runtime method.
+pub const TO_KUSAMA_LATEST_RECEIVED_NONCE_METHOD: &str = "ToAXIATestOutboundLaneApi_latest_received_nonce";
 
-/// Name of the `FromKusamaInboundLaneApi::latest_received_nonce` runtime method.
-pub const FROM_KUSAMA_LATEST_RECEIVED_NONCE_METHOD: &str = "FromKusamaInboundLaneApi_latest_received_nonce";
-/// Name of the `FromKusamaInboundLaneApi::latest_onfirmed_nonce` runtime method.
-pub const FROM_KUSAMA_LATEST_CONFIRMED_NONCE_METHOD: &str = "FromKusamaInboundLaneApi_latest_confirmed_nonce";
-/// Name of the `FromKusamaInboundLaneApi::unrewarded_relayers_state` runtime method.
-pub const FROM_KUSAMA_UNREWARDED_RELAYERS_STATE: &str = "FromKusamaInboundLaneApi_unrewarded_relayers_state";
+/// Name of the `FromAXIATestInboundLaneApi::latest_received_nonce` runtime method.
+pub const FROM_KUSAMA_LATEST_RECEIVED_NONCE_METHOD: &str = "FromAXIATestInboundLaneApi_latest_received_nonce";
+/// Name of the `FromAXIATestInboundLaneApi::latest_onfirmed_nonce` runtime method.
+pub const FROM_KUSAMA_LATEST_CONFIRMED_NONCE_METHOD: &str = "FromAXIATestInboundLaneApi_latest_confirmed_nonce";
+/// Name of the `FromAXIATestInboundLaneApi::unrewarded_relayers_state` runtime method.
+pub const FROM_KUSAMA_UNREWARDED_RELAYERS_STATE: &str = "FromAXIATestInboundLaneApi_unrewarded_relayers_state";
 
 sp_api::decl_runtime_apis! {
-	/// API for querying information about the finalized Kusama headers.
+	/// API for querying information about the finalized AXIATest headers.
 	///
-	/// This API is implemented by runtimes that are bridging with the Kusama chain, not the
-	/// Kusama runtime itself.
-	pub trait KusamaFinalityApi {
+	/// This API is implemented by runtimes that are bridging with the AXIATest chain, not the
+	/// AXIATest runtime itself.
+	pub trait AXIATestFinalityApi {
 		/// Returns number and hash of the best finalized header known to the bridge module.
 		fn best_finalized() -> (BlockNumber, Hash);
 		/// Returns true if the header is known to the runtime.
 		fn is_known_header(hash: Hash) -> bool;
 	}
 
-	/// Outbound message lane API for messages that are sent to Kusama chain.
+	/// Outbound message lane API for messages that are sent to AXIATest chain.
 	///
-	/// This API is implemented by runtimes that are sending messages to Kusama chain, not the
-	/// Kusama runtime itself.
-	pub trait ToKusamaOutboundLaneApi<OutboundMessageFee: Parameter, OutboundPayload: Parameter> {
+	/// This API is implemented by runtimes that are sending messages to AXIATest chain, not the
+	/// AXIATest runtime itself.
+	pub trait ToAXIATestOutboundLaneApi<OutboundMessageFee: Parameter, OutboundPayload: Parameter> {
 		/// Estimate message delivery and dispatch fee that needs to be paid by the sender on
 		/// this chain.
 		///
-		/// Returns `None` if message is too expensive to be sent to Kusama from this chain.
+		/// Returns `None` if message is too expensive to be sent to AXIATest from this chain.
 		///
 		/// Please keep in mind that this method returns the lowest message fee required for message
 		/// to be accepted to the lane. It may be good idea to pay a bit over this price to account
@@ -103,11 +103,11 @@ sp_api::decl_runtime_apis! {
 		fn latest_generated_nonce(lane: LaneId) -> MessageNonce;
 	}
 
-	/// Inbound message lane API for messages sent by Kusama chain.
+	/// Inbound message lane API for messages sent by AXIATest chain.
 	///
-	/// This API is implemented by runtimes that are receiving messages from Kusama chain, not the
-	/// Kusama runtime itself.
-	pub trait FromKusamaInboundLaneApi {
+	/// This API is implemented by runtimes that are receiving messages from AXIATest chain, not the
+	/// AXIATest runtime itself.
+	pub trait FromAXIATestInboundLaneApi {
 		/// Returns nonce of the latest message, received by given lane.
 		fn latest_received_nonce(lane: LaneId) -> MessageNonce;
 		/// Nonce of the latest message that has been confirmed to the bridged chain.

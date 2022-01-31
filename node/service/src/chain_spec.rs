@@ -86,12 +86,12 @@ pub type AXIAChainSpec = DummyChainSpec;
 
 /// The `ChainSpec` parameterized for the axiatest runtime.
 #[cfg(feature = "axiatest-native")]
-pub type KusamaChainSpec = service::GenericChainSpec<axiatest::GenesisConfig, Extensions>;
+pub type AXIATestChainSpec = service::GenericChainSpec<axiatest::GenesisConfig, Extensions>;
 
 /// The `ChainSpec` parameterized for the axiatest runtime.
 // Dummy chain spec, but that is fine when we don't have the native runtime.
 #[cfg(not(feature = "axiatest-native"))]
-pub type KusamaChainSpec = DummyChainSpec;
+pub type AXIATestChainSpec = DummyChainSpec;
 
 /// The `ChainSpec` parameterized for the alphanet runtime.
 #[cfg(feature = "alphanet-native")]
@@ -139,8 +139,8 @@ pub fn axia_config() -> Result<AXIAChainSpec, String> {
 	AXIAChainSpec::from_json_bytes(&include_bytes!("../res/axia.json")[..])
 }
 
-pub fn axiatest_config() -> Result<KusamaChainSpec, String> {
-	KusamaChainSpec::from_json_bytes(&include_bytes!("../res/axiatest.json")[..])
+pub fn axiatest_config() -> Result<AXIATestChainSpec, String> {
+	AXIATestChainSpec::from_json_bytes(&include_bytes!("../res/axiatest.json")[..])
 }
 
 pub fn alphanet_config() -> Result<AlphaNetChainSpec, String> {
@@ -1097,19 +1097,19 @@ pub fn axia_staging_testnet_config() -> Result<AXIAChainSpec, String> {
 
 /// Staging testnet config.
 #[cfg(feature = "axiatest-native")]
-pub fn axiatest_staging_testnet_config() -> Result<KusamaChainSpec, String> {
-	let wasm_binary = axiatest::WASM_BINARY.ok_or("Kusama development wasm not available")?;
+pub fn axiatest_staging_testnet_config() -> Result<AXIATestChainSpec, String> {
+	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATest development wasm not available")?;
 	let boot_nodes = vec![];
 
-	Ok(KusamaChainSpec::from_genesis(
-		"Kusama Staging Testnet",
+	Ok(AXIATestChainSpec::from_genesis(
+		"AXIATest Staging Testnet",
 		"axiatest_staging_testnet",
 		ChainType::Live,
 		move || axiatest_staging_testnet_config_genesis(wasm_binary),
 		boot_nodes,
 		Some(
 			TelemetryEndpoints::new(vec![(KUSAMA_STAGING_TELEMETRY_URL.to_string(), 0)])
-				.expect("Kusama Staging telemetry url is valid; qed"),
+				.expect("AXIATest Staging telemetry url is valid; qed"),
 		),
 		Some(DEFAULT_PROTOCOL_ID),
 		None,
@@ -1645,12 +1645,12 @@ pub fn axia_development_config() -> Result<AXIAChainSpec, String> {
 	))
 }
 
-/// Kusama development config (single validator Alice)
+/// AXIATest development config (single validator Alice)
 #[cfg(feature = "axiatest-native")]
-pub fn axiatest_development_config() -> Result<KusamaChainSpec, String> {
-	let wasm_binary = axiatest::WASM_BINARY.ok_or("Kusama development wasm not available")?;
+pub fn axiatest_development_config() -> Result<AXIATestChainSpec, String> {
+	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATest development wasm not available")?;
 
-	Ok(KusamaChainSpec::from_genesis(
+	Ok(AXIATestChainSpec::from_genesis(
 		"Development",
 		"axiatest_dev",
 		ChainType::Development,
@@ -1770,13 +1770,13 @@ fn axiatest_local_testnet_genesis(wasm_binary: &[u8]) -> axiatest::GenesisConfig
 	)
 }
 
-/// Kusama local testnet config (multivalidator Alice + Bob)
+/// AXIATest local testnet config (multivalidator Alice + Bob)
 #[cfg(feature = "axiatest-native")]
-pub fn axiatest_local_testnet_config() -> Result<KusamaChainSpec, String> {
-	let wasm_binary = axiatest::WASM_BINARY.ok_or("Kusama development wasm not available")?;
+pub fn axiatest_local_testnet_config() -> Result<AXIATestChainSpec, String> {
+	let wasm_binary = axiatest::WASM_BINARY.ok_or("AXIATest development wasm not available")?;
 
-	Ok(KusamaChainSpec::from_genesis(
-		"Kusama Local Testnet",
+	Ok(AXIATestChainSpec::from_genesis(
+		"AXIATest Local Testnet",
 		"axiatest_local_testnet",
 		ChainType::Local,
 		move || axiatest_local_testnet_genesis(wasm_binary),

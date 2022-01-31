@@ -46,7 +46,7 @@ pub const MILLAU_CHAIN_ID: ChainId = *b"mlau";
 /// Bridge-with-AXIA instance id.
 pub const AXIA_CHAIN_ID: ChainId = *b"pdot";
 
-/// Bridge-with-Kusama instance id.
+/// Bridge-with-AXIATest instance id.
 pub const KUSAMA_CHAIN_ID: ChainId = *b"ksma";
 
 /// Bridge-with-BetaNet instance id.

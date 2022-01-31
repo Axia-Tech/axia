@@ -1,24 +1,24 @@
 # Testing Scenarios
 
-In the scenarios, for simplicity, we call the chains Kusama (KSM token) and AXIA (AXC token),
+In the scenarios, for simplicity, we call the chains AXIATest (KSM token) and AXIA (AXC token),
 but they should be applicable to any other chains. The first scenario has detailed description about
 the entire process (also see the [sequence diagram](./scenario1.html)). Other scenarios only contain
 a simplified interaction focusing on things that are unique for that particular scenario.
 
 Notation:
-- kX - user X interacting with Kusama chain.
-- `k(kX)` - Kusama account id of user kX (native account id; usable on Kusama)
+- kX - user X interacting with AXIATest chain.
+- `k(kX)` - AXIATest account id of user kX (native account id; usable on AXIATest)
 - `p(kX)` - AXIA account id of user kX (account id derived from `k(kX)` usable on AXIA)
-- [Kusama] ... - Interaction happens on Kusama (e.g. the user interacts with Kusama chain)
+- [AXIATest] ... - Interaction happens on AXIATest (e.g. the user interacts with AXIATest chain)
 - [AXIA] ... - Interaction happens on AXIA
 
 Basic Scenarios
 ===========================
 
-Scenario 1: Kusama's Alice receiving & spending AXCs
+Scenario 1: AXIATest's Alice receiving & spending AXCs
 ---------------------------
 
-Kusama's Alice (kAlice) receives 5 AXCs from AXIA's Bob (pBob) and sends half of them to
+AXIATest's Alice (kAlice) receives 5 AXCs from AXIA's Bob (pBob) and sends half of them to
 kCharlie.
 
 1. Generate kAlice's AXC address (`p(kAlice)`).
@@ -40,14 +40,14 @@ kCharlie.
    1. It is included in block.
    1. kAlice observers AXIA chain to see her balance at `p(kAlice)` updated.
 
-3. [Kusama] kAlice sends 2.5 AXCs to `p(kCharlie)`
+3. [AXIATest] kAlice sends 2.5 AXCs to `p(kCharlie)`
    1. kAlice prepares:
       ```rust
         let call = axia::Call::Balances(axia::Balances::Transfer(p(kCharlie), 2.5AXC)).encode();
         let weight = call.get_dispatch_info().weight;
       ```
 
-   1. kAlice prepares Kusama transaction:
+   1. kAlice prepares AXIATest transaction:
       ```rust
       axiatest::Call::Messages::<Instance=AXIA>::send_message(
         // dot-transfer-lane (truncated to 4bytes)
@@ -77,11 +77,11 @@ kCharlie.
       )
       ```
 
-   1. [Kusama] kAlice sends Kusama transaction with the above `Call` and pays regular fees. The
+   1. [AXIATest] kAlice sends AXIATest transaction with the above `Call` and pays regular fees. The
       dispatch additionally reservers target-chain delivery and dispatch fees (including relayer's
       reward).
 
-4. [Kusama] kAlice's transaction is included in block `B1`
+4. [AXIATest] kAlice's transaction is included in block `B1`
 
 ### Syncing headers loop
 
@@ -91,12 +91,12 @@ kCharlie.
 1. Relayer prepares transaction which delivers `B1` and with all of the missing
    ancestors to the target chain (one header per transaction).
 
-1. After the transaction is succesfully dispatched the AXIA on-chain light client of the Kusama
+1. After the transaction is succesfully dispatched the AXIA on-chain light client of the AXIATest
    chain learns about block `B1` - it is stored in the on-chain storage.
 
 ### Syncing finality loop
 
-8. Relayer is subscribed to finality events on Kusama. Relayer gets a finality notification for
+8. Relayer is subscribed to finality events on AXIATest. Relayer gets a finality notification for
    block `B3`.
 
 1. The header sync informs the target chain about `B1..B3` blocks (see point 6).
@@ -113,13 +113,13 @@ kCharlie.
     - syncing on demand (what blocks miss finality)
     - and syncing as notifications are received (recently finalized on-chain)
 
-1. Eventually AXIA on-chain light client of Kusama learns about finality of `B1`.
+1. Eventually AXIA on-chain light client of AXIATest learns about finality of `B1`.
 
 ### Syncing messages loop
 
 13. The relayer checks the on-chain storage (last finalized header on the source, best header on the
     target):
-    - Kusama outbound lane
+    - AXIATest outbound lane
     - AXIA inbound lane
     Lanes contains `latest_generated_nonce` and `latest_received_nonce` respectively. The relayer
     syncs messages between that range.
@@ -164,58 +164,58 @@ kCharlie.
 - The UI should warn before (or prevent) sending to `k(kCharlie)`!
 
 
-Scenario 2: Kusama's Alice nominating validators with her AXCs
+Scenario 2: AXIATest's Alice nominating validators with her AXCs
 ---------------------------
 
 kAlice receives 10 AXCs from pBob and nominates `p(pCharlie)` and `p(pDave)`.
 
 1. Generate kAlice's AXC address (`p(kAlice)`)
 2. [AXIA] pBob transfers 5 AXCs to `p(kAlice)`
-3. [Kusama] kAlice sends a batch transaction:
+3. [AXIATest] kAlice sends a batch transaction:
   - `staking::Bond` transaction to create stash account choosing `p(kAlice)` as the controller account.
   - `staking::Nominate(vec![p(pCharlie)])` to nominate pCharlie using the controller account.
 
 
-Scenario 3: Kusama Treasury receiving & spending AXCs
+Scenario 3: AXIATest Treasury receiving & spending AXCs
 ---------------------------
 
-pBob sends 15 AXCs to Kusama Treasury which Kusama Governance decides to transfer to kCharlie.
+pBob sends 15 AXCs to AXIATest Treasury which AXIATest Governance decides to transfer to kCharlie.
 
 1. Generate source account for the treasury (`kTreasury`).
 2. [AXIA] pBob tarnsfers 15 AXCs to `p(kTreasury)`.
-2. [Kusama] Send a governance proposal to send a bridge message which transfers funds to `p(kCharlie)`.
-3. [Kusama] Dispatch the governance proposal using `kTreasury` account id.
+2. [AXIATest] Send a governance proposal to send a bridge message which transfers funds to `p(kCharlie)`.
+3. [AXIATest] Dispatch the governance proposal using `kTreasury` account id.
 
 Extra scenarios
 ===========================
 
-Scenario 4: Kusama's Alice setting up 1-of-2 multi-sig to spend from either Kusama or AXIA
+Scenario 4: AXIATest's Alice setting up 1-of-2 multi-sig to spend from either AXIATest or AXIA
 ---------------------------
 
 Assuming `p(pAlice)` has at least 7 AXCs already.
 
 1. Generate multisig account id: `pMultiSig = multi_account_id(&[p(kAlice), p(pAlice)], 1)`.
-2. [Kusama] Transfer 7 AXCs to `pMultiSig` using `TargetAccount` origin of `pAlice`.
-3. [Kusama] Transfer 2 AXCs to `p(kAlice)` from the multisig:
+2. [AXIATest] Transfer 7 AXCs to `pMultiSig` using `TargetAccount` origin of `pAlice`.
+3. [AXIATest] Transfer 2 AXCs to `p(kAlice)` from the multisig:
    - Send `multisig::as_multi_threshold_1(vec![p(pAlice)], balances::Transfer(p(kAlice), 2))`
 
-Scenario 5: Kusama Treasury staking & nominating validators with AXCs
+Scenario 5: AXIATest Treasury staking & nominating validators with AXCs
 ---------------------------
 
-Scenario 6: Kusama Treasury voting in AXIA's democracy proposal
+Scenario 6: AXIATest Treasury voting in AXIA's democracy proposal
 ---------------------------
 
 Potentially interesting scenarios
 ===========================
 
-Scenario 7: AXIA's Bob spending his AXCs by using Kusama chain
+Scenario 7: AXIA's Bob spending his AXCs by using AXIATest chain
 ---------------------------
 
 We can assume he holds KSM. Problem: he can pay fees, but can't really send (sign) a transaction?
 Shall we support some kind of dispatcher?
 
-Scenario 8: Kusama Governance taking over Kusama's Alice AXC holdings
+Scenario 8: AXIATest Governance taking over AXIATest's Alice AXC holdings
 ---------------------------
 
-We use `SourceRoot` call to transfer her's AXCs to Kusama treasury. Source chain root
+We use `SourceRoot` call to transfer her's AXCs to AXIATest treasury. Source chain root
 should also be able to send messages as `CallOrigin::SourceAccount(Alice)` though.

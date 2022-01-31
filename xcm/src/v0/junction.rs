@@ -29,8 +29,8 @@ pub enum NetworkId {
 	Named(Vec<u8>),
 	/// The AXIA Relay chain
 	AXIA,
-	/// Kusama.
-	Kusama,
+	/// AXIATest.
+	AXIATest,
 }
 
 /// An identifier of a pluralistic body.

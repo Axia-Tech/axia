@@ -94,14 +94,14 @@ impl configuration::Config for Runtime {
 
 parameter_types! {
 	pub const KsmLocation: MultiLocation = Here.into();
-	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
+	pub const AXIATestNetwork: NetworkId = NetworkId::AXIATest;
 	pub const AnyNetwork: NetworkId = NetworkId::Any;
 	pub Ancestry: MultiLocation = Here.into();
 	pub UnitWeightCost: Weight = 1_000;
 }
 
 pub type SovereignAccountOf =
-	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<KusamaNetwork, AccountId>);
+	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AXIATestNetwork, AccountId>);
 
 pub type LocalAssetTransactor =
 	XcmCurrencyAdapter<Balances, IsConcrete<KsmLocation>, SovereignAccountOf, AccountId, ()>;
@@ -109,7 +109,7 @@ pub type LocalAssetTransactor =
 type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, Origin>,
 	ChildParachainAsNative<origin::Origin, Origin>,
-	SignedAccountId32AsNative<KusamaNetwork, Origin>,
+	SignedAccountId32AsNative<AXIATestNetwork, Origin>,
 	ChildSystemParachainAsSuperuser<ParaId, Origin>,
 );
 
@@ -140,7 +140,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = ();
 }
 
-pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, KusamaNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, AXIATestNetwork>;
 
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;

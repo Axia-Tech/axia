@@ -48,7 +48,7 @@ use structopt::StructOpt;
 
 pub(crate) enum AnyRuntime {
 	AXIA,
-	Kusama,
+	AXIATest,
 	AlphaNet,
 }
 
@@ -180,7 +180,7 @@ macro_rules! any_runtime {
 					use $crate::axia_runtime_exports::*;
 					$($code)*
 				},
-				$crate::AnyRuntime::Kusama => {
+				$crate::AnyRuntime::AXIATest => {
 					#[allow(unused)]
 					use $crate::axiatest_runtime_exports::*;
 					$($code)*
@@ -207,7 +207,7 @@ macro_rules! any_runtime_unit {
 					use $crate::axia_runtime_exports::*;
 					let _ = $($code)*;
 				},
-				$crate::AnyRuntime::Kusama => {
+				$crate::AnyRuntime::AXIATest => {
 					#[allow(unused)]
 					use $crate::axiatest_runtime_exports::*;
 					let _ = $($code)*;
@@ -561,14 +561,14 @@ async fn main() {
 		},
 		"axiatest" | "axiatest-dev" => {
 			sp_core::crypto::set_default_ss58_version(
-				sp_core::crypto::Ss58AddressFormatRegistry::KusamaAccount.into(),
+				sp_core::crypto::Ss58AddressFormatRegistry::AXIATestAccount.into(),
 			);
 			sub_tokens::dynamic::set_name("KSM");
 			sub_tokens::dynamic::set_decimal_points(1_000_000_000_000);
 			// safety: this program will always be single threaded, thus accessing global static is
 			// safe.
 			unsafe {
-				RUNTIME = AnyRuntime::Kusama;
+				RUNTIME = AnyRuntime::AXIATest;
 			}
 		},
 		"alphanet" => {
@@ -635,7 +635,7 @@ mod tests {
 		let axia_version = any_runtime! { get_version::<Runtime>() };
 
 		unsafe {
-			RUNTIME = AnyRuntime::Kusama;
+			RUNTIME = AnyRuntime::AXIATest;
 		}
 		let axiatest_version = any_runtime! { get_version::<Runtime>() };
 

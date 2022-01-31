@@ -1,6 +1,6 @@
 [package]
 name = "bp-axiatest"
-description = "Primitives of Kusama runtime."
+description = "Primitives of AXIATest runtime."
 version = "0.1.0"
 authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"

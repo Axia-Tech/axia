@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA Bridges Common.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Types used to connect to the Kusama chain.
+//! Types used to connect to the AXIATest chain.
 
 use relay_substrate_client::{Chain, ChainBase};
 use std::time::Duration;
 
-/// Kusama header id.
+/// AXIATest header id.
 pub type HeaderId = relay_utils::HeaderId<bp_axiatest::Hash, bp_axiatest::BlockNumber>;
 
-/// Kusama chain definition
+/// AXIATest chain definition
 #[derive(Debug, Clone, Copy)]
-pub struct Kusama;
+pub struct AXIATest;
 
-impl ChainBase for Kusama {
+impl ChainBase for AXIATest {
 	type BlockNumber = bp_axiatest::BlockNumber;
 	type Hash = bp_axiatest::Hash;
 	type Hasher = bp_axiatest::Hasher;
 	type Header = bp_axiatest::Header;
 }
 
-impl Chain for Kusama {
-	const NAME: &'static str = "Kusama";
+impl Chain for AXIATest {
+	const NAME: &'static str = "AXIATest";
 	const AVERAGE_BLOCK_INTERVAL: Duration = Duration::from_secs(6);
 
 	type AccountId = bp_axiatest::AccountId;
@@ -44,5 +44,5 @@ impl Chain for Kusama {
 	type Balance = bp_axiatest::Balance;
 }
 
-/// Kusama header type used in headers sync.
+/// AXIATest header type used in headers sync.
 pub type SyncHeader = relay_substrate_client::SyncHeader<bp_axiatest::Header>;

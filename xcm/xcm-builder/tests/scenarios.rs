@@ -156,7 +156,7 @@ fn query_holding_works() {
 }
 
 /// Scenario:
-/// A allychain wants to move KSM from Kusama to Statemine.
+/// A allychain wants to move KSM from AXIATest to Statemine.
 /// The allychain sends an XCM to withdraw funds combined with a teleport to the destination.
 ///
 /// This way of moving funds from a relay to a allychain will only work for trusted chains.
@@ -248,7 +248,7 @@ fn teleport_to_statemine_works() {
 }
 
 /// Scenario:
-/// A allychain wants to move KSM from Kusama to the allychain.
+/// A allychain wants to move KSM from AXIATest to the allychain.
 /// It withdraws funds and then deposits them into the reserve account of the destination chain.
 /// to the destination.
 ///

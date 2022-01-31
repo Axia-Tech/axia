@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA. If not, see <http://www.gnu.org/licenses/>.
 
-//! The Kusama runtime. This can be compiled with `#[no_std]`, ready for Wasm.
+//! The AXIATest runtime. This can be compiled with `#[no_std]`, ready for Wasm.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
@@ -111,7 +111,7 @@ mod tests;
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-/// Runtime version (Kusama).
+/// Runtime version (AXIATest).
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("axiatest"),
 	impl_name: create_runtime_str!("axia-axiatest"),
@@ -868,7 +868,7 @@ where
 }
 
 parameter_types! {
-	pub Prefix: &'static [u8] = b"Pay KSMs to the Kusama account:";
+	pub Prefix: &'static [u8] = b"Pay KSMs to the AXIATest account:";
 }
 
 impl claims::Config for Runtime {
@@ -1262,10 +1262,10 @@ parameter_types! {
 	/// chain, we make it synonymous with it and thus it is the `Here` location, which means "equivalent to
 	/// the context".
 	pub const KsmLocation: MultiLocation = Here.into();
-	/// The Kusama network ID. This is named.
-	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
+	/// The AXIATest network ID. This is named.
+	pub const AXIATestNetwork: NetworkId = NetworkId::AXIATest;
 	/// Our XCM location ancestry - i.e. what, if anything, `Parent` means evaluated in our context. Since
-	/// Kusama is a top-level relay-chain, there is no ancestry.
+	/// AXIATest is a top-level relay-chain, there is no ancestry.
 	pub const Ancestry: MultiLocation = Here.into();
 	/// The check account, which holds any native assets that have been teleported out and not back in (yet).
 	pub CheckAccount: AccountId = XcmPallet::check_account();
@@ -1277,7 +1277,7 @@ pub type SovereignAccountOf = (
 	// We can convert a child allychain using the standard `AccountId` conversion.
 	ChildParachainConvertsVia<ParaId, AccountId>,
 	// We can directly alias an `AccountId32` into a local account.
-	AccountId32Aliases<KusamaNetwork, AccountId>,
+	AccountId32Aliases<AXIATestNetwork, AccountId>,
 );
 
 /// Our asset transactor. This is what allows us to interest with the runtime facilities from the point of
@@ -1304,7 +1304,7 @@ type LocalOriginConverter = (
 	// A child allychain, natively expressed, has the `Parachain` origin.
 	ChildParachainAsNative<allychains_origin::Origin, Origin>,
 	// The AccountId32 location type can be expressed natively as a `Signed` origin.
-	SignedAccountId32AsNative<KusamaNetwork, Origin>,
+	SignedAccountId32AsNative<AXIATestNetwork, Origin>,
 	// A system child allychain, expressed as a Superuser, converts to the `Root` origin.
 	ChildSystemParachainAsSuperuser<ParaId, Origin>,
 );
@@ -1325,10 +1325,10 @@ pub type XcmRouter = (
 );
 
 parameter_types! {
-	pub const Kusama: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
-	pub const KusamaForStatemint: (MultiAssetFilter, MultiLocation) = (Kusama::get(), Parachain(1000).into());
+	pub const AXIATest: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(KsmLocation::get()) });
+	pub const AXIATestForStatemint: (MultiAssetFilter, MultiLocation) = (AXIATest::get(), Parachain(1000).into());
 }
-pub type TrustedTeleporters = (xcm_builder::Case<KusamaForStatemint>,);
+pub type TrustedTeleporters = (xcm_builder::Case<AXIATestForStatemint>,);
 
 match_type! {
 	pub type OnlyParachains: impl Contains<MultiLocation> = {
@@ -1384,7 +1384,7 @@ pub type LocalOriginToLocation = (
 		CouncilBodyId,
 	>,
 	// And a usual Signed origin to be used in XCM as a corresponding AccountId32
-	SignedToAccountId32<Origin, AccountId, KusamaNetwork>,
+	SignedToAccountId32<Origin, AccountId, AXIATestNetwork>,
 );
 impl pallet_xcm::Config for Runtime {
 	type Event = Event;

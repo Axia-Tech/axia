@@ -148,7 +148,7 @@ impl SubstrateCli for Cli {
 				if self.run.force_betanet || chain_spec.is_betanet() || chain_spec.is_wococo() {
 					Box::new(service::BetaNetChainSpec::from_json_file(path)?)
 				} else if self.run.force_axiatest || chain_spec.is_axiatest() {
-					Box::new(service::KusamaChainSpec::from_json_file(path)?)
+					Box::new(service::AXIATestChainSpec::from_json_file(path)?)
 				} else if self.run.force_alphanet || chain_spec.is_alphanet() {
 					Box::new(service::AlphaNetChainSpec::from_json_file(path)?)
 				} else {
@@ -193,7 +193,7 @@ impl SubstrateCli for Cli {
 
 fn set_default_ss58_version(spec: &Box<dyn service::ChainSpec>) {
 	let ss58_version = if spec.is_axiatest() {
-		Ss58AddressFormatRegistry::KusamaAccount
+		Ss58AddressFormatRegistry::AXIATestAccount
 	} else if spec.is_alphanet() {
 		Ss58AddressFormatRegistry::SubstrateAccount
 	} else {
@@ -385,7 +385,7 @@ pub fn run() -> Result<()> {
 			#[cfg(feature = "axiatest-native")]
 			if chain_spec.is_axiatest() {
 				return Ok(runner.sync_run(|config| {
-					cmd.run::<service::axiatest_runtime::Block, service::KusamaExecutorDispatch>(
+					cmd.run::<service::axiatest_runtime::Block, service::AXIATestExecutorDispatch>(
 						config,
 					)
 					.map_err(|e| Error::SubstrateCli(e))
@@ -433,7 +433,7 @@ pub fn run() -> Result<()> {
 			if chain_spec.is_axiatest() {
 				return runner.async_run(|config| {
 					Ok((
-						cmd.run::<service::axiatest_runtime::Block, service::KusamaExecutorDispatch>(
+						cmd.run::<service::axiatest_runtime::Block, service::AXIATestExecutorDispatch>(
 							config,
 						)
 						.map_err(Error::SubstrateCli),
