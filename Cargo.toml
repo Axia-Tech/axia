@@ -12,7 +12,7 @@ edition = "2018"
 readme = "README.md"
 
 [dependencies]
-axia-cli = { path = "cli", features = [ "kusama-native", "alphanet-native", "betanet-native" ]  }
+axia-cli = { path = "cli", features = [ "axiatestnet-native", "alphanet-native", "betanet-native" ]  }
 color-eyre = { version = "0.5.11", default-features = false }
 parity-util-mem = { version = "*", default-features = false, features = ["jemalloc-global"] }
 
@@ -31,7 +31,7 @@ members = [
 	"runtime/common/slot_range_helper",
 	"runtime/allychains",
 	"runtime/axia",
-	"runtime/kusama",
+	"runtime/axiatestnet",
 	"runtime/betanet",
 	"runtime/alphanet",
 	"runtime/test-runtime",

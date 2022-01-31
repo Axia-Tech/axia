@@ -42,7 +42,7 @@ pub type FullClient<RuntimeApi, ExecutorDispatch> =
 
 #[cfg(not(any(
 	feature = "betanet",
-	feature = "kusama",
+	feature = "axiatestnet",
 	feature = "alphanet",
 	feature = "axia"
 )))]
@@ -65,20 +65,20 @@ impl sc_executor::NativeExecutionDispatch for AXIAExecutorDispatch {
 	}
 }
 
-#[cfg(feature = "kusama")]
+#[cfg(feature = "axiatestnet")]
 /// The native executor instance for Kusama.
 pub struct KusamaExecutorDispatch;
 
-#[cfg(feature = "kusama")]
+#[cfg(feature = "axiatestnet")]
 impl sc_executor::NativeExecutionDispatch for KusamaExecutorDispatch {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		kusama_runtime::api::dispatch(method, data)
+		axiatestnet_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		kusama_runtime::native_version()
+		axiatestnet_runtime::native_version()
 	}
 }
 
@@ -247,7 +247,7 @@ macro_rules! with_client {
 			Self::AXIA($client) => { $( $code )* },
 			#[cfg(feature = "alphanet")]
 			Self::AlphaNet($client) => { $( $code )* },
-			#[cfg(feature = "kusama")]
+			#[cfg(feature = "axiatestnet")]
 			Self::Kusama($client) => { $( $code )* },
 			#[cfg(feature = "betanet")]
 			Self::BetaNet($client) => { $( $code )* },
@@ -264,8 +264,8 @@ pub enum Client {
 	AXIA(Arc<FullClient<axia_runtime::RuntimeApi, AXIAExecutorDispatch>>),
 	#[cfg(feature = "alphanet")]
 	AlphaNet(Arc<FullClient<alphanet_runtime::RuntimeApi, AlphaNetExecutorDispatch>>),
-	#[cfg(feature = "kusama")]
-	Kusama(Arc<FullClient<kusama_runtime::RuntimeApi, KusamaExecutorDispatch>>),
+	#[cfg(feature = "axiatestnet")]
+	Kusama(Arc<FullClient<axiatestnet_runtime::RuntimeApi, KusamaExecutorDispatch>>),
 	#[cfg(feature = "betanet")]
 	BetaNet(Arc<FullClient<betanet_runtime::RuntimeApi, BetaNetExecutorDispatch>>),
 }

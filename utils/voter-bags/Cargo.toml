@@ -10,5 +10,5 @@ sp-io = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
 structopt = "0.3.21"
 
 alphanet-runtime = { path = "../../runtime/alphanet" }
-kusama-runtime = { path = "../../runtime/kusama" }
+axiatestnet-runtime = { path = "../../runtime/axiatestnet" }
 axia-runtime = { path = "../../runtime/axia" }

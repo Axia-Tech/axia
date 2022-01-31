@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 axia-runtime = { version = "0.9.8", path = "../../../runtime/axia" }
-kusama-runtime = { version = "0.9.8", path = "../../../runtime/kusama" }
+axiatestnet-runtime = { version = "0.9.8", path = "../../../runtime/axiatestnet" }
 
 pallet-staking = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
 pallet-election-provider-multi-phase = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }

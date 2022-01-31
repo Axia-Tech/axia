@@ -18,10 +18,10 @@
 
 use beefy_primitives::crypto::AuthorityId as BeefyId;
 use grandpa::AuthorityId as GrandpaId;
-#[cfg(feature = "kusama-native")]
-use kusama_runtime as kusama;
-#[cfg(feature = "kusama-native")]
-use kusama_runtime::constants::currency::UNITS as KSM;
+#[cfg(feature = "axiatestnet-native")]
+use axiatestnet_runtime as axiatestnet;
+#[cfg(feature = "axiatestnet-native")]
+use axiatestnet_runtime::constants::currency::UNITS as KSM;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_staking::Forcing;
 #[cfg(feature = "axia-native")]
@@ -48,7 +48,7 @@ use alphanet_runtime::constants::currency::UNITS as WND;
 
 #[cfg(feature = "axia-native")]
 const AXIA_STAGING_TELEMETRY_URL: &str = "ws://localhost:8001/submit/";
-#[cfg(feature = "kusama-native")]
+#[cfg(feature = "axiatestnet-native")]
 const KUSAMA_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
 #[cfg(feature = "alphanet-native")]
 const ALPHANET_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
@@ -84,13 +84,13 @@ pub type DummyChainSpec = service::GenericChainSpec<(), Extensions>;
 #[cfg(not(feature = "axia-native"))]
 pub type AXIAChainSpec = DummyChainSpec;
 
-/// The `ChainSpec` parameterized for the kusama runtime.
-#[cfg(feature = "kusama-native")]
-pub type KusamaChainSpec = service::GenericChainSpec<kusama::GenesisConfig, Extensions>;
+/// The `ChainSpec` parameterized for the axiatestnet runtime.
+#[cfg(feature = "axiatestnet-native")]
+pub type KusamaChainSpec = service::GenericChainSpec<axiatestnet::GenesisConfig, Extensions>;
 
-/// The `ChainSpec` parameterized for the kusama runtime.
+/// The `ChainSpec` parameterized for the axiatestnet runtime.
 // Dummy chain spec, but that is fine when we don't have the native runtime.
-#[cfg(not(feature = "kusama-native"))]
+#[cfg(not(feature = "axiatestnet-native"))]
 pub type KusamaChainSpec = DummyChainSpec;
 
 /// The `ChainSpec` parameterized for the alphanet runtime.
@@ -139,8 +139,8 @@ pub fn axia_config() -> Result<AXIAChainSpec, String> {
 	AXIAChainSpec::from_json_bytes(&include_bytes!("../res/axia.json")[..])
 }
 
-pub fn kusama_config() -> Result<KusamaChainSpec, String> {
-	KusamaChainSpec::from_json_bytes(&include_bytes!("../res/kusama.json")[..])
+pub fn axiatestnet_config() -> Result<KusamaChainSpec, String> {
+	KusamaChainSpec::from_json_bytes(&include_bytes!("../res/axiatestnet.json")[..])
 }
 
 pub fn alphanet_config() -> Result<AlphaNetChainSpec, String> {
@@ -159,7 +159,7 @@ pub fn wococo_config() -> Result<BetaNetChainSpec, String> {
 /// The default allychains host configuration.
 #[cfg(any(
 	feature = "betanet-native",
-	feature = "kusama-native",
+	feature = "axiatestnet-native",
 	feature = "alphanet-native",
 	feature = "axia-native"
 ))]
@@ -229,16 +229,16 @@ fn axia_session_keys(
 	}
 }
 
-#[cfg(feature = "kusama-native")]
-fn kusama_session_keys(
+#[cfg(feature = "axiatestnet-native")]
+fn axiatestnet_session_keys(
 	babe: BabeId,
 	grandpa: GrandpaId,
 	im_online: ImOnlineId,
 	para_validator: ValidatorId,
 	para_assignment: AssignmentId,
 	authority_discovery: AuthorityDiscoveryId,
-) -> kusama::SessionKeys {
-	kusama::SessionKeys {
+) -> axiatestnet::SessionKeys {
+	axiatestnet::SessionKeys {
 		babe,
 		grandpa,
 		im_online,
@@ -561,8 +561,8 @@ fn alphanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> alphanet::Gene
 	}
 }
 
-#[cfg(feature = "kusama-native")]
-fn kusama_staging_testnet_config_genesis(wasm_binary: &[u8]) -> kusama::GenesisConfig {
+#[cfg(feature = "axiatestnet-native")]
+fn axiatestnet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axiatestnet::GenesisConfig {
 	use hex_literal::hex;
 	use sp_core::crypto::UncheckedInto;
 
@@ -688,27 +688,27 @@ fn kusama_staging_testnet_config_genesis(wasm_binary: &[u8]) -> kusama::GenesisC
 	const ENDOWMENT: u128 = 1_000_000 * KSM;
 	const STASH: u128 = 100 * KSM;
 
-	kusama::GenesisConfig {
-		system: kusama::SystemConfig {
+	axiatestnet::GenesisConfig {
+		system: axiatestnet::SystemConfig {
 			code: wasm_binary.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		balances: kusama::BalancesConfig {
+		balances: axiatestnet::BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.map(|k: &AccountId| (k.clone(), ENDOWMENT))
 				.chain(initial_authorities.iter().map(|x| (x.0.clone(), STASH)))
 				.collect(),
 		},
-		indices: kusama::IndicesConfig { indices: vec![] },
-		session: kusama::SessionConfig {
+		indices: axiatestnet::IndicesConfig { indices: vec![] },
+		session: axiatestnet::SessionConfig {
 			keys: initial_authorities
 				.iter()
 				.map(|x| {
 					(
 						x.0.clone(),
 						x.0.clone(),
-						kusama_session_keys(
+						axiatestnet_session_keys(
 							x.2.clone(),
 							x.3.clone(),
 							x.4.clone(),
@@ -720,12 +720,12 @@ fn kusama_staging_testnet_config_genesis(wasm_binary: &[u8]) -> kusama::GenesisC
 				})
 				.collect::<Vec<_>>(),
 		},
-		staking: kusama::StakingConfig {
+		staking: axiatestnet::StakingConfig {
 			validator_count: 50,
 			minimum_validator_count: 4,
 			stakers: initial_authorities
 				.iter()
-				.map(|x| (x.0.clone(), x.1.clone(), STASH, kusama::StakerStatus::Validator))
+				.map(|x| (x.0.clone(), x.1.clone(), STASH, axiatestnet::StakerStatus::Validator))
 				.collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			force_era: Forcing::ForceNone,
@@ -734,23 +734,23 @@ fn kusama_staging_testnet_config_genesis(wasm_binary: &[u8]) -> kusama::GenesisC
 		},
 		phragmen_election: Default::default(),
 		democracy: Default::default(),
-		council: kusama::CouncilConfig { members: vec![], phantom: Default::default() },
-		technical_committee: kusama::TechnicalCommitteeConfig {
+		council: axiatestnet::CouncilConfig { members: vec![], phantom: Default::default() },
+		technical_committee: axiatestnet::TechnicalCommitteeConfig {
 			members: vec![],
 			phantom: Default::default(),
 		},
 		technical_membership: Default::default(),
-		babe: kusama::BabeConfig {
+		babe: axiatestnet::BabeConfig {
 			authorities: Default::default(),
-			epoch_config: Some(kusama::BABE_GENESIS_EPOCH_CONFIG),
+			epoch_config: Some(axiatestnet::BABE_GENESIS_EPOCH_CONFIG),
 		},
 		grandpa: Default::default(),
 		im_online: Default::default(),
-		authority_discovery: kusama::AuthorityDiscoveryConfig { keys: vec![] },
-		claims: kusama::ClaimsConfig { claims: vec![], vesting: vec![] },
-		vesting: kusama::VestingConfig { vesting: vec![] },
+		authority_discovery: axiatestnet::AuthorityDiscoveryConfig { keys: vec![] },
+		claims: axiatestnet::ClaimsConfig { claims: vec![], vesting: vec![] },
+		vesting: axiatestnet::VestingConfig { vesting: vec![] },
 		treasury: Default::default(),
-		configuration: kusama::ConfigurationConfig {
+		configuration: axiatestnet::ConfigurationConfig {
 			config: default_allychains_host_configuration(),
 		},
 		gilt: Default::default(),
@@ -1096,16 +1096,16 @@ pub fn axia_staging_testnet_config() -> Result<AXIAChainSpec, String> {
 }
 
 /// Staging testnet config.
-#[cfg(feature = "kusama-native")]
-pub fn kusama_staging_testnet_config() -> Result<KusamaChainSpec, String> {
-	let wasm_binary = kusama::WASM_BINARY.ok_or("Kusama development wasm not available")?;
+#[cfg(feature = "axiatestnet-native")]
+pub fn axiatestnet_staging_testnet_config() -> Result<KusamaChainSpec, String> {
+	let wasm_binary = axiatestnet::WASM_BINARY.ok_or("Kusama development wasm not available")?;
 	let boot_nodes = vec![];
 
 	Ok(KusamaChainSpec::from_genesis(
 		"Kusama Staging Testnet",
-		"kusama_staging_testnet",
+		"axiatestnet_staging_testnet",
 		ChainType::Live,
-		move || kusama_staging_testnet_config_genesis(wasm_binary),
+		move || axiatestnet_staging_testnet_config_genesis(wasm_binary),
 		boot_nodes,
 		Some(
 			TelemetryEndpoints::new(vec![(KUSAMA_STAGING_TELEMETRY_URL.to_string(), 0)])
@@ -1326,9 +1326,9 @@ pub fn axia_testnet_genesis(
 	}
 }
 
-/// Helper function to create kusama `GenesisConfig` for testing
-#[cfg(feature = "kusama-native")]
-pub fn kusama_testnet_genesis(
+/// Helper function to create axiatestnet `GenesisConfig` for testing
+#[cfg(feature = "axiatestnet-native")]
+pub fn axiatestnet_testnet_genesis(
 	wasm_binary: &[u8],
 	initial_authorities: Vec<(
 		AccountId,
@@ -1342,29 +1342,29 @@ pub fn kusama_testnet_genesis(
 	)>,
 	_root_key: AccountId,
 	endowed_accounts: Option<Vec<AccountId>>,
-) -> kusama::GenesisConfig {
+) -> axiatestnet::GenesisConfig {
 	let endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(testnet_accounts);
 
 	const ENDOWMENT: u128 = 1_000_000 * KSM;
 	const STASH: u128 = 100 * KSM;
 
-	kusama::GenesisConfig {
-		system: kusama::SystemConfig {
+	axiatestnet::GenesisConfig {
+		system: axiatestnet::SystemConfig {
 			code: wasm_binary.to_vec(),
 			changes_trie_config: Default::default(),
 		},
-		indices: kusama::IndicesConfig { indices: vec![] },
-		balances: kusama::BalancesConfig {
+		indices: axiatestnet::IndicesConfig { indices: vec![] },
+		balances: axiatestnet::BalancesConfig {
 			balances: endowed_accounts.iter().map(|k| (k.clone(), ENDOWMENT)).collect(),
 		},
-		session: kusama::SessionConfig {
+		session: axiatestnet::SessionConfig {
 			keys: initial_authorities
 				.iter()
 				.map(|x| {
 					(
 						x.0.clone(),
 						x.0.clone(),
-						kusama_session_keys(
+						axiatestnet_session_keys(
 							x.2.clone(),
 							x.3.clone(),
 							x.4.clone(),
@@ -1376,12 +1376,12 @@ pub fn kusama_testnet_genesis(
 				})
 				.collect::<Vec<_>>(),
 		},
-		staking: kusama::StakingConfig {
+		staking: axiatestnet::StakingConfig {
 			minimum_validator_count: 1,
 			validator_count: initial_authorities.len() as u32,
 			stakers: initial_authorities
 				.iter()
-				.map(|x| (x.0.clone(), x.1.clone(), STASH, kusama::StakerStatus::Validator))
+				.map(|x| (x.0.clone(), x.1.clone(), STASH, axiatestnet::StakerStatus::Validator))
 				.collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			force_era: Forcing::NotForcing,
@@ -1389,24 +1389,24 @@ pub fn kusama_testnet_genesis(
 			..Default::default()
 		},
 		phragmen_election: Default::default(),
-		democracy: kusama::DemocracyConfig::default(),
-		council: kusama::CouncilConfig { members: vec![], phantom: Default::default() },
-		technical_committee: kusama::TechnicalCommitteeConfig {
+		democracy: axiatestnet::DemocracyConfig::default(),
+		council: axiatestnet::CouncilConfig { members: vec![], phantom: Default::default() },
+		technical_committee: axiatestnet::TechnicalCommitteeConfig {
 			members: vec![],
 			phantom: Default::default(),
 		},
 		technical_membership: Default::default(),
-		babe: kusama::BabeConfig {
+		babe: axiatestnet::BabeConfig {
 			authorities: Default::default(),
-			epoch_config: Some(kusama::BABE_GENESIS_EPOCH_CONFIG),
+			epoch_config: Some(axiatestnet::BABE_GENESIS_EPOCH_CONFIG),
 		},
 		grandpa: Default::default(),
 		im_online: Default::default(),
-		authority_discovery: kusama::AuthorityDiscoveryConfig { keys: vec![] },
-		claims: kusama::ClaimsConfig { claims: vec![], vesting: vec![] },
-		vesting: kusama::VestingConfig { vesting: vec![] },
+		authority_discovery: axiatestnet::AuthorityDiscoveryConfig { keys: vec![] },
+		claims: axiatestnet::ClaimsConfig { claims: vec![], vesting: vec![] },
+		vesting: axiatestnet::VestingConfig { vesting: vec![] },
 		treasury: Default::default(),
-		configuration: kusama::ConfigurationConfig {
+		configuration: axiatestnet::ConfigurationConfig {
 			config: default_allychains_host_configuration(),
 		},
 		gilt: Default::default(),
@@ -1597,9 +1597,9 @@ fn axia_development_config_genesis(wasm_binary: &[u8]) -> axia::GenesisConfig {
 	)
 }
 
-#[cfg(feature = "kusama-native")]
-fn kusama_development_config_genesis(wasm_binary: &[u8]) -> kusama::GenesisConfig {
-	kusama_testnet_genesis(
+#[cfg(feature = "axiatestnet-native")]
+fn axiatestnet_development_config_genesis(wasm_binary: &[u8]) -> axiatestnet::GenesisConfig {
+	axiatestnet_testnet_genesis(
 		wasm_binary,
 		vec![get_authority_keys_from_seed_no_beefy("Alice")],
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -1646,15 +1646,15 @@ pub fn axia_development_config() -> Result<AXIAChainSpec, String> {
 }
 
 /// Kusama development config (single validator Alice)
-#[cfg(feature = "kusama-native")]
-pub fn kusama_development_config() -> Result<KusamaChainSpec, String> {
-	let wasm_binary = kusama::WASM_BINARY.ok_or("Kusama development wasm not available")?;
+#[cfg(feature = "axiatestnet-native")]
+pub fn axiatestnet_development_config() -> Result<KusamaChainSpec, String> {
+	let wasm_binary = axiatestnet::WASM_BINARY.ok_or("Kusama development wasm not available")?;
 
 	Ok(KusamaChainSpec::from_genesis(
 		"Development",
-		"kusama_dev",
+		"axiatestnet_dev",
 		ChainType::Development,
-		move || kusama_development_config_genesis(wasm_binary),
+		move || axiatestnet_development_config_genesis(wasm_binary),
 		vec![],
 		None,
 		Some(DEFAULT_PROTOCOL_ID),
@@ -1757,9 +1757,9 @@ pub fn axia_local_testnet_config() -> Result<AXIAChainSpec, String> {
 	))
 }
 
-#[cfg(feature = "kusama-native")]
-fn kusama_local_testnet_genesis(wasm_binary: &[u8]) -> kusama::GenesisConfig {
-	kusama_testnet_genesis(
+#[cfg(feature = "axiatestnet-native")]
+fn axiatestnet_local_testnet_genesis(wasm_binary: &[u8]) -> axiatestnet::GenesisConfig {
+	axiatestnet_testnet_genesis(
 		wasm_binary,
 		vec![
 			get_authority_keys_from_seed_no_beefy("Alice"),
@@ -1771,15 +1771,15 @@ fn kusama_local_testnet_genesis(wasm_binary: &[u8]) -> kusama::GenesisConfig {
 }
 
 /// Kusama local testnet config (multivalidator Alice + Bob)
-#[cfg(feature = "kusama-native")]
-pub fn kusama_local_testnet_config() -> Result<KusamaChainSpec, String> {
-	let wasm_binary = kusama::WASM_BINARY.ok_or("Kusama development wasm not available")?;
+#[cfg(feature = "axiatestnet-native")]
+pub fn axiatestnet_local_testnet_config() -> Result<KusamaChainSpec, String> {
+	let wasm_binary = axiatestnet::WASM_BINARY.ok_or("Kusama development wasm not available")?;
 
 	Ok(KusamaChainSpec::from_genesis(
 		"Kusama Local Testnet",
-		"kusama_local_testnet",
+		"axiatestnet_local_testnet",
 		ChainType::Local,
-		move || kusama_local_testnet_genesis(wasm_binary),
+		move || axiatestnet_local_testnet_genesis(wasm_binary),
 		vec![],
 		None,
 		Some(DEFAULT_PROTOCOL_ID),

@@ -83,7 +83,7 @@ impl SubstrateCli for Cli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		let id = if id == "" {
 			let n = get_exec_name().unwrap_or_default();
-			["axia", "kusama", "alphanet", "betanet"]
+			["axia", "axiatestnet", "alphanet", "betanet"]
 				.iter()
 				.cloned()
 				.find(|&chain| n.starts_with(chain))
@@ -92,16 +92,16 @@ impl SubstrateCli for Cli {
 			id
 		};
 		Ok(match id {
-			"kusama" => Box::new(service::chain_spec::kusama_config()?),
-			#[cfg(feature = "kusama-native")]
-			"kusama-dev" => Box::new(service::chain_spec::kusama_development_config()?),
-			#[cfg(feature = "kusama-native")]
-			"kusama-local" => Box::new(service::chain_spec::kusama_local_testnet_config()?),
-			#[cfg(feature = "kusama-native")]
-			"kusama-staging" => Box::new(service::chain_spec::kusama_staging_testnet_config()?),
-			#[cfg(not(feature = "kusama-native"))]
-			name if name.starts_with("kusama-") && !name.ends_with(".json") =>
-				Err(format!("`{}` only supported with `kusama-native` feature enabled.", name))?,
+			"axiatestnet" => Box::new(service::chain_spec::axiatestnet_config()?),
+			#[cfg(feature = "axiatestnet-native")]
+			"axiatestnet-dev" => Box::new(service::chain_spec::axiatestnet_development_config()?),
+			#[cfg(feature = "axiatestnet-native")]
+			"axiatestnet-local" => Box::new(service::chain_spec::axiatestnet_local_testnet_config()?),
+			#[cfg(feature = "axiatestnet-native")]
+			"axiatestnet-staging" => Box::new(service::chain_spec::axiatestnet_staging_testnet_config()?),
+			#[cfg(not(feature = "axiatestnet-native"))]
+			name if name.starts_with("axiatestnet-") && !name.ends_with(".json") =>
+				Err(format!("`{}` only supported with `axiatestnet-native` feature enabled.", name))?,
 			"axia" => Box::new(service::chain_spec::axia_config()?),
 			#[cfg(feature = "axia-native")]
 			"axia-dev" | "dev" => Box::new(service::chain_spec::axia_development_config()?),
@@ -147,7 +147,7 @@ impl SubstrateCli for Cli {
 				// we use the chain spec for the specific chain.
 				if self.run.force_betanet || chain_spec.is_betanet() || chain_spec.is_wococo() {
 					Box::new(service::BetaNetChainSpec::from_json_file(path)?)
-				} else if self.run.force_kusama || chain_spec.is_kusama() {
+				} else if self.run.force_axiatestnet || chain_spec.is_axiatestnet() {
 					Box::new(service::KusamaChainSpec::from_json_file(path)?)
 				} else if self.run.force_alphanet || chain_spec.is_alphanet() {
 					Box::new(service::AlphaNetChainSpec::from_json_file(path)?)
@@ -159,9 +159,9 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(spec: &Box<dyn service::ChainSpec>) -> &'static RuntimeVersion {
-		#[cfg(feature = "kusama-native")]
-		if spec.is_kusama() {
-			return &service::kusama_runtime::VERSION
+		#[cfg(feature = "axiatestnet-native")]
+		if spec.is_axiatestnet() {
+			return &service::axiatestnet_runtime::VERSION
 		}
 
 		#[cfg(feature = "alphanet-native")]
@@ -177,7 +177,7 @@ impl SubstrateCli for Cli {
 		#[cfg(not(all(
 			feature = "betanet-native",
 			feature = "alphanet-native",
-			feature = "kusama-native"
+			feature = "axiatestnet-native"
 		)))]
 		let _ = spec;
 
@@ -187,12 +187,12 @@ impl SubstrateCli for Cli {
 		}
 
 		#[cfg(not(feature = "axia-native"))]
-		panic!("No runtime feature (axia, kusama, alphanet, betanet) is enabled")
+		panic!("No runtime feature (axia, axiatestnet, alphanet, betanet) is enabled")
 	}
 }
 
 fn set_default_ss58_version(spec: &Box<dyn service::ChainSpec>) {
-	let ss58_version = if spec.is_kusama() {
+	let ss58_version = if spec.is_axiatestnet() {
 		Ss58AddressFormatRegistry::KusamaAccount
 	} else if spec.is_alphanet() {
 		Ss58AddressFormatRegistry::SubstrateAccount
@@ -205,7 +205,7 @@ fn set_default_ss58_version(spec: &Box<dyn service::ChainSpec>) {
 }
 
 const DEV_ONLY_ERROR_PATTERN: &'static str =
-	"can only use subcommand with --chain [axia-dev, kusama-dev, alphanet-dev, betanet-dev, wococo-dev], got ";
+	"can only use subcommand with --chain [axia-dev, axiatestnet-dev, alphanet-dev, betanet-dev, wococo-dev], got ";
 
 fn ensure_dev(spec: &Box<dyn service::ChainSpec>) -> std::result::Result<(), String> {
 	if spec.is_dev() {
@@ -235,7 +235,7 @@ fn run_node_inner(cli: Cli, overseer_gen: impl service::OverseerGen) -> Result<(
 		Some((cli.run.grandpa_pause[0], cli.run.grandpa_pause[1]))
 	};
 
-	if chain_spec.is_kusama() {
+	if chain_spec.is_axiatestnet() {
 		info!("----------------------------");
 		info!("This chain is not in any way");
 		info!("      endorsed by the       ");
@@ -382,10 +382,10 @@ pub fn run() -> Result<()> {
 
 			ensure_dev(chain_spec).map_err(Error::Other)?;
 
-			#[cfg(feature = "kusama-native")]
-			if chain_spec.is_kusama() {
+			#[cfg(feature = "axiatestnet-native")]
+			if chain_spec.is_axiatestnet() {
 				return Ok(runner.sync_run(|config| {
-					cmd.run::<service::kusama_runtime::Block, service::KusamaExecutorDispatch>(
+					cmd.run::<service::axiatestnet_runtime::Block, service::KusamaExecutorDispatch>(
 						config,
 					)
 					.map_err(|e| Error::SubstrateCli(e))
@@ -413,7 +413,7 @@ pub fn run() -> Result<()> {
 				})?)
 			}
 			#[cfg(not(feature = "axia-native"))]
-			panic!("No runtime feature (axia, kusama, alphanet, betanet) is enabled")
+			panic!("No runtime feature (axia, axiatestnet, alphanet, betanet) is enabled")
 		},
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
 		#[cfg(feature = "try-runtime")]
@@ -429,11 +429,11 @@ pub fn run() -> Result<()> {
 
 			ensure_dev(chain_spec).map_err(Error::Other)?;
 
-			#[cfg(feature = "kusama-native")]
-			if chain_spec.is_kusama() {
+			#[cfg(feature = "axiatestnet-native")]
+			if chain_spec.is_axiatestnet() {
 				return runner.async_run(|config| {
 					Ok((
-						cmd.run::<service::kusama_runtime::Block, service::KusamaExecutorDispatch>(
+						cmd.run::<service::axiatestnet_runtime::Block, service::KusamaExecutorDispatch>(
 							config,
 						)
 						.map_err(Error::SubstrateCli),
@@ -468,7 +468,7 @@ pub fn run() -> Result<()> {
 				})
 			}
 			#[cfg(not(feature = "axia-native"))]
-			panic!("No runtime feature (axia, kusama, alphanet, betanet) is enabled")
+			panic!("No runtime feature (axia, axiatestnet, alphanet, betanet) is enabled")
 		},
 		#[cfg(not(feature = "try-runtime"))]
 		Some(Subcommand::TryRuntime) => Err(Error::Other(

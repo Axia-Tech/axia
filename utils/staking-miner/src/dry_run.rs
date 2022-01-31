@@ -158,5 +158,5 @@ macro_rules! dry_run_cmd_for { ($runtime:ident) => { paste::paste! {
 }}}
 
 dry_run_cmd_for!(axia);
-dry_run_cmd_for!(kusama);
+dry_run_cmd_for!(axiatestnet);
 dry_run_cmd_for!(alphanet);

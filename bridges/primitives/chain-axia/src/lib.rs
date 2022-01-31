@@ -30,7 +30,7 @@ pub type AXIA = AXIALike;
 
 // We use this to get the account on AXIA (target) which is derived from Kusama's (source)
 // account.
-pub fn derive_account_from_kusama_id(id: bp_runtime::SourceAccount<AccountId>) -> AccountId {
+pub fn derive_account_from_axiatestnet_id(id: bp_runtime::SourceAccount<AccountId>) -> AccountId {
 	let encoded_id = bp_runtime::derive_account_id(bp_runtime::KUSAMA_CHAIN_ID, id);
 	AccountIdConverter::convert(encoded_id)
 }

@@ -17,7 +17,7 @@
 mod mock;
 
 use mock::{
-	kusama_like_with_balances, AccountId, Balance, Balances, BaseXcmWeight, XcmConfig, CENTS,
+	axiatestnet_like_with_balances, AccountId, Balance, Balances, BaseXcmWeight, XcmConfig, CENTS,
 };
 use axia_allychain::primitives::Id as ParaId;
 use sp_runtime::traits::AccountIdConversion;
@@ -42,7 +42,7 @@ fn buy_execution<C>() -> Instruction<C> {
 fn withdraw_and_deposit_works() {
 	let para_acc: AccountId = ParaId::from(PARA_ID).into_account();
 	let balances = vec![(ALICE, INITIAL_BALANCE), (para_acc.clone(), INITIAL_BALANCE)];
-	kusama_like_with_balances(balances).execute_with(|| {
+	axiatestnet_like_with_balances(balances).execute_with(|| {
 		let other_para_id = 3000;
 		let amount = REGISTER_AMOUNT;
 		let weight = 3 * BaseXcmWeight::get();
@@ -79,7 +79,7 @@ fn query_holding_works() {
 	use xcm::opaque::latest::prelude::*;
 	let para_acc: AccountId = ParaId::from(PARA_ID).into_account();
 	let balances = vec![(ALICE, INITIAL_BALANCE), (para_acc.clone(), INITIAL_BALANCE)];
-	kusama_like_with_balances(balances).execute_with(|| {
+	axiatestnet_like_with_balances(balances).execute_with(|| {
 		let other_para_id = 3000;
 		let amount = REGISTER_AMOUNT;
 		let query_id = 1234;
@@ -168,7 +168,7 @@ fn teleport_to_statemine_works() {
 	use xcm::opaque::latest::prelude::*;
 	let para_acc: AccountId = ParaId::from(PARA_ID).into_account();
 	let balances = vec![(ALICE, INITIAL_BALANCE), (para_acc.clone(), INITIAL_BALANCE)];
-	kusama_like_with_balances(balances).execute_with(|| {
+	axiatestnet_like_with_balances(balances).execute_with(|| {
 		let statemine_id = 1000;
 		let other_para_id = 3000;
 		let amount = REGISTER_AMOUNT;
@@ -208,7 +208,7 @@ fn teleport_to_statemine_works() {
 			)]
 		);
 
-		// teleports are allowed from statemine to kusama.
+		// teleports are allowed from statemine to axiatestnet.
 		let r = XcmExecutor::<XcmConfig>::execute_xcm(
 			Parachain(PARA_ID).into(),
 			Xcm(vec![
@@ -258,7 +258,7 @@ fn reserve_based_transfer_works() {
 	use xcm::opaque::latest::prelude::*;
 	let para_acc: AccountId = ParaId::from(PARA_ID).into_account();
 	let balances = vec![(ALICE, INITIAL_BALANCE), (para_acc.clone(), INITIAL_BALANCE)];
-	kusama_like_with_balances(balances).execute_with(|| {
+	axiatestnet_like_with_balances(balances).execute_with(|| {
 		let other_para_id = 3000;
 		let amount = REGISTER_AMOUNT;
 		let transfer_effects = vec![

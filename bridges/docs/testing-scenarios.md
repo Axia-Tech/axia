@@ -31,7 +31,7 @@ kCharlie.
    or:
 
    ```rust
-   let hash = bp_axia::derive_kusama_account_id(kAlice);
+   let hash = bp_axia::derive_axiatestnet_account_id(kAlice);
    let p_kAlice = bp_axia::AccountIdConverter::convert(hash);
    ```
 
@@ -49,7 +49,7 @@ kCharlie.
 
    1. kAlice prepares Kusama transaction:
       ```rust
-      kusama::Call::Messages::<Instance=AXIA>::send_message(
+      axiatestnet::Call::Messages::<Instance=AXIA>::send_message(
         // dot-transfer-lane (truncated to 4bytes)
         lane_id,
         payload: MessagePayload {

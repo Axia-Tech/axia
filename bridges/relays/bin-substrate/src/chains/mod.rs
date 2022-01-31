@@ -34,7 +34,7 @@ mod wococo;
 
 use relay_utils::metrics::{FloatJsonValueMetric, MetricsParams};
 
-pub(crate) fn add_axia_kusama_price_metrics<T: finality_relay::FinalitySyncPipeline>(
+pub(crate) fn add_axia_axiatestnet_price_metrics<T: finality_relay::FinalitySyncPipeline>(
 	params: MetricsParams,
 ) -> anyhow::Result<MetricsParams> {
 	Ok(
@@ -57,8 +57,8 @@ pub(crate) fn add_axia_kusama_price_metrics<T: finality_relay::FinalitySyncPipel
 					registry,
 					prefix,
 					"https://api.coingecko.com/api/v3/simple/price?ids=Kusama&vs_currencies=btc".into(),
-					"$.kusama.btc".into(),
-					"kusama_to_base_conversion_rate".into(),
+					"$.axiatestnet.btc".into(),
+					"axiatestnet_to_base_conversion_rate".into(),
 					"Rate used to convert from KSM to some BASE tokens".into(),
 				)
 			})

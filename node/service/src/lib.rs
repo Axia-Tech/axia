@@ -80,7 +80,7 @@ pub use axia_client::BetaNetExecutorDispatch;
 #[cfg(feature = "alphanet-native")]
 pub use axia_client::AlphaNetExecutorDispatch;
 
-#[cfg(feature = "kusama-native")]
+#[cfg(feature = "axiatestnet-native")]
 pub use axia_client::KusamaExecutorDispatch;
 
 #[cfg(feature = "axia-native")]
@@ -113,8 +113,8 @@ pub use sp_runtime::{
 	},
 };
 
-#[cfg(feature = "kusama-native")]
-pub use kusama_runtime;
+#[cfg(feature = "axiatestnet-native")]
+pub use axiatestnet_runtime;
 #[cfg(feature = "axia-native")]
 pub use axia_runtime;
 #[cfg(feature = "betanet-native")]
@@ -234,14 +234,14 @@ pub enum Error {
 	DatabasePathRequired,
 
 	#[cfg(feature = "full-node")]
-	#[error("Expected at least one of axia, kusama, alphanet or betanet runtime feature")]
+	#[error("Expected at least one of axia, axiatestnet, alphanet or betanet runtime feature")]
 	NoRuntime,
 }
 
 /// Can be called for a `Configuration` to identify which network the configuration targets.
 pub trait IdentifyVariant {
 	/// Returns if this is a configuration for the `Kusama` network.
-	fn is_kusama(&self) -> bool;
+	fn is_axiatestnet(&self) -> bool;
 
 	/// Returns if this is a configuration for the `AlphaNet` network.
 	fn is_alphanet(&self) -> bool;
@@ -257,8 +257,8 @@ pub trait IdentifyVariant {
 }
 
 impl IdentifyVariant for Box<dyn ChainSpec> {
-	fn is_kusama(&self) -> bool {
-		self.id().starts_with("kusama") || self.id().starts_with("ksm")
+	fn is_axiatestnet(&self) -> bool {
+		self.id().starts_with("axiatestnet") || self.id().starts_with("ksm")
 	}
 	fn is_alphanet(&self) -> bool {
 		self.id().starts_with("alphanet") || self.id().starts_with("wnd")
@@ -450,8 +450,8 @@ where
 		client.clone(),
 	);
 
-	let grandpa_hard_forks = if config.chain_spec.is_kusama() {
-		grandpa_support::kusama_hard_forks()
+	let grandpa_hard_forks = if config.chain_spec.is_axiatestnet() {
+		grandpa_support::axiatestnet_hard_forks()
 	} else {
 		Vec::new()
 	};
@@ -780,8 +780,8 @@ where
 	let (dispute_req_receiver, cfg) = IncomingRequest::get_config_receiver();
 	config.network.request_response_protocols.push(cfg);
 
-	let grandpa_hard_forks = if config.chain_spec.is_kusama() {
-		grandpa_support::kusama_hard_forks()
+	let grandpa_hard_forks = if config.chain_spec.is_axiatestnet() {
+		grandpa_support::axiatestnet_hard_forks()
 	} else {
 		Vec::new()
 	};
@@ -1338,9 +1338,9 @@ pub fn new_chain_ops(
 		return chain_ops!(config, jaeger_agent, telemetry_worker_handle; betanet_runtime, BetaNetExecutorDispatch, BetaNet)
 	}
 
-	#[cfg(feature = "kusama-native")]
-	if config.chain_spec.is_kusama() {
-		return chain_ops!(config, jaeger_agent, telemetry_worker_handle; kusama_runtime, KusamaExecutorDispatch, Kusama)
+	#[cfg(feature = "axiatestnet-native")]
+	if config.chain_spec.is_axiatestnet() {
+		return chain_ops!(config, jaeger_agent, telemetry_worker_handle; axiatestnet_runtime, KusamaExecutorDispatch, Kusama)
 	}
 
 	#[cfg(feature = "alphanet-native")]
@@ -1364,9 +1364,9 @@ pub fn build_light(config: Configuration) -> Result<(TaskManager, RpcHandlers), 
 		return new_light::<betanet_runtime::RuntimeApi, BetaNetExecutorDispatch>(config)
 	}
 
-	#[cfg(feature = "kusama-native")]
-	if config.chain_spec.is_kusama() {
-		return new_light::<kusama_runtime::RuntimeApi, KusamaExecutorDispatch>(config)
+	#[cfg(feature = "axiatestnet-native")]
+	if config.chain_spec.is_axiatestnet() {
+		return new_light::<axiatestnet_runtime::RuntimeApi, KusamaExecutorDispatch>(config)
 	}
 
 	#[cfg(feature = "alphanet-native")]
@@ -1408,9 +1408,9 @@ pub fn build_full(
 		.map(|full| full.with_client(Client::BetaNet))
 	}
 
-	#[cfg(feature = "kusama-native")]
-	if config.chain_spec.is_kusama() {
-		return new_full::<kusama_runtime::RuntimeApi, KusamaExecutorDispatch, _>(
+	#[cfg(feature = "axiatestnet-native")]
+	if config.chain_spec.is_axiatestnet() {
+		return new_full::<axiatestnet_runtime::RuntimeApi, KusamaExecutorDispatch, _>(
 			config,
 			is_collator,
 			grandpa_pause,

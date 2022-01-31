@@ -35,7 +35,7 @@ impl SubstrateFinalitySyncPipeline for AlphaNetFinalityToMillau {
 	type TargetChain = Millau;
 
 	fn customize_metrics(params: MetricsParams) -> anyhow::Result<MetricsParams> {
-		crate::chains::add_axia_kusama_price_metrics::<Self>(params)
+		crate::chains::add_axia_axiatestnet_price_metrics::<Self>(params)
 	}
 
 	fn transactions_author(&self) -> bp_millau::AccountId {

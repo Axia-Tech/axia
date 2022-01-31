@@ -182,5 +182,5 @@ macro_rules! monitor_cmd_for { ($runtime:tt) => { paste::paste! {
 }}}
 
 monitor_cmd_for!(axia);
-monitor_cmd_for!(kusama);
+monitor_cmd_for!(axiatestnet);
 monitor_cmd_for!(alphanet);

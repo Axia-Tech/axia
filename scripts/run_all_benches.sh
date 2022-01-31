@@ -6,7 +6,7 @@
 
 runtimes=(
   axia
-  kusama
+  axiatestnet
   alphanet
 )
 
