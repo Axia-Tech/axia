@@ -1,8 +1,6 @@
 # AXIA
 
-Implementation of a <https://axia.network> node in Rust.
-
-[substrate-repo]: https://github.com/paritytech/substrate
+Implementation of a <https://axia.global> node in Rust.
 
 This repo contains runtimes for the AXIA networks. The README provides
 information about installing the `axia` binary and developing on the codebase. For more [AXIA Wiki](https://wiki.axiacoin.network/docs/getting-started).
@@ -10,9 +8,7 @@ information about installing the `axia` binary and developing on the codebase. F
 ## Installation
 
 If you just wish to run a AXIA Network node without compiling it yourself, you may
-either run the latest binary from our
-[releases](https://releases.axiacoin.network/stable) page, or install
-AXIA from one of our package repositories.
+either run the latest binary from our [releases](https://releases.axiacoin.network/stable) page, or install AXIA from one of our package repositories.
  
 ### System Requirements :
 * For this guide we will be using `Linux Mint 20.1 Cinnamon` but the instructions should be similar for `Ubuntu 16.04` or higher versions.
