@@ -51,7 +51,7 @@ candidate branch or started an additional release candidate branch (rc-2, rc-3, 
 
 ### Burn In
 
-Ensure that Parity DevOps has run the new release on AlphaNet, Kusama, and
+Ensure that AXIA DevOps has run the new release on AlphaNet, Kusama, and
 AXIA validators for at least 12 hours prior to publishing the release.
 
 ### Build Artifacts

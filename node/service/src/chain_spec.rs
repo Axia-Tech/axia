@@ -47,14 +47,14 @@ use alphanet_runtime as alphanet;
 use alphanet_runtime::constants::currency::UNITS as WND;
 
 #[cfg(feature = "axia-native")]
-const AXIA_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
+const AXIA_STAGING_TELEMETRY_URL: &str = "ws://localhost:8001/submit/";
 #[cfg(feature = "kusama-native")]
 const KUSAMA_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
 #[cfg(feature = "alphanet-native")]
 const ALPHANET_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
 #[cfg(feature = "betanet-native")]
 const BETANET_STAGING_TELEMETRY_URL: &str = "wss://telemetry.axiacoin.network/submit/";
-const DEFAULT_PROTOCOL_ID: &str = "dot";
+const DEFAULT_PROTOCOL_ID: &str = "axc";
 
 /// Node `ChainSpec` extensions.
 ///

@@ -1,6 +1,6 @@
 # Simulation tests, or high level integration tests
 
-_The content of this directory is meant to be used by Parity's private CI/CD
+_The content of this directory is meant to be used by AXIA's private CI/CD
 infrastructure with private tools. At the moment those tools are still early
 stage of development and we don't know if / when they will available for
 public use._

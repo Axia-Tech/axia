@@ -1,18 +1,18 @@
 // Copyright 2019-2021 AXIA Technologies (UK) Ltd.
-// This file is part of Parity Bridges Common.
+// This file is part of AXIA Bridges Common.
 
-// Parity Bridges Common is free software: you can redistribute it and/or modify
+// AXIA Bridges Common is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Parity Bridges Common is distributed in the hope that it will be useful,
+// AXIA Bridges Common is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Parity Bridges Common.  If not, see <http://www.gnu.org/licenses/>.
+// along with AXIA Bridges Common.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::types::{Address, CallRequest, U256};
 use crate::{Client, Result};
@@ -34,7 +34,7 @@ pub struct SigningParams {
 impl Default for SigningParams {
 	fn default() -> Self {
 		SigningParams {
-			chain_id: 0x11, // Parity dev chain
+			chain_id: 0x11, // AXIA dev chain
 			// account that has a lot of ether when we run instant seal engine
 			// address: 0x00a329c0648769a73afac7f9381e08fb43dbea72
 			// secret: 0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7

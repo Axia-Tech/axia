@@ -1,7 +1,7 @@
 name: ethsub-bridge
 version: "0.1.0"
 author: AXIA Technologies <admin@axiacoin.network>
-about: Parity Ethereum (PoA) <-> Substrate bridge
+about: AXIA Ethereum (PoA) <-> Substrate bridge
 subcommands:
     - eth-to-sub:
         about: Synchronize headers from Ethereum node to Substrate node.

@@ -16,64 +16,64 @@ serde_derive = { version = "1.0.117", optional = true }
 static_assertions = "1.1.0"
 smallvec = "1.6.1"
 
-authority-discovery-primitives = { package = "sp-authority-discovery", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-babe-primitives = { package = "sp-consensus-babe", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-beefy-primitives = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-block-builder-api = { package = "sp-block-builder", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-inherents = { package = "sp-inherents", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-offchain-primitives = { package = "sp-offchain", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-tx-pool-api = { package = "sp-transaction-pool", git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-std = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-io = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-staking = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-core = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-session = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-version = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-sp-npos-elections = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
+authority-discovery-primitives = { package = "sp-authority-discovery", git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+babe-primitives = { package = "sp-consensus-babe", git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+beefy-primitives = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+block-builder-api = { package = "sp-block-builder", git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+inherents = { package = "sp-inherents", git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+offchain-primitives = { package = "sp-offchain", git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+tx-pool-api = { package = "sp-transaction-pool", git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-api = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-std = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-io = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-runtime = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-staking = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-core = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-session = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-version = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+sp-npos-elections = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
 
-pallet-authority-discovery = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-authorship = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-babe = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-balances = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-bounties = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-transaction-payment = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-collective = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-democracy = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-elections-phragmen = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-election-provider-multi-phase = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-grandpa = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-identity = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-im-online = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-indices = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-membership = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-mmr-primitives = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-multisig = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-nicks = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-offences = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-scheduler = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-session = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-frame-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-staking = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-staking-reward-curve = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-frame-system = {git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-timestamp = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-tips = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-treasury = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-vesting = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
-frame-election-provider-support = { git = "https://github.com/paritytech/substrate", default-features = false , branch = "polkadot-v0.9.12" }
+pallet-authority-discovery = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-authorship = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-babe = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-balances = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-bounties = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-transaction-payment = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-collective = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-democracy = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-elections-phragmen = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-election-provider-multi-phase = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+frame-executive = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-grandpa = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-identity = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-im-online = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-indices = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-membership = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-mmr-primitives = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-multisig = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-nicks = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-offences = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-proxy = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-scheduler = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-session = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+frame-support = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-staking = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-staking-reward-curve = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
+frame-system = {git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+frame-system-rpc-runtime-api = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-timestamp = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-tips = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-treasury = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-vesting = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+pallet-utility = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+frame-election-provider-support = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
 
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "polkadot-v0.9.12" }
-frame-try-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "polkadot-v0.9.12" }
-frame-system-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "polkadot-v0.9.12" }
-pallet-offences-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "polkadot-v0.9.12" }
-pallet-session-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true , branch = "polkadot-v0.9.12" }
+frame-benchmarking = { git = "https://github.com/axia-tech/axia-core", default-features = false, optional = true , branch = "dev" }
+frame-try-runtime = { git = "https://github.com/axia-tech/axia-core", default-features = false, optional = true , branch = "dev" }
+frame-system-benchmarking = { git = "https://github.com/axia-tech/axia-core", default-features = false, optional = true , branch = "dev" }
+pallet-offences-benchmarking = { git = "https://github.com/axia-tech/axia-core", default-features = false, optional = true , branch = "dev" }
+pallet-session-benchmarking = { git = "https://github.com/axia-tech/axia-core", default-features = false, optional = true , branch = "dev" }
 hex-literal = { version = "0.3.3", optional = true }
 
 runtime-common = { package = "axia-runtime-common", path = "../common", default-features = false }
@@ -83,14 +83,14 @@ primitives = { package = "axia-primitives", path = "../../primitives", default-f
 [dev-dependencies]
 hex-literal = "0.3.3"
 tiny-keccak = "2.0.2"
-keyring = { package = "sp-keyring", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+keyring = { package = "sp-keyring", git = "https://github.com/axia-tech/axia-core", branch = "dev" }
+sp-trie = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
 trie-db = "0.22.3"
 serde_json = "1.0.67"
 separator = "0.4.1"
 
 [build-dependencies]
-substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+substrate-wasm-builder = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
 
 [features]
 default = ["std"]

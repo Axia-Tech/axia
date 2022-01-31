@@ -4,7 +4,7 @@ AXIA Technologies is committed to resolving security vulnerabilities in our soft
 
 ## Reporting a Vulnerability
 
-Security vulnerabilities in Parity software should be reported by email to security@axiacoin.network. If you think your report might be eligible for the Parity Bug Bounty Program, your email should be sent to bugbounty@axiacoin.network. 
+Security vulnerabilities in AXIA software should be reported by email to security@axiacoin.network. If you think your report might be eligible for the AXIA Bug Bounty Program, your email should be sent to bugbounty@axiacoin.network. 
 
 Your report should include the following:
 
@@ -36,7 +36,7 @@ Responsible investigation and reporting includes, but isn't limited to, the foll
 
 ## Bug Bounty Program
 
-Our Bug Bounty Program allows us to recognise and reward members of the Parity community for helping us find and address significant bugs, in accordance with the terms of the Parity Bug Bounty Program. A detailed description on eligibility, rewards, legal information and terms & conditions for contributors can be found on [our website](https://axia.io/bug-bounty.html). 
+Our Bug Bounty Program allows us to recognise and reward members of the AXIA community for helping us find and address significant bugs, in accordance with the terms of the AXIA Bug Bounty Program. A detailed description on eligibility, rewards, legal information and terms & conditions for contributors can be found on [our website](https://axia.io/bug-bounty.html). 
 
 
 ## Plaintext PGP Key

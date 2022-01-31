@@ -797,7 +797,7 @@ impl pallet_mmr::Config for Runtime {
 
 pub struct ParasProvider;
 impl pallet_beefy_mmr::ParachainHeadsProvider for ParasProvider {
-	fn parachain_heads() -> Vec<(u32, Vec<u8>)> {
+	fn allychain_heads() -> Vec<(u32, Vec<u8>)> {
 		Paras::allychains()
 			.into_iter()
 			.filter_map(|id| Paras::para_head(&id).map(|head| (id.into(), head.0)))

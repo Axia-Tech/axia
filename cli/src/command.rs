@@ -53,7 +53,7 @@ fn get_exec_name() -> Option<String> {
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"AXIA Systems".into()
+		"AXIA AXIA".into()
 	}
 
 	fn impl_version() -> String {
@@ -69,11 +69,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/axia-tech/axia/issues/new".into()
+		"https://github.com/axia/axia/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2021
+		2017
 	}
 
 	fn executable_name() -> String {
@@ -197,7 +197,7 @@ fn set_default_ss58_version(spec: &Box<dyn service::ChainSpec>) {
 	} else if spec.is_alphanet() {
 		Ss58AddressFormatRegistry::SubstrateAccount
 	} else {
-		Ss58AddressFormatRegistry::PolkadotAccount
+		Ss58AddressFormatRegistry::AxiaAccount
 	}
 	.into();
 

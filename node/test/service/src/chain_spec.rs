@@ -27,7 +27,7 @@ use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_core::sr25519;
 use sp_runtime::Perbill;
 
-const DEFAULT_PROTOCOL_ID: &str = "dot";
+const DEFAULT_PROTOCOL_ID: &str = "axc";
 
 /// The `ChainSpec` parameterized for axia test runtime.
 pub type AXIAChainSpec =

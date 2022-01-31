@@ -63,7 +63,7 @@ pub struct Cli {
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"AXIA Systems".into()
+		"AXIA AXIA".into()
 	}
 
 	fn impl_version() -> String {
@@ -79,7 +79,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/axia-tech/axia/issues/new".into()
+		"https://github.com/axia/axia/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {

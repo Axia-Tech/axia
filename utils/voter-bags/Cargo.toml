@@ -5,8 +5,8 @@ authors = ["AXIA Technologies <admin@axiacoin.network>"]
 edition = "2018"
 
 [dependencies]
-generate-bags = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.12" }
+generate-bags = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
+sp-io = { git = "https://github.com/axia-tech/axia-core", branch = "dev" }
 structopt = "0.3.21"
 
 alphanet-runtime = { path = "../../runtime/alphanet" }

@@ -59,7 +59,7 @@ ARG BUILD_DATE=""
 ARG VERSION=""
 
 LABEL org.opencontainers.image.title="${PROJECT}" \
-    org.opencontainers.image.description="${PROJECT} - component of Parity Bridges Common" \
+    org.opencontainers.image.description="${PROJECT} - component of AXIA Bridges Common" \
     org.opencontainers.image.source="https://github.com/axia/axia-bridges-common/blob/${VCS_REF}/Dockerfile" \
     org.opencontainers.image.url="https://github.com/axia/axia-bridges-common/blob/${VCS_REF}/Dockerfile" \
     org.opencontainers.image.documentation="https://github.com/axia/axia-bridges-common/blob/${VCS_REF}/README.md" \

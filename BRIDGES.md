@@ -1,4 +1,4 @@
-# Using Parity Bridges Common dependency (`git subtree`).
+# Using AXIA Bridges Common dependency (`git subtree`).
 
 In `./bridges` sub-directory you can find a `git subtree` imported version of:
 [axia-bridges-common](https://github.com/axia/axia-bridges-common/) repository.

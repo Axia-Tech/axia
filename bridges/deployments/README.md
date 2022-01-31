@@ -193,7 +193,7 @@ Here are the arguments currently supported:
 
 ### GitHub Actions
 We have a nightly job which runs and publishes Docker images for the different nodes and relayers to
-the [ParityTech Docker Hub](https://hub.docker.com/u/axia) organization. These images are used
+the [AXIATech Docker Hub](https://hub.docker.com/u/axia) organization. These images are used
 for our ephemeral (temporary) test networks. Additionally, any time a tag in the form of `v*` is
 pushed to GitHub the publishing job is run. This will build all the components (nodes, relayers) and
 publish them.
