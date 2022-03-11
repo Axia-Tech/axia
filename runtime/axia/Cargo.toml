@@ -80,6 +80,8 @@ runtime-common = { package = "axia-runtime-common", path = "../common", default-
 runtime-allychains = { package = "axia-runtime-allychains", path = "../allychains", default-features = false }
 primitives = { package = "axia-primitives", path = "../../primitives", default-features = false }
 
+pallet-sudo = { git = "https://github.com/axia-tech/axia-core", default-features = false , branch = "dev" }
+
 [dev-dependencies]
 hex-literal = "0.3.3"
 tiny-keccak = "2.0.2"
@@ -156,6 +158,7 @@ std = [
 	"beefy-primitives/std",
 	"pallet-mmr-primitives/std",
 	"frame-election-provider-support/std",
+	"pallet-sudo/std"
 ]
 runtime-benchmarks = [
 	"runtime-common/runtime-benchmarks",
@@ -222,6 +225,7 @@ try-runtime = [
 	"pallet-vesting/try-runtime",
 	"pallet-utility/try-runtime",
 	"runtime-common/try-runtime",
+	"pallet-sudo/try-runtime"
 ]
 # When enabled, the runtime API will not be build.
 #
