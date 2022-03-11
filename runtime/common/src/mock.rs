@@ -66,7 +66,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		PARACHAINS.with(|x| {
 			let allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
-				Ok(_) => Err(DispatchError::Other("Already Parachain")),
+				Ok(_) => Err(DispatchError::Other("Already Allychain")),
 				Err(_) => Ok(()),
 			}
 		})?;

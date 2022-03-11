@@ -45,8 +45,8 @@ decl_error! {
 }
 
 decl_storage! {
-	trait Store for Module<T: Config> as ParachainProposer {
-		/// Validators that should be retired, because their Parachain was deregistered.
+	trait Store for Module<T: Config> as AllychainProposer {
+		/// Validators that should be retired, because their Allychain was deregistered.
 		ValidatorsToRetire: Vec<T::ValidatorId>;
 		/// Validators that should be added.
 		ValidatorsToAdd: Vec<T::ValidatorId>;

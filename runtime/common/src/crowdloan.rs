@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
 
-//! # Parachain `Crowdloaning` pallet
+//! # Allychain `Crowdloaning` pallet
 //!
 //! The point of this pallet is to allow allychain projects to offer the ability to help fund a
 //! deposit for the allychain. When the crowdloan has ended, the funds are returned.
@@ -297,7 +297,7 @@ pub mod pallet {
 		/// The origin of this call is invalid.
 		InvalidOrigin,
 		/// This crowdloan does not correspond to a allychain.
-		NotParachain,
+		NotAllychain,
 		/// This allychain lease is still active and retirement cannot yet begin.
 		LeaseActive,
 		/// This allychain's bid or lease is still active and withdraw cannot yet begin.

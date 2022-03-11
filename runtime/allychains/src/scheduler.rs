@@ -23,7 +23,7 @@
 //! It aims to achieve these tasks with these goals in mind:
 //! - It should be possible to know at least a block ahead-of-time, ideally more,
 //!   which validators are going to be assigned to which allychains.
-//! - Parachains that have a candidate pending availability in this fork of the chain
+//! - Allychains that have a candidate pending availability in this fork of the chain
 //!   should not be assigned.
 //! - Validator assignments should not be gameable. Malicious cartels should not be able to
 //!   manipulate the scheduler to assign themselves as desired.
@@ -102,7 +102,7 @@ pub enum FreedReason {
 #[cfg_attr(feature = "std", derive(PartialEq, Debug))]
 pub enum AssignmentKind {
 	/// A allychain.
-	Parachain,
+	Allychain,
 	/// A parathread.
 	Parathread(CollatorId, u32),
 }
@@ -125,7 +125,7 @@ impl CoreAssignment {
 	/// Get the ID of a collator who is required to collate this block.
 	pub fn required_collator(&self) -> Option<&CollatorId> {
 		match self.kind {
-			AssignmentKind::Parachain => None,
+			AssignmentKind::Allychain => None,
 			AssignmentKind::Parathread(ref id, _) => Some(id),
 		}
 	}
@@ -133,7 +133,7 @@ impl CoreAssignment {
 	/// Get the `CoreOccupied` from this.
 	pub fn to_core_occupied(&self) -> CoreOccupied {
 		match self.kind {
-			AssignmentKind::Parachain => CoreOccupied::Parachain,
+			AssignmentKind::Allychain => CoreOccupied::Allychain,
 			AssignmentKind::Parathread(ref collator, retries) =>
 				CoreOccupied::Parathread(ParathreadEntry {
 					claim: ParathreadClaim(self.para_id, collator.clone()),
@@ -379,7 +379,7 @@ impl<T: Config> Pallet<T> {
 				if (freed_index.0 as usize) < cores.len() {
 					match cores[freed_index.0 as usize].take() {
 						None => continue,
-						Some(CoreOccupied::Parachain) => {},
+						Some(CoreOccupied::Allychain) => {},
 						Some(CoreOccupied::Parathread(entry)) => {
 							match freed_reason {
 								FreedReason::Concluded => {
@@ -470,7 +470,7 @@ impl<T: Config> Pallet<T> {
 				let core_assignment = if core_index < allychains.len() {
 					// allychain core.
 					Some(CoreAssignment {
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						para_id: allychains[core_index],
 						core: core.clone(),
 						group_idx: Self::group_assigned_to_core(core, now).expect(
@@ -563,7 +563,7 @@ impl<T: Config> Pallet<T> {
 		let cores = AvailabilityCores::<T>::get();
 		match cores.get(core_index.0 as usize).and_then(|c| c.as_ref()) {
 			None => None,
-			Some(CoreOccupied::Parachain) => {
+			Some(CoreOccupied::Allychain) => {
 				let allychains = <paras::Pallet<T>>::allychains();
 				Some(allychains[core_index.0 as usize])
 			},
@@ -642,7 +642,7 @@ impl<T: Config> Pallet<T> {
 				match availability_cores.get(core_index.0 as usize) {
 					None => true,       // out-of-bounds, doesn't really matter what is returned.
 					Some(None) => true, // core not occupied, still doesn't really matter.
-					Some(Some(CoreOccupied::Parachain)) => {
+					Some(Some(CoreOccupied::Allychain)) => {
 						if blocks_since_last_rotation >= config.chain_availability_period {
 							false // no pruning except recently after rotation.
 						} else {
@@ -722,7 +722,7 @@ impl<T: Config> Pallet<T> {
 								para_id: entry.claim.0,
 								collator: Some(entry.claim.1.clone()),
 							}),
-							CoreOccupied::Parachain => None, // defensive; not possible.
+							CoreOccupied::Allychain => None, // defensive; not possible.
 						}
 					})
 				})
@@ -1224,7 +1224,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(0),
 						para_id: chain_a,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(0),
 					}
 				);
@@ -1234,7 +1234,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(1),
 						para_id: chain_b,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(1),
 					}
 				);
@@ -1255,7 +1255,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(0),
 						para_id: chain_a,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(0),
 					}
 				);
@@ -1265,7 +1265,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(1),
 						para_id: chain_b,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(1),
 					}
 				);
@@ -1413,7 +1413,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(0),
 						para_id: chain_a,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(0),
 					}
 				);
@@ -1544,7 +1544,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(0),
 						para_id: chain_a,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(0),
 					}
 				);
@@ -1553,7 +1553,7 @@ mod tests {
 					CoreAssignment {
 						core: CoreIndex(2),
 						para_id: chain_c,
-						kind: AssignmentKind::Parachain,
+						kind: AssignmentKind::Allychain,
 						group_idx: GroupIndex(2),
 					}
 				);
@@ -1753,7 +1753,7 @@ mod tests {
 			// assign some availability cores.
 			{
 				AvailabilityCores::<Test>::mutate(|cores| {
-					cores[0] = Some(CoreOccupied::Parachain);
+					cores[0] = Some(CoreOccupied::Allychain);
 					cores[1] = Some(CoreOccupied::Parathread(ParathreadEntry {
 						claim: ParathreadClaim(thread_a, collator),
 						retries: 0,
@@ -2000,7 +2000,7 @@ mod tests {
 
 				let cores = Scheduler::availability_cores();
 				match cores[0].as_ref().unwrap() {
-					CoreOccupied::Parachain => {},
+					CoreOccupied::Allychain => {},
 					_ => panic!("with no threads, only core should be a chain core"),
 				}
 
@@ -2054,7 +2054,7 @@ mod tests {
 
 				let cores = Scheduler::availability_cores();
 				match cores[0].as_ref().unwrap() {
-					CoreOccupied::Parachain => {},
+					CoreOccupied::Allychain => {},
 					_ => panic!("with no threads, only core should be a chain core"),
 				}
 
@@ -2137,7 +2137,7 @@ mod tests {
 				vec![CoreAssignment {
 					core: CoreIndex(0),
 					para_id: chain_a,
-					kind: AssignmentKind::Parachain,
+					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}],
 			);

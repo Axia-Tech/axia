@@ -18,7 +18,7 @@
 
 //! Core AXIA types.
 //!
-//! These core AXIA types are used by the relay chain and the Parachains.
+//! These core AXIA types are used by the relay chain and the Allychains.
 
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "std")]

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Auctioning system to determine the set of Parachains in operation. This includes logic for the
+//! Auctioning system to determine the set of Allychains in operation. This includes logic for the
 //! auctioning mechanism and for reserving balance as part of the "payment". Unreserving the balance
 //! happens elsewhere.
 

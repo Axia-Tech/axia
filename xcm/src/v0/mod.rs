@@ -58,11 +58,11 @@ pub mod prelude {
 // TODO: #2841 #XCMENCODE Efficient encodings for MultiAssets, Vec<Order>, using initial byte values 128+ to encode
 //   the number of items in the vector.
 
-/// Basically just the XCM (more general) version of `ParachainDispatchOrigin`.
+/// Basically just the XCM (more general) version of `AllychainDispatchOrigin`.
 #[derive(Copy, Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo)]
 pub enum OriginKind {
 	/// Origin should just be the native dispatch origin representation for the sender in the
-	/// local runtime framework. For Cumulus/Frame chains this is the `Parachain` or `Relay` origin
+	/// local runtime framework. For Cumulus/Frame chains this is the `Allychain` or `Relay` origin
 	/// if coming from a chain, though there may be others if the `MultiLocation` XCM origin has a
 	/// primary/native dispatch origin form.
 	Native,

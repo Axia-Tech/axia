@@ -201,7 +201,7 @@ digraph {
         <table>
             <tr><td border="0" colspan="2" port="name"><i>enum</i> CoreOccupied</td></tr>
             <tr><td></td><td port="parathread">Parathread(ParathreadEntry)</td></tr>
-            <tr><td></td><td port="allychain">Parachain</td></tr>
+            <tr><td></td><td port="allychain">Allychain</td></tr>
         </table>
     >]
 

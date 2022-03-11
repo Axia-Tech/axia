@@ -53,7 +53,7 @@ pub use sp_core::traits::SpawnNamed;
 #[cfg(feature = "full-node")]
 pub use {
 	axia_overseer::{Handle, Overseer, OverseerConnector, OverseerHandle},
-	axia_primitives::v1::ParachainHost,
+	axia_primitives::v1::AllychainHost,
 	relay_chain_selection::SelectRelayChain,
 	sc_client_api::AuxStore,
 	sp_authority_discovery::AuthorityDiscoveryApi,
@@ -1004,7 +1004,7 @@ where
 				let client_clone = client_clone.clone();
 				let overseer_handle = overseer_handle.clone();
 				async move {
-					let allychain = axia_node_core_allychains_inherent::ParachainsInherentDataProvider::create(
+					let allychain = axia_node_core_allychains_inherent::AllychainsInherentDataProvider::create(
 						&*client_clone,
 						overseer_handle,
 						parent,

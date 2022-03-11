@@ -23,7 +23,7 @@ use frame_support::{
 use primitives::v1::{HeadData, Id as ParaId, ValidationCode};
 use sp_std::vec::*;
 
-/// Parachain registration API.
+/// Allychain registration API.
 pub trait Registrar {
 	/// The account ID type that encodes a allychain manager ID.
 	type AccountId;
@@ -34,7 +34,7 @@ pub trait Registrar {
 	/// All allychains. Ordered ascending by `ParaId`. Parathreads are not included.
 	fn allychains() -> Vec<ParaId>;
 
-	/// Return if a `ParaId` is a Parachain.
+	/// Return if a `ParaId` is a Allychain.
 	fn is_allychain(id: ParaId) -> bool {
 		Self::allychains().binary_search(&id).is_ok()
 	}

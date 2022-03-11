@@ -27,10 +27,10 @@ fn basic_setup_works() {
 		&Parent.into(),
 	));
 
-	assert_eq!(to_account(X1(Parachain(1)).into()), Ok(1001));
-	assert_eq!(to_account(X1(Parachain(50)).into()), Ok(1050));
-	assert_eq!(to_account(MultiLocation::new(1, X1(Parachain(1)))), Ok(2001));
-	assert_eq!(to_account(MultiLocation::new(1, X1(Parachain(50)))), Ok(2050));
+	assert_eq!(to_account(X1(Allychain(1)).into()), Ok(1001));
+	assert_eq!(to_account(X1(Allychain(50)).into()), Ok(1050));
+	assert_eq!(to_account(MultiLocation::new(1, X1(Allychain(1)))), Ok(2001));
+	assert_eq!(to_account(MultiLocation::new(1, X1(Allychain(50)))), Ok(2050));
 	assert_eq!(
 		to_account(MultiLocation::new(0, X1(AccountIndex64 { index: 1, network: Any }))),
 		Ok(1),
@@ -74,7 +74,7 @@ fn allow_unpaid_should_work() {
 	AllowUnpaidFrom::set(vec![Parent.into()]);
 
 	let r = AllowUnpaidExecutionFrom::<IsInVec<AllowUnpaidFrom>>::should_execute(
-		&Parachain(1).into(),
+		&Allychain(1).into(),
 		&mut message,
 		10,
 		&mut 0,
@@ -98,7 +98,7 @@ fn allow_paid_should_work() {
 		Xcm::<()>(vec![TransferAsset { assets: (Parent, 100).into(), beneficiary: Here.into() }]);
 
 	let r = AllowTopLevelPaidExecutionFrom::<IsInVec<AllowPaidFrom>>::should_execute(
-		&Parachain(1).into(),
+		&Allychain(1).into(),
 		&mut message,
 		10,
 		&mut 0,
@@ -128,7 +128,7 @@ fn allow_paid_should_work() {
 	]);
 
 	let r = AllowTopLevelPaidExecutionFrom::<IsInVec<AllowPaidFrom>>::should_execute(
-		&Parachain(1).into(),
+		&Allychain(1).into(),
 		&mut paying_message,
 		30,
 		&mut 0,
@@ -165,12 +165,12 @@ fn paying_reserve_deposit_should_work() {
 #[test]
 fn transfer_should_work() {
 	// we'll let them have message execution for free.
-	AllowUnpaidFrom::set(vec![X1(Parachain(1)).into()]);
+	AllowUnpaidFrom::set(vec![X1(Allychain(1)).into()]);
 	// Child allychain #1 owns 1000 tokens held by us in reserve.
 	add_asset(1001, (Here, 1000));
 	// They want to transfer 100 of them to their sibling allychain #2
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1),
+		Allychain(1),
 		Xcm(vec![TransferAsset {
 			assets: (Here, 100).into(),
 			beneficiary: X1(AccountIndex64 { index: 3, network: Any }).into(),
@@ -186,13 +186,13 @@ fn transfer_should_work() {
 #[test]
 fn basic_asset_trap_should_work() {
 	// we'll let them have message execution for free.
-	AllowUnpaidFrom::set(vec![X1(Parachain(1)).into(), X1(Parachain(2)).into()]);
+	AllowUnpaidFrom::set(vec![X1(Allychain(1)).into(), X1(Allychain(2)).into()]);
 
 	// Child allychain #1 owns 1000 tokens held by us in reserve.
 	add_asset(1001, (Here, 1000));
 	// They want to transfer 100 of them to their sibling allychain #2 but have a problem
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1).into(),
+		Allychain(1).into(),
 		Xcm(vec![
 			WithdrawAsset((Here, 100).into()),
 			DepositAsset {
@@ -210,7 +210,7 @@ fn basic_asset_trap_should_work() {
 	// Incorrect ticket doesn't work.
 	let old_trapped_assets = TrappedAssets::get();
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1).into(),
+		Allychain(1).into(),
 		Xcm(vec![
 			ClaimAsset { assets: (Here, 100).into(), ticket: GeneralIndex(1).into() },
 			DepositAsset {
@@ -229,7 +229,7 @@ fn basic_asset_trap_should_work() {
 	// Incorrect origin doesn't work.
 	let old_trapped_assets = TrappedAssets::get();
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(2).into(),
+		Allychain(2).into(),
 		Xcm(vec![
 			ClaimAsset { assets: (Here, 100).into(), ticket: GeneralIndex(0).into() },
 			DepositAsset {
@@ -248,7 +248,7 @@ fn basic_asset_trap_should_work() {
 	// Incorrect assets doesn't work.
 	let old_trapped_assets = TrappedAssets::get();
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1).into(),
+		Allychain(1).into(),
 		Xcm(vec![
 			ClaimAsset { assets: (Here, 101).into(), ticket: GeneralIndex(0).into() },
 			DepositAsset {
@@ -265,7 +265,7 @@ fn basic_asset_trap_should_work() {
 	assert_eq!(old_trapped_assets, TrappedAssets::get());
 
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1).into(),
+		Allychain(1).into(),
 		Xcm(vec![
 			ClaimAsset { assets: (Here, 100).into(), ticket: GeneralIndex(0).into() },
 			DepositAsset {
@@ -282,7 +282,7 @@ fn basic_asset_trap_should_work() {
 
 	// Same again doesn't work :-)
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1).into(),
+		Allychain(1).into(),
 		Xcm(vec![
 			ClaimAsset { assets: (Here, 100).into(), ticket: GeneralIndex(0).into() },
 			DepositAsset {
@@ -424,7 +424,7 @@ fn code_registers_should_work() {
 
 #[test]
 fn reserve_transfer_should_work() {
-	AllowUnpaidFrom::set(vec![X1(Parachain(1)).into()]);
+	AllowUnpaidFrom::set(vec![X1(Allychain(1)).into()]);
 	// Child allychain #1 owns 1000 tokens held by us in reserve.
 	add_asset(1001, (Here, 1000));
 	// The remote account owned by gav.
@@ -433,10 +433,10 @@ fn reserve_transfer_should_work() {
 	// They want to transfer 100 of our native asset from sovereign account of allychain #1 into #2
 	// and let them know to hand it to account #3.
 	let r = XcmExecutor::<TestConfig>::execute_xcm(
-		Parachain(1),
+		Allychain(1),
 		Xcm(vec![TransferReserveAsset {
 			assets: (Here, 100).into(),
-			dest: Parachain(2).into(),
+			dest: Allychain(2).into(),
 			xcm: Xcm::<()>(vec![DepositAsset {
 				assets: All.into(),
 				max_assets: 1,
@@ -451,7 +451,7 @@ fn reserve_transfer_should_work() {
 	assert_eq!(
 		sent_xcm(),
 		vec![(
-			Parachain(2).into(),
+			Allychain(2).into(),
 			Xcm::<()>(vec![
 				ReserveAssetDeposited((Parent, 100).into()),
 				ClearOrigin,
@@ -465,7 +465,7 @@ fn reserve_transfer_should_work() {
 fn simple_version_subscriptions_should_work() {
 	AllowSubsFrom::set(vec![Parent.into()]);
 
-	let origin = Parachain(1000).into();
+	let origin = Allychain(1000).into();
 	let message = Xcm::<TestCall>(vec![
 		SetAppendix(Xcm(vec![])),
 		SubscribeVersion { query_id: 42, max_response_weight: 5000 },
@@ -474,7 +474,7 @@ fn simple_version_subscriptions_should_work() {
 	let r = XcmExecutor::<TestConfig>::execute_xcm(origin, message, weight_limit);
 	assert_eq!(r, Outcome::Error(XcmError::Barrier));
 
-	let origin = Parachain(1000).into();
+	let origin = Allychain(1000).into();
 	let message =
 		Xcm::<TestCall>(vec![SubscribeVersion { query_id: 42, max_response_weight: 5000 }]);
 	let weight_limit = 10;
@@ -489,7 +489,7 @@ fn simple_version_subscriptions_should_work() {
 
 #[test]
 fn version_subscription_instruction_should_work() {
-	let origin = Parachain(1000).into();
+	let origin = Allychain(1000).into();
 	let message = Xcm::<TestCall>(vec![
 		DescendOrigin(X1(AccountIndex64 { index: 1, network: Any })),
 		SubscribeVersion { query_id: 42, max_response_weight: 5000 },
@@ -515,20 +515,20 @@ fn version_subscription_instruction_should_work() {
 	);
 	assert_eq!(r, Outcome::Complete(20));
 
-	assert_eq!(SubscriptionRequests::get(), vec![(Parachain(1000).into(), Some((42, 5000)))]);
+	assert_eq!(SubscriptionRequests::get(), vec![(Allychain(1000).into(), Some((42, 5000)))]);
 }
 
 #[test]
 fn simple_version_unsubscriptions_should_work() {
 	AllowSubsFrom::set(vec![Parent.into()]);
 
-	let origin = Parachain(1000).into();
+	let origin = Allychain(1000).into();
 	let message = Xcm::<TestCall>(vec![SetAppendix(Xcm(vec![])), UnsubscribeVersion]);
 	let weight_limit = 20;
 	let r = XcmExecutor::<TestConfig>::execute_xcm(origin, message, weight_limit);
 	assert_eq!(r, Outcome::Error(XcmError::Barrier));
 
-	let origin = Parachain(1000).into();
+	let origin = Allychain(1000).into();
 	let message = Xcm::<TestCall>(vec![UnsubscribeVersion]);
 	let weight_limit = 10;
 	let r = XcmExecutor::<TestConfig>::execute_xcm(origin, message.clone(), weight_limit);
@@ -543,7 +543,7 @@ fn simple_version_unsubscriptions_should_work() {
 
 #[test]
 fn version_unsubscription_instruction_should_work() {
-	let origin = Parachain(1000).into();
+	let origin = Allychain(1000).into();
 
 	// Not allowed to do it when origin has been changed.
 	let message = Xcm::<TestCall>(vec![
@@ -569,7 +569,7 @@ fn version_unsubscription_instruction_should_work() {
 	);
 	assert_eq!(r, Outcome::Complete(20));
 
-	assert_eq!(SubscriptionRequests::get(), vec![(Parachain(1000).into(), None)]);
+	assert_eq!(SubscriptionRequests::get(), vec![(Allychain(1000).into(), None)]);
 	assert_eq!(sent_xcm(), vec![]);
 }
 
@@ -672,8 +672,8 @@ fn fungible_multi_asset(location: MultiLocation, amount: u128) -> MultiAsset {
 
 #[test]
 fn weight_trader_tuple_should_work() {
-	pub const PARA_1: MultiLocation = X1(Parachain(1)).into();
-	pub const PARA_2: MultiLocation = X1(Parachain(2)).into();
+	pub const PARA_1: MultiLocation = X1(Allychain(1)).into();
+	pub const PARA_2: MultiLocation = X1(Allychain(2)).into();
 
 	parameter_types! {
 		pub static HereWeightPrice: (AssetId, u128) = (Here.into().into(), WEIGHT_PER_SECOND.into());

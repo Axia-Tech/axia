@@ -101,7 +101,7 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 		.enumerate()
 		.map(|(i, core)| match core {
 			Some(occupied) => CoreState::Occupied(match occupied {
-				CoreOccupied::Parachain => {
+				CoreOccupied::Allychain => {
 					let para_id = allychains[i];
 					let pending_availability =
 						<inclusion::Pallet<T>>::pending_availability(para_id)

@@ -61,9 +61,9 @@ impl<Origin: OriginTrait> ConvertOrigin<Origin> for ParentAsSuperuser<Origin> {
 	}
 }
 
-pub struct ChildSystemParachainAsSuperuser<ParaId, Origin>(PhantomData<(ParaId, Origin)>);
+pub struct ChildSystemAllychainAsSuperuser<ParaId, Origin>(PhantomData<(ParaId, Origin)>);
 impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
-	for ChildSystemParachainAsSuperuser<ParaId, Origin>
+	for ChildSystemAllychainAsSuperuser<ParaId, Origin>
 {
 	fn convert_origin(
 		origin: impl Into<MultiLocation>,
@@ -72,16 +72,16 @@ impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
 		match (kind, origin.into()) {
 			(
 				OriginKind::Superuser,
-				MultiLocation { parents: 0, interior: X1(Junction::Parachain(id)) },
+				MultiLocation { parents: 0, interior: X1(Junction::Allychain(id)) },
 			) if ParaId::from(id).is_system() => Ok(Origin::root()),
 			(_, origin) => Err(origin),
 		}
 	}
 }
 
-pub struct SiblingSystemParachainAsSuperuser<ParaId, Origin>(PhantomData<(ParaId, Origin)>);
+pub struct SiblingSystemAllychainAsSuperuser<ParaId, Origin>(PhantomData<(ParaId, Origin)>);
 impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
-	for SiblingSystemParachainAsSuperuser<ParaId, Origin>
+	for SiblingSystemAllychainAsSuperuser<ParaId, Origin>
 {
 	fn convert_origin(
 		origin: impl Into<MultiLocation>,
@@ -90,16 +90,16 @@ impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
 		match (kind, origin.into()) {
 			(
 				OriginKind::Superuser,
-				MultiLocation { parents: 1, interior: X1(Junction::Parachain(id)) },
+				MultiLocation { parents: 1, interior: X1(Junction::Allychain(id)) },
 			) if ParaId::from(id).is_system() => Ok(Origin::root()),
 			(_, origin) => Err(origin),
 		}
 	}
 }
 
-pub struct ChildParachainAsNative<ParachainOrigin, Origin>(PhantomData<(ParachainOrigin, Origin)>);
-impl<ParachainOrigin: From<u32>, Origin: From<ParachainOrigin>> ConvertOrigin<Origin>
-	for ChildParachainAsNative<ParachainOrigin, Origin>
+pub struct ChildAllychainAsNative<AllychainOrigin, Origin>(PhantomData<(AllychainOrigin, Origin)>);
+impl<AllychainOrigin: From<u32>, Origin: From<AllychainOrigin>> ConvertOrigin<Origin>
+	for ChildAllychainAsNative<AllychainOrigin, Origin>
 {
 	fn convert_origin(
 		origin: impl Into<MultiLocation>,
@@ -108,18 +108,18 @@ impl<ParachainOrigin: From<u32>, Origin: From<ParachainOrigin>> ConvertOrigin<Or
 		match (kind, origin.into()) {
 			(
 				OriginKind::Native,
-				MultiLocation { parents: 0, interior: X1(Junction::Parachain(id)) },
-			) => Ok(Origin::from(ParachainOrigin::from(id))),
+				MultiLocation { parents: 0, interior: X1(Junction::Allychain(id)) },
+			) => Ok(Origin::from(AllychainOrigin::from(id))),
 			(_, origin) => Err(origin),
 		}
 	}
 }
 
-pub struct SiblingParachainAsNative<ParachainOrigin, Origin>(
-	PhantomData<(ParachainOrigin, Origin)>,
+pub struct SiblingAllychainAsNative<AllychainOrigin, Origin>(
+	PhantomData<(AllychainOrigin, Origin)>,
 );
-impl<ParachainOrigin: From<u32>, Origin: From<ParachainOrigin>> ConvertOrigin<Origin>
-	for SiblingParachainAsNative<ParachainOrigin, Origin>
+impl<AllychainOrigin: From<u32>, Origin: From<AllychainOrigin>> ConvertOrigin<Origin>
+	for SiblingAllychainAsNative<AllychainOrigin, Origin>
 {
 	fn convert_origin(
 		origin: impl Into<MultiLocation>,
@@ -128,8 +128,8 @@ impl<ParachainOrigin: From<u32>, Origin: From<ParachainOrigin>> ConvertOrigin<Or
 		match (kind, origin.into()) {
 			(
 				OriginKind::Native,
-				MultiLocation { parents: 1, interior: X1(Junction::Parachain(id)) },
-			) => Ok(Origin::from(ParachainOrigin::from(id))),
+				MultiLocation { parents: 1, interior: X1(Junction::Allychain(id)) },
+			) => Ok(Origin::from(AllychainOrigin::from(id))),
 			(_, origin) => Err(origin),
 		}
 	}

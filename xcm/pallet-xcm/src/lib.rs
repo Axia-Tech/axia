@@ -478,8 +478,8 @@ pub mod pallet {
 		/// local weights.
 		///
 		/// - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
-		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Parachain(..))` to send
-		///   from allychain to allychain, or `X1(Parachain(..))` to send from relay to allychain.
+		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Allychain(..))` to send
+		///   from allychain to allychain, or `X1(Allychain(..))` to send from relay to allychain.
 		/// - `beneficiary`: A beneficiary location for the assets in the context of `dest`. Will generally be
 		///   an `AccountId32` value.
 		/// - `assets`: The assets to be withdrawn. The first item should be the currency used to to pay the fee on the
@@ -519,8 +519,8 @@ pub mod pallet {
 		/// local weights.
 		///
 		/// - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
-		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Parachain(..))` to send
-		///   from allychain to allychain, or `X1(Parachain(..))` to send from relay to allychain.
+		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Allychain(..))` to send
+		///   from allychain to allychain, or `X1(Allychain(..))` to send from relay to allychain.
 		/// - `beneficiary`: A beneficiary location for the assets in the context of `dest`. Will generally be
 		///   an `AccountId32` value.
 		/// - `assets`: The assets to be withdrawn. This should include the assets used to pay the fee on the
@@ -671,8 +671,8 @@ pub mod pallet {
 		/// Fee payment on the destination side is made from the first asset listed in the `assets` vector.
 		///
 		/// - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
-		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Parachain(..))` to send
-		///   from allychain to allychain, or `X1(Parachain(..))` to send from relay to allychain.
+		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Allychain(..))` to send
+		///   from allychain to allychain, or `X1(Allychain(..))` to send from relay to allychain.
 		/// - `beneficiary`: A beneficiary location for the assets in the context of `dest`. Will generally be
 		///   an `AccountId32` value.
 		/// - `assets`: The assets to be withdrawn. This should include the assets used to pay the fee on the
@@ -715,8 +715,8 @@ pub mod pallet {
 		/// Fee payment on the destination side is made from the first asset listed in the `assets` vector.
 		///
 		/// - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
-		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Parachain(..))` to send
-		///   from allychain to allychain, or `X1(Parachain(..))` to send from relay to allychain.
+		/// - `dest`: Destination context for the assets. Will typically be `X2(Parent, Allychain(..))` to send
+		///   from allychain to allychain, or `X1(Allychain(..))` to send from relay to allychain.
 		/// - `beneficiary`: A beneficiary location for the assets in the context of `dest`. Will generally be
 		///   an `AccountId32` value.
 		/// - `assets`: The assets to be withdrawn. The first item should be the currency used to to pay the fee on the

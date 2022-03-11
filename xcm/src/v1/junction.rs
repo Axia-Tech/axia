@@ -31,7 +31,7 @@ pub enum Junction {
 	/// An indexed allychain belonging to and operated by the context.
 	///
 	/// Generally used when the context is a AXIA Relay-chain.
-	Parachain(#[codec(compact)] u32),
+	Allychain(#[codec(compact)] u32),
 	/// A 32-byte identifier for an account of a specific network that is respected as a sovereign endpoint within
 	/// the context.
 	///
@@ -84,7 +84,7 @@ impl TryFrom<Junction0> for Junction {
 	fn try_from(value: Junction0) -> Result<Self, Self::Error> {
 		match value {
 			Junction0::Parent => Err(()),
-			Junction0::Parachain(id) => Ok(Self::Parachain(id)),
+			Junction0::Allychain(id) => Ok(Self::Allychain(id)),
 			Junction0::AccountId32 { network, id } => Ok(Self::AccountId32 { network, id }),
 			Junction0::AccountIndex64 { network, index } =>
 				Ok(Self::AccountIndex64 { network, index }),

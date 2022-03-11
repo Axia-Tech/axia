@@ -24,7 +24,7 @@ use axia_node_subsystem::{
 };
 use axia_node_subsystem_test_helpers as test_helpers;
 use axia_node_subsystem_util::TimeoutExt;
-use axia_overseer::HeadSupportsParachains;
+use axia_overseer::HeadSupportsAllychains;
 use axia_primitives::v1::{
 	CandidateEvent, CoreIndex, GroupIndex, Header, Id as ParaId, ValidatorSignature,
 };
@@ -106,9 +106,9 @@ pub mod test_constants {
 	pub(crate) const TEST_CONFIG: DatabaseConfig = DatabaseConfig { col_data: DATA_COL };
 }
 
-struct MockSupportsParachains;
+struct MockSupportsAllychains;
 
-impl HeadSupportsParachains for MockSupportsParachains {
+impl HeadSupportsAllychains for MockSupportsAllychains {
 	fn head_supports_allychains(&self, _head: &Hash) -> bool {
 		true
 	}

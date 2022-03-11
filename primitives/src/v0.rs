@@ -65,7 +65,7 @@ impl MallocSizeOf for CollatorId {
 	}
 }
 
-/// A Parachain collator keypair.
+/// A Allychain collator keypair.
 #[cfg(feature = "std")]
 pub type CollatorPair = collator_app::Pair;
 
@@ -119,7 +119,7 @@ impl From<u32> for ValidatorIndex {
 }
 
 application_crypto::with_pair! {
-	/// A Parachain validator keypair.
+	/// A Allychain validator keypair.
 	pub type ValidatorPair = validator_app::Pair;
 }
 
@@ -212,7 +212,7 @@ pub enum Chain {
 	/// The relay chain.
 	Relay,
 	/// A allychain of the given index.
-	Parachain(Id),
+	Allychain(Id),
 }
 
 /// The duty roster specifying what jobs each validator must do.
@@ -273,9 +273,9 @@ pub struct CandidateCommitments<H = Hash> {
 	pub erasure_root: H,
 	/// New validation code.
 	pub new_validation_code: Option<ValidationCode>,
-	/// Number of `DownwardMessage`'s that were processed by the Parachain.
+	/// Number of `DownwardMessage`'s that were processed by the Allychain.
 	///
-	/// It is expected that the Parachain processes them from first to last.
+	/// It is expected that the Allychain processes them from first to last.
 	pub processed_downward_messages: u32,
 }
 
@@ -841,7 +841,7 @@ impl FeeSchedule {
 sp_api::decl_runtime_apis! {
 	/// The API for querying the state of allychains on-chain.
 	#[api_version(3)]
-	pub trait ParachainHost {
+	pub trait AllychainHost {
 		/// Get the current validators.
 		fn validators() -> Vec<ValidatorId>;
 		/// Get the current duty roster.
@@ -869,7 +869,7 @@ sp_api::decl_runtime_apis! {
 pub mod id {
 	use sp_version::ApiId;
 
-	/// Parachain host runtime API id.
+	/// Allychain host runtime API id.
 	pub const PARACHAIN_HOST: ApiId = *b"parahost";
 }
 
@@ -893,14 +893,14 @@ impl From<ValidityError> for u8 {
 }
 
 /// App-specific crypto used for reporting equivocation/misbehavior in BABE,
-/// GRANDPA and Parachains, described in the white paper as the fisherman role.
+/// GRANDPA and Allychains, described in the white paper as the fisherman role.
 /// Any rewards for misbehavior reporting will be paid out to this account.
 pub mod fisherman {
 	use super::{Signature, Verify};
 	use primitives::crypto::KeyTypeId;
 
 	/// Key type for the reporting module. Used for reporting BABE, GRANDPA
-	/// and Parachain equivocations.
+	/// and Allychain equivocations.
 	pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"fish");
 
 	mod app {

@@ -102,7 +102,7 @@ pub fn relay_ext() -> sp_io::TestExternalities {
 }
 
 pub type RelayChainPalletXcm = pallet_xcm::Pallet<relay_chain::Runtime>;
-pub type ParachainPalletXcm = pallet_xcm::Pallet<allychain::Runtime>;
+pub type AllychainPalletXcm = pallet_xcm::Pallet<allychain::Runtime>;
 
 fn run_one_input(data: &[u8]) {
 	MockNet::reset();
@@ -112,7 +112,7 @@ fn run_one_input(data: &[u8]) {
 			println!("Executing message {:?}", m);
 		}
 		ParaA::execute_with(|| {
-			assert_ok!(ParachainPalletXcm::send_xcm(Here, Parent, m));
+			assert_ok!(AllychainPalletXcm::send_xcm(Here, Parent, m));
 		});
 		Relay::execute_with(|| {});
 	}

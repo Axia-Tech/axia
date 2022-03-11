@@ -98,7 +98,7 @@ pub fn relay_ext() -> sp_io::TestExternalities {
 }
 
 pub type RelayChainPalletXcm = pallet_xcm::Pallet<relay_chain::Runtime>;
-pub type ParachainPalletXcm = pallet_xcm::Pallet<allychain::Runtime>;
+pub type AllychainPalletXcm = pallet_xcm::Pallet<allychain::Runtime>;
 
 #[cfg(test)]
 mod tests {
@@ -125,7 +125,7 @@ mod tests {
 		Relay::execute_with(|| {
 			assert_ok!(RelayChainPalletXcm::send_xcm(
 				Here,
-				Parachain(1),
+				Allychain(1),
 				Xcm(vec![Transact {
 					origin_type: OriginKind::SovereignAccount,
 					require_weight_at_most: INITIAL_BALANCE as u64,
@@ -150,7 +150,7 @@ mod tests {
 			frame_system::Call::<relay_chain::Runtime>::remark_with_event { remark: vec![1, 2, 3] },
 		);
 		ParaA::execute_with(|| {
-			assert_ok!(ParachainPalletXcm::send_xcm(
+			assert_ok!(AllychainPalletXcm::send_xcm(
 				Here,
 				Parent,
 				Xcm(vec![Transact {
@@ -178,9 +178,9 @@ mod tests {
 				remark: vec![1, 2, 3],
 			});
 		ParaA::execute_with(|| {
-			assert_ok!(ParachainPalletXcm::send_xcm(
+			assert_ok!(AllychainPalletXcm::send_xcm(
 				Here,
-				(Parent, Parachain(2)),
+				(Parent, Allychain(2)),
 				Xcm(vec![Transact {
 					origin_type: OriginKind::SovereignAccount,
 					require_weight_at_most: INITIAL_BALANCE as u64,
@@ -206,7 +206,7 @@ mod tests {
 		Relay::execute_with(|| {
 			assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 				relay_chain::Origin::signed(ALICE),
-				Box::new(X1(Parachain(1)).into().into()),
+				Box::new(X1(Allychain(1)).into().into()),
 				Box::new(X1(AccountId32 { network: Any, id: ALICE.into() }).into().into()),
 				Box::new((Here, withdraw_amount).into()),
 				0,
@@ -243,11 +243,11 @@ mod tests {
 				DepositAsset {
 					assets: All.into(),
 					max_assets: 1,
-					beneficiary: Parachain(2).into(),
+					beneficiary: Allychain(2).into(),
 				},
 			]);
 			// Send withdraw and deposit
-			assert_ok!(ParachainPalletXcm::send_xcm(Here, Parent, message.clone()));
+			assert_ok!(AllychainPalletXcm::send_xcm(Here, Parent, message.clone()));
 		});
 
 		Relay::execute_with(|| {
@@ -279,17 +279,17 @@ mod tests {
 				DepositAsset {
 					assets: All.into(),
 					max_assets: 1,
-					beneficiary: Parachain(2).into(),
+					beneficiary: Allychain(2).into(),
 				},
 				QueryHolding {
 					query_id: query_id_set,
-					dest: Parachain(1).into(),
+					dest: Allychain(1).into(),
 					assets: All.into(),
 					max_response_weight: 1_000_000_000,
 				},
 			]);
 			// Send withdraw and deposit with query holding
-			assert_ok!(ParachainPalletXcm::send_xcm(Here, Parent, message.clone(),));
+			assert_ok!(AllychainPalletXcm::send_xcm(Here, Parent, message.clone(),));
 		});
 
 		// Check that transfer was executed

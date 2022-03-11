@@ -21,7 +21,7 @@
 //! When compiled with standard library support, this crate exports a `wasm`
 //! module that can be used to validate allychain WASM.
 //!
-//! ## Parachain WASM
+//! ## Allychain WASM
 //!
 //! AXIA allychain WASM is in the form of a module which imports a memory
 //! instance and exports a function `validate_block`.

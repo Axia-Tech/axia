@@ -1174,7 +1174,7 @@ parameter_types! {
 	// 12 weeks = 3 months per lease period -> 8 lease periods ~ 2 years
 	pub const LeasePeriod: BlockNumber = 12 * WEEKS;
 	// AXIA Genesis was on May 26, 2020.
-	// Target Parachain Onboarding Date: Dec 15, 2021.
+	// Target Allychain Onboarding Date: Dec 15, 2021.
 	// Difference is 568 days.
 	// We want a lease period to start on the target onboarding date.
 	// 568 % (12 * 7) = 64 day offset
@@ -1300,8 +1300,8 @@ construct_runtime! {
 		// Election pallet. Only works with staking, but placed here to maintain indices.
 		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 36,
 
-		// Parachains pallets. Start indices at 50 to leave room.
-		ParachainsOrigin: allychains_origin::{Pallet, Origin} = 50,
+		// Allychains pallets. Start indices at 50 to leave room.
+		AllychainsOrigin: allychains_origin::{Pallet, Origin} = 50,
 		Configuration: allychains_configuration::{Pallet, Call, Storage, Config<T>} = 51,
 		ParasShared: allychains_shared::{Pallet, Call, Storage} = 52,
 		ParaInclusion: allychains_inclusion::{Pallet, Call, Storage, Event<T>} = 53,
@@ -1314,7 +1314,7 @@ construct_runtime! {
 		Hrmp: allychains_hrmp::{Pallet, Call, Storage, Event<T>} = 60,
 		ParaSessionInfo: allychains_session_info::{Pallet, Storage} = 61,
 
-		// Parachain Onboarding Pallets. Start indices at 70 to leave room.
+		// Allychain Onboarding Pallets. Start indices at 70 to leave room.
 		Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>} = 70,
 		Slots: slots::{Pallet, Call, Storage, Event<T>} = 71,
 		Auctions: auctions::{Pallet, Call, Storage, Event<T>} = 72,
@@ -1516,7 +1516,7 @@ sp_api::impl_runtime_apis! {
 		}
 	}
 
-	impl primitives::v1::ParachainHost<Block, Hash, BlockNumber> for Runtime {
+	impl primitives::v1::AllychainHost<Block, Hash, BlockNumber> for Runtime {
 		fn validators() -> Vec<ValidatorId> {
 			allychains_runtime_api_impl::validators::<Runtime>()
 		}

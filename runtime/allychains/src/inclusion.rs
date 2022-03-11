@@ -1793,14 +1793,14 @@ mod tests {
 			let chain_a_assignment = CoreAssignment {
 				core: CoreIndex::from(0),
 				para_id: chain_a,
-				kind: AssignmentKind::Parachain,
+				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex::from(0),
 			};
 
 			let chain_b_assignment = CoreAssignment {
 				core: CoreIndex::from(1),
 				para_id: chain_b,
-				kind: AssignmentKind::Parachain,
+				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex::from(1),
 			};
 
@@ -2346,14 +2346,14 @@ mod tests {
 			let chain_a_assignment = CoreAssignment {
 				core: CoreIndex::from(0),
 				para_id: chain_a,
-				kind: AssignmentKind::Parachain,
+				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex::from(0),
 			};
 
 			let chain_b_assignment = CoreAssignment {
 				core: CoreIndex::from(1),
 				para_id: chain_b,
-				kind: AssignmentKind::Parachain,
+				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex::from(1),
 			};
 
@@ -2615,7 +2615,7 @@ mod tests {
 			let chain_a_assignment = CoreAssignment {
 				core: CoreIndex::from(0),
 				para_id: chain_a,
-				kind: AssignmentKind::Parachain,
+				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex::from(0),
 			};
 

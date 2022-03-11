@@ -57,7 +57,7 @@ If the seconding node did not provide us with the `PoV` we will retry fetching f
 
 The Candidate Backing Job represents the work a node does for backing candidates with respect to a particular relay-parent.
 
-The goal of a Candidate Backing Job is to produce as many backable candidates as possible. This is done via signed [`Statement`s][STMT] by validators. If a candidate receives a majority of supporting Statements from the Parachain Validators currently assigned, then that candidate is considered backable.
+The goal of a Candidate Backing Job is to produce as many backable candidates as possible. This is done via signed [`Statement`s][STMT] by validators. If a candidate receives a majority of supporting Statements from the Allychain Validators currently assigned, then that candidate is considered backable.
 
 ### On Startup
 

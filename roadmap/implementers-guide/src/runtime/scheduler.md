@@ -10,7 +10,7 @@ The Scheduler module is responsible for two main tasks:
 It aims to achieve these tasks with these goals in mind:
 
 - It should be possible to know at least a block ahead-of-time, ideally more, which validators are going to be assigned to which allychains.
-- Parachains that have a candidate pending availability in this fork of the chain should not be assigned.
+- Allychains that have a candidate pending availability in this fork of the chain should not be assigned.
 - Validator assignments should not be gameable. Malicious cartels should not be able to manipulate the scheduler to assign themselves as desired.
 - High or close to optimal throughput of allychains and parathreads. Work among validator groups should be balanced.
 
@@ -125,11 +125,11 @@ struct ParathreadQueue {
 
 enum CoreOccupied {
   Parathread(ParathreadEntry), // claim & retries
-  Parachain,
+  Allychain,
 }
 
 enum AssignmentKind {
-  Parachain,
+  Allychain,
   Parathread(CollatorId, u32),
 }
 

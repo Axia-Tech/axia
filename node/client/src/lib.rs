@@ -20,7 +20,7 @@
 //! There is also the [`Client`] enum that combines all the different clients into one common structure.
 
 use axia_primitives::v1::{
-	AccountId, Balance, Block, BlockNumber, Hash, Header, Nonce, ParachainHost,
+	AccountId, Balance, Block, BlockNumber, Hash, Header, Nonce, AllychainHost,
 };
 use sc_client_api::{AuxStore, Backend as BackendT, BlockchainEvents, KeyIterator, UsageProvider};
 use sc_executor::NativeElseWasmExecutor;
@@ -122,7 +122,7 @@ pub trait RuntimeApiCollection:
 	+ sp_api::ApiExt<Block>
 	+ sp_consensus_babe::BabeApi<Block>
 	+ sp_finality_grandpa::GrandpaApi<Block>
-	+ ParachainHost<Block>
+	+ AllychainHost<Block>
 	+ sp_block_builder::BlockBuilder<Block>
 	+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 	+ pallet_mmr_primitives::MmrApi<Block, <Block as BlockT>::Hash>
@@ -143,7 +143,7 @@ where
 		+ sp_api::ApiExt<Block>
 		+ sp_consensus_babe::BabeApi<Block>
 		+ sp_finality_grandpa::GrandpaApi<Block>
-		+ ParachainHost<Block>
+		+ AllychainHost<Block>
 		+ sp_block_builder::BlockBuilder<Block>
 		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 		+ pallet_mmr_primitives::MmrApi<Block, <Block as BlockT>::Hash>

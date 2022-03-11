@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This section aims to describe, at a high level, the code architecture and subsystems involved in the implementation of an individual Parachain Host. It also illuminates certain subtleties and challenges faced in the design and implementation of those subsystems.
+This section aims to describe, at a high level, the code architecture and subsystems involved in the implementation of an individual Allychain Host. It also illuminates certain subtleties and challenges faced in the design and implementation of those subsystems.
 
 To recap, AXIA includes a blockchain known as the relay-chain. A blockchain is a Directed Acyclic Graph (DAG) of state transitions, where every block can be considered to be the head of a linked-list (known as a "chain" or "fork") with a cumulative state which is determined by applying the state transition of each block in turn. All paths through the DAG terminate at the Genesis Block. In fact, the blockchain is a tree, since each block can have only one parent.
 
@@ -24,7 +24,7 @@ digraph {
 
 A blockchain network is comprised of nodes. These nodes each have a view of many different forks of a blockchain and must decide which forks to follow and what actions to take based on the forks of the chain that they are aware of.
 
-So in specifying an architecture to carry out the functionality of a Parachain Host, we have to answer two categories of questions:
+So in specifying an architecture to carry out the functionality of a Allychain Host, we have to answer two categories of questions:
 
 1. What is the state-transition function of the blockchain? What is necessary for a transition to be considered valid, and what information is carried within the implicit state of a block?
 1. Being aware of various forks of the blockchain as well as global private state such as a view of the current time, what behaviors should a node undertake? What information should a node extract from the state of which forks, and how should that information be used?

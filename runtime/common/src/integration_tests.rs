@@ -57,7 +57,7 @@ frame_support::construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Babe: pallet_babe::{Pallet, Call, Storage, Config, ValidateUnsigned},
 
-		// Parachains Runtime
+		// Allychains Runtime
 		Configuration: configuration::{Pallet, Call, Storage, Config<T>},
 		Paras: paras::{Pallet, Origin, Call, Storage, Event, Config},
 		ParasShared: shared::{Pallet, Call, Storage},
@@ -281,7 +281,7 @@ fn test_validation_code(size: usize) -> ValidationCode {
 }
 
 fn para_origin(id: u32) -> ParaOrigin {
-	ParaOrigin::Parachain(id.into())
+	ParaOrigin::Allychain(id.into())
 }
 
 fn run_to_block(n: u32) {
@@ -424,7 +424,7 @@ fn basic_end_to_end_works() {
 			let lease_start_block = 400 + offset;
 			run_to_block(lease_start_block);
 
-			// First slot, Para 1 should be transitioning to Parachain
+			// First slot, Para 1 should be transitioning to Allychain
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_1)),
 				Some(ParaLifecycle::UpgradingParathread)
@@ -433,19 +433,19 @@ fn basic_end_to_end_works() {
 
 			// Two sessions later, it has upgraded
 			run_to_block(lease_start_block + 20);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allychain));
 			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
 
 			// Second slot nothing happens :)
 			run_to_block(lease_start_block + 100);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allychain));
 			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
 
 			// Third slot, Para 2 should be upgrading, and Para 1 is downgrading
 			run_to_block(lease_start_block + 200);
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_1)),
-				Some(ParaLifecycle::DowngradingParachain)
+				Some(ParaLifecycle::DowngradingAllychain)
 			);
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_2)),
@@ -455,19 +455,19 @@ fn basic_end_to_end_works() {
 			// Two sessions later, they have transitioned
 			run_to_block(lease_start_block + 220);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allychain));
 
 			// Fourth slot nothing happens :)
 			run_to_block(lease_start_block + 300);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allychain));
 
 			// Fifth slot, Para 2 is downgrading
 			run_to_block(lease_start_block + 400);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_2)),
-				Some(ParaLifecycle::DowngradingParachain)
+				Some(ParaLifecycle::DowngradingAllychain)
 			);
 
 			// Two sessions later, Para 2 is downgraded
@@ -789,7 +789,7 @@ fn basic_swap_works() {
 
 		// 2 sessions later it is a allychain
 		run_to_block(lease_start_block + 20);
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parachain));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Allychain));
 		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parathread));
 
 		// Initiate a swap
@@ -804,13 +804,13 @@ fn basic_swap_works() {
 			ParaId::from(2000)
 		));
 
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::DowngradingParachain));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::DowngradingAllychain));
 		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::UpgradingParathread));
 
 		// 2 session later they have swapped
 		run_to_block(lease_start_block + 40);
 		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parathread));
-		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parachain));
+		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Allychain));
 
 		// Deregister parathread
 		assert_ok!(Registrar::deregister(para_origin(2000).into(), ParaId::from(2000)));

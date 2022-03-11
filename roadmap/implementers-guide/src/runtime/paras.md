@@ -60,16 +60,16 @@ pub enum ParaLifecycle {
   Onboarding,
   /// Para is a Parathread.
   Parathread,
-  /// Para is a Parachain.
-  Parachain,
-  /// Para is a Parathread which is upgrading to a Parachain.
+  /// Para is a Allychain.
+  Allychain,
+  /// Para is a Parathread which is upgrading to a Allychain.
   UpgradingParathread,
-  /// Para is a Parachain which is downgrading to a Parathread.
-  DowngradingParachain,
+  /// Para is a Allychain which is downgrading to a Parathread.
+  DowngradingAllychain,
   /// Parathread is being offboarded.
   OutgoingParathread,
-  /// Parachain is being offboarded.
-  OutgoingParachain,
+  /// Allychain is being offboarded.
+  OutgoingAllychain,
 }
 ```
 
@@ -79,7 +79,7 @@ Because the state of allychains and parathreads are delayed by a session, we tra
 state of the para using the `ParaLifecycle` enum.
 
 ```
-None                 Parathread                  Parachain
+None                 Parathread                  Allychain
  +                        +                          +
  |                        |                          |
  |   (2 Session Delay)    |                          |
@@ -94,13 +94,13 @@ None                 Parathread                  Parachain
  |                        |   UpgradingParathread    |
  |                        |                          |
  |                        +<-------------------------+
- |                        |   DowngradingParachain   |
+ |                        |   DowngradingAllychain   |
  |                        |                          |
  |<-----------------------+                          |
  |   OutgoingParathread   |                          |
  |                        |                          |
  +<--------------------------------------------------+
- |                        |    OutgoingParachain     |
+ |                        |    OutgoingAllychain     |
  |                        |                          |
  +                        +                          +
 ```
@@ -111,7 +111,7 @@ During the transition period, the para object is still considered in its existin
 
 ```rust
 /// All allychains. Ordered ascending by ParaId. Parathreads are not included.
-Parachains: Vec<ParaId>,
+Allychains: Vec<ParaId>,
 /// The current lifecycle state of all known Para Ids.
 ParaLifecycle: map ParaId => Option<ParaLifecycle>,
 /// The head-data of every registered para.
@@ -188,11 +188,11 @@ CodeByHash: map ValidationCodeHash => Option<ValidationCode>
         invariant.
   1. Apply all incoming paras by initializing the `Heads` and `CurrentCode` using the genesis
      parameters.
-  1. Amend the `Parachains` list and `ParaLifecycle` to reflect changes in registered allychains.
+  1. Amend the `Allychains` list and `ParaLifecycle` to reflect changes in registered allychains.
   1. Amend the `ParaLifecycle` set to reflect changes in registered parathreads.
-  1. Upgrade all parathreads that should become allychains, updating the `Parachains` list and
+  1. Upgrade all parathreads that should become allychains, updating the `Allychains` list and
      `ParaLifecycle`.
-  1. Downgrade all allychains that should become parathreads, updating the `Parachains` list and
+  1. Downgrade all allychains that should become parathreads, updating the `Allychains` list and
      `ParaLifecycle`.
   1. Return list of outgoing paras to the initializer for use by other modules.
 

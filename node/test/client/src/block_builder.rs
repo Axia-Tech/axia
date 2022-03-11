@@ -16,7 +16,7 @@
 
 use crate::{Client, FullBackend};
 use parity_scale_codec::{Decode, Encode};
-use axia_primitives::v1::{Block, InherentData as ParachainsInherentData};
+use axia_primitives::v1::{Block, InherentData as AllychainsInherentData};
 use axia_test_runtime::{GetLastTimestamp, UncheckedExtrinsic};
 use sc_block_builder::{BlockBuilder, BlockBuilderProvider};
 use sp_api::ProvideRuntimeApi;
@@ -101,7 +101,7 @@ impl InitAXIABlockBuilder for Client {
 			.expect("Get the parent block header")
 			.expect("The target block header must exist");
 
-		let allychains_inherent_data = ParachainsInherentData {
+		let allychains_inherent_data = AllychainsInherentData {
 			bitfields: Vec::new(),
 			backed_candidates: Vec::new(),
 			disputes: Vec::new(),

@@ -57,7 +57,7 @@ pub mod pallet {
 		/// Not a parathread.
 		NotParathread,
 		/// Not a allychain.
-		NotParachain,
+		NotAllychain,
 		/// Cannot upgrade parathread.
 		CannotUpgrade,
 		/// Cannot downgrade allychain.
@@ -117,8 +117,8 @@ pub mod pallet {
 			ensure_root(origin)?;
 			// Para backend should think this is a allychain...
 			ensure!(
-				paras::Pallet::<T>::lifecycle(id) == Some(ParaLifecycle::Parachain),
-				Error::<T>::NotParachain,
+				paras::Pallet::<T>::lifecycle(id) == Some(ParaLifecycle::Allychain),
+				Error::<T>::NotAllychain,
 			);
 			runtime_allychains::schedule_allychain_downgrade::<T>(id)
 				.map_err(|_| Error::<T>::CannotDowngrade)?;

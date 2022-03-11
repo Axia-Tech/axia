@@ -157,7 +157,7 @@ pub type TrustedTeleporters = (xcm_builder::Case<TeleConcreteFung>,);
 
 parameter_types! {
 	pub const CheckedAccount: Option<u64> = Some(100);
-	pub const ChildTeleporter: MultiLocation = Parachain(1000).into();
+	pub const ChildTeleporter: MultiLocation = Allychain(1000).into();
 	pub const TrustedTeleporter: Option<(MultiLocation, MultiAsset)> = Some((
 		ChildTeleporter::get(),
 		MultiAsset { id: Concrete(Here.into()), fun: Fungible(100) },

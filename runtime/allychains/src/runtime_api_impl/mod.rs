@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Runtime API implementations for Parachains.
+//! Runtime API implementations for Allychains.
 //!
 //! These are exposed as different modules using different sets of primitives.
 //! At the moment there is only a v1 module and it is not completely clear how migration

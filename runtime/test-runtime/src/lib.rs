@@ -660,7 +660,7 @@ construct_runtime! {
 		// Vesting. Usable initially, but removed once all vesting is finished.
 		Vesting: pallet_vesting::{Pallet, Call, Storage, Event<T>, Config<T>},
 
-		// Parachains runtime modules
+		// Allychains runtime modules
 		Configuration: allychains_configuration::{Pallet, Call, Storage, Config<T>},
 		ParaInclusion: allychains_inclusion::{Pallet, Call, Storage, Event<T>},
 		ParaInherent: allychains_paras_inherent::{Pallet, Call, Storage, Inherent},
@@ -782,7 +782,7 @@ sp_api::impl_runtime_apis! {
 		}
 	}
 
-	impl primitives::v1::ParachainHost<Block, Hash, BlockNumber> for Runtime {
+	impl primitives::v1::AllychainHost<Block, Hash, BlockNumber> for Runtime {
 		fn validators() -> Vec<ValidatorId> {
 			runtime_impl::validators::<Runtime>()
 		}

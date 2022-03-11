@@ -85,7 +85,7 @@ use frame_support::traits::InstanceFilter;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, BackingToPlurality,
-	ChildParachainAsNative, ChildParachainConvertsVia, ChildSystemParachainAsSuperuser,
+	ChildAllychainAsNative, ChildAllychainConvertsVia, ChildSystemAllychainAsSuperuser,
 	CurrencyAdapter as XcmCurrencyAdapter, FixedWeightBounds, IsConcrete, LocationInverter,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, UsingComponents,
 };
@@ -200,8 +200,8 @@ construct_runtime! {
 		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>},
 		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config},
 
-		// Parachains modules.
-		ParachainsOrigin: allychains_origin::{Pallet, Origin},
+		// Allychains modules.
+		AllychainsOrigin: allychains_origin::{Pallet, Origin},
 		Configuration: allychains_configuration::{Pallet, Call, Storage, Config<T>},
 		ParasShared: allychains_shared::{Pallet, Call, Storage},
 		ParaInclusion: allychains_inclusion::{Pallet, Call, Storage, Event<T>},
@@ -215,7 +215,7 @@ construct_runtime! {
 		ParaSessionInfo: allychains_session_info::{Pallet, Storage},
 		ParasDisputes: allychains_disputes::{Pallet, Call, Storage, Event<T>},
 
-		// Parachain Onboarding Pallets
+		// Allychain Onboarding Pallets
 		Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>, Config},
 		Auctions: auctions::{Pallet, Call, Storage, Event<T>},
 		Crowdloan: crowdloan::{Pallet, Call, Storage, Event<T>},
@@ -606,7 +606,7 @@ parameter_types! {
 }
 
 pub type SovereignAccountOf =
-	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<BetaNetNetwork, AccountId>);
+	(ChildAllychainConvertsVia<ParaId, AccountId>, AccountId32Aliases<BetaNetNetwork, AccountId>);
 
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
@@ -623,9 +623,9 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 
 type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, Origin>,
-	ChildParachainAsNative<allychains_origin::Origin, Origin>,
+	ChildAllychainAsNative<allychains_origin::Origin, Origin>,
 	SignedAccountId32AsNative<BetaNetNetwork, Origin>,
-	ChildSystemParachainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
 );
 
 parameter_types! {
@@ -636,16 +636,16 @@ parameter_types! {
 /// individual routers.
 pub type XcmRouter = (
 	// Only one router so far - use DMP to communicate with child allychains.
-	xcm_sender::ChildParachainRouter<Runtime, XcmPallet>,
+	xcm_sender::ChildAllychainRouter<Runtime, XcmPallet>,
 );
 
 parameter_types! {
 	pub const BetaNet: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(RocLocation::get()) });
-	pub const BetaNetForTick: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Parachain(100).into());
-	pub const BetaNetForTrick: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Parachain(110).into());
-	pub const BetaNetForTrack: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Parachain(120).into());
-	pub const BetaNetForStatemint: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Parachain(1001).into());
-	pub const BetaNetForCanvas: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Parachain(1002).into());
+	pub const BetaNetForTick: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Allychain(100).into());
+	pub const BetaNetForTrick: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Allychain(110).into());
+	pub const BetaNetForTrack: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Allychain(120).into());
+	pub const BetaNetForStatemint: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Allychain(1001).into());
+	pub const BetaNetForCanvas: (MultiAssetFilter, MultiLocation) = (BetaNet::get(), Allychain(1002).into());
 	pub const MaxInstructions: u32 = 100;
 }
 pub type TrustedTeleporters = (
@@ -659,11 +659,11 @@ pub type TrustedTeleporters = (
 parameter_types! {
 	pub AllowUnpaidFrom: Vec<MultiLocation> =
 		vec![
-			Parachain(100).into(),
-			Parachain(110).into(),
-			Parachain(120).into(),
-			Parachain(1001).into(),
-			Parachain(1002).into(),
+			Allychain(100).into(),
+			Allychain(110).into(),
+			Allychain(120).into(),
+			Allychain(1001).into(),
+			Allychain(1002).into(),
 		];
 }
 
@@ -796,7 +796,7 @@ impl pallet_mmr::Config for Runtime {
 }
 
 pub struct ParasProvider;
-impl pallet_beefy_mmr::ParachainHeadsProvider for ParasProvider {
+impl pallet_beefy_mmr::AllychainHeadsProvider for ParasProvider {
 	fn allychain_heads() -> Vec<(u32, Vec<u8>)> {
 		Paras::allychains()
 			.into_iter()
@@ -825,7 +825,7 @@ parameter_types! {
 impl pallet_beefy_mmr::Config for Runtime {
 	type LeafVersion = LeafVersion;
 	type BeefyAuthorityToMerkleLeaf = pallet_beefy_mmr::BeefyEcdsaToEthereum;
-	type ParachainHeads = ParasProvider;
+	type AllychainHeads = ParasProvider;
 }
 
 // parameter_types! {
@@ -1224,7 +1224,7 @@ sp_api::impl_runtime_apis! {
 		}
 	}
 
-	impl primitives::v1::ParachainHost<Block, Hash, BlockNumber> for Runtime {
+	impl primitives::v1::AllychainHost<Block, Hash, BlockNumber> for Runtime {
 		fn validators() -> Vec<ValidatorId> {
 			runtime_api_impl::validators::<Runtime>()
 		}

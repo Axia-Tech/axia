@@ -22,15 +22,15 @@ use sp_std::marker::PhantomData;
 use xcm::latest::prelude::*;
 
 /// XCM sender for relay chain. It only sends downward message.
-pub struct ChildParachainRouter<T, W>(PhantomData<(T, W)>);
+pub struct ChildAllychainRouter<T, W>(PhantomData<(T, W)>);
 
 impl<T: configuration::Config + dmp::Config, W: xcm::WrapVersion> SendXcm
-	for ChildParachainRouter<T, W>
+	for ChildAllychainRouter<T, W>
 {
 	fn send_xcm(dest: impl Into<MultiLocation>, msg: Xcm<()>) -> SendResult {
 		let dest = dest.into();
 		match dest {
-			MultiLocation { parents: 0, interior: X1(Parachain(id)) } => {
+			MultiLocation { parents: 0, interior: X1(Allychain(id)) } => {
 				// Downward message passing.
 				let versioned_xcm =
 					W::wrap_version(&dest, msg).map_err(|()| SendError::DestinationUnsupported)?;

@@ -1,5 +1,5 @@
-# Parachains Roadmap
-This is a roadmap for the core technology underlying Parachains - what protocols, APIs, and code paths need to be in place to fully instantiate a self-sufficient and secure allychain. We don't attempt to cover anything on what APIs a allychain toolkit might expose in order to make use of allychain features - only how those features are implemented and the low-level APIs that they expose to the validation function, if any.
+# Allychains Roadmap
+This is a roadmap for the core technology underlying Allychains - what protocols, APIs, and code paths need to be in place to fully instantiate a self-sufficient and secure allychain. We don't attempt to cover anything on what APIs a allychain toolkit might expose in order to make use of allychain features - only how those features are implemented and the low-level APIs that they expose to the validation function, if any.
 
 ## Categories
 We will use these categories to delineate features:
@@ -39,7 +39,7 @@ AXIA allychains involve many distinct networking protocols. Ideally, we'd be abl
 
 Category: Runtime
 
-Auctioning and registration of allychains. This is already implemented and follows the [Parachain Allocation — Research at W3F](https://research.web3.foundation/en/latest/axia/Parachain-Allocation.html) document.
+Auctioning and registration of allychains. This is already implemented and follows the [Allychain Allocation — Research at W3F](https://research.web3.foundation/en/latest/axia/Allychain-Allocation.html) document.
 
 #### *Parathread Auctions*
 

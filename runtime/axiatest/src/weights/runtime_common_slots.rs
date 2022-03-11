@@ -51,7 +51,7 @@ impl<T: frame_system::Config> runtime_common::slots::WeightInfo for WeightInfo<T
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
-	// Storage: Paras Parachains (r:1 w:0)
+	// Storage: Paras Allychains (r:1 w:0)
 	// Storage: Slots Leases (r:101 w:100)
 	// Storage: Paras ParaLifecycles (r:101 w:101)
 	// Storage: ParasShared CurrentSessionIndex (r:1 w:0)

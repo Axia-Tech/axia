@@ -39,7 +39,7 @@ use axia_core_primitives::{Hash, OutboundHrmpMessage};
 /// Block number type used by the relay chain.
 pub use axia_core_primitives::BlockNumber as RelayChainBlockNumber;
 
-/// Parachain head data included in the chain.
+/// Allychain head data included in the chain.
 #[derive(
 	PartialEq, Eq, Clone, PartialOrd, Ord, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo,
 )]
@@ -53,7 +53,7 @@ impl HeadData {
 	}
 }
 
-/// Parachain validation code.
+/// Allychain validation code.
 #[derive(
 	Default, PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo,
 )]
@@ -112,7 +112,7 @@ impl sp_std::fmt::LowerHex for ValidationCodeHash {
 	}
 }
 
-/// Parachain block data.
+/// Allychain block data.
 ///
 /// Contains everything required to validate para-block, may contain block and witness data.
 #[derive(PartialEq, Eq, Clone, Encode, Decode, derive_more::From, TypeInfo)]
@@ -432,13 +432,13 @@ pub struct ValidationResult {
 	pub head_data: HeadData,
 	/// An update to the validation code that should be scheduled in the relay chain.
 	pub new_validation_code: Option<ValidationCode>,
-	/// Upward messages send by the Parachain.
+	/// Upward messages send by the Allychain.
 	pub upward_messages: Vec<UpwardMessage>,
 	/// Outbound horizontal messages sent by the allychain.
 	pub horizontal_messages: Vec<OutboundHrmpMessage<Id>>,
-	/// Number of downward messages that were processed by the Parachain.
+	/// Number of downward messages that were processed by the Allychain.
 	///
-	/// It is expected that the Parachain processes them from first to last.
+	/// It is expected that the Allychain processes them from first to last.
 	pub processed_downward_messages: u32,
 	/// The mark which specifies the block number up to which all inbound HRMP messages are processed.
 	pub hrmp_watermark: RelayChainBlockNumber,

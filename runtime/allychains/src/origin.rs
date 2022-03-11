@@ -29,7 +29,7 @@ where
 	OuterOrigin: Into<result::Result<Origin, OuterOrigin>>,
 {
 	match o.into() {
-		Ok(Origin::Parachain(id)) => Ok(id),
+		Ok(Origin::Allychain(id)) => Ok(id),
 		_ => Err(BadOrigin),
 	}
 }
@@ -57,12 +57,12 @@ pub mod pallet {
 	#[derive(PartialEq, Eq, Clone, Encode, Decode, sp_core::RuntimeDebug, scale_info::TypeInfo)]
 	pub enum Origin {
 		/// It comes from a allychain.
-		Parachain(ParaId),
+		Allychain(ParaId),
 	}
 }
 
 impl From<u32> for Origin {
 	fn from(id: u32) -> Origin {
-		Origin::Parachain(id.into())
+		Origin::Allychain(id.into())
 	}
 }

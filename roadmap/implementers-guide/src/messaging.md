@@ -10,7 +10,7 @@ used for communication between the relay chain and allychains.
 ```dot process
 digraph {
     rc [shape=Mdiamond label="Relay Chain"];
-    p1 [shape=box label = "Parachain"];
+    p1 [shape=box label = "Allychain"];
 
     rc -> p1 [label="DMP"];
     p1 -> rc [label="UMP"];
@@ -57,8 +57,8 @@ digraph {
 
     subgraph {
         rank = "same"
-        p1 [shape=box label = "Parachain 1"];
-        p2 [shape=box label = "Parachain 2"];
+        p1 [shape=box label = "Allychain 1"];
+        p2 [shape=box label = "Allychain 2"];
     }
 
     rc -> p1 [label="DMP" color="gray" fontcolor="gray"];

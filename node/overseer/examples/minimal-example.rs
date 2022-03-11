@@ -30,12 +30,12 @@ use axia_overseer::{
 	self as overseer,
 	dummy::dummy_overseer_builder,
 	gen::{FromOverseer, SpawnedSubsystem},
-	AllMessages, HeadSupportsParachains, OverseerSignal, SubsystemError,
+	AllMessages, HeadSupportsAllychains, OverseerSignal, SubsystemError,
 };
 use axia_primitives::v1::Hash;
 
-struct AlwaysSupportsParachains;
-impl HeadSupportsParachains for AlwaysSupportsParachains {
+struct AlwaysSupportsAllychains;
+impl HeadSupportsAllychains for AlwaysSupportsAllychains {
 	fn head_supports_allychains(&self, _head: &Hash) -> bool {
 		true
 	}
@@ -171,7 +171,7 @@ fn main() {
 			Delay::new(Duration::from_secs(1)).await;
 		});
 
-		let (overseer, _handle) = dummy_overseer_builder(spawner, AlwaysSupportsParachains, None)
+		let (overseer, _handle) = dummy_overseer_builder(spawner, AlwaysSupportsAllychains, None)
 			.unwrap()
 			.replace_candidate_validation(|_| Subsystem2)
 			.replace_candidate_backing(|orig| orig)

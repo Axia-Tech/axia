@@ -97,12 +97,12 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowUnpaidExecutionFrom<T> {
 }
 
 /// Allows a message only if it is from a system-level child allychain.
-pub struct IsChildSystemParachain<ParaId>(PhantomData<ParaId>);
-impl<ParaId: IsSystem + From<u32>> Contains<MultiLocation> for IsChildSystemParachain<ParaId> {
+pub struct IsChildSystemAllychain<ParaId>(PhantomData<ParaId>);
+impl<ParaId: IsSystem + From<u32>> Contains<MultiLocation> for IsChildSystemAllychain<ParaId> {
 	fn contains(l: &MultiLocation) -> bool {
 		matches!(
 			l.interior(),
-			Junctions::X1(Junction::Parachain(id))
+			Junctions::X1(Junction::Allychain(id))
 				if ParaId::from(*id).is_system() && l.parent_count() == 0,
 		)
 	}

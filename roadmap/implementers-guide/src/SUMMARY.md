@@ -2,7 +2,7 @@
 
 [Preamble](README.md)
 
-- [Whence Parachains](whence-allychains.md)
+- [Whence Allychains](whence-allychains.md)
 - [Protocol Overview](protocol-overview.md)
   - [Approval Process](protocol-approval.md)
   - [Disputes Process](protocol-disputes.md)

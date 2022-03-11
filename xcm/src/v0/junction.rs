@@ -112,7 +112,7 @@ pub enum Junction {
 	/// An indexed allychain belonging to and operated by the context.
 	///
 	/// Generally used when the context is a AXIA Relay-chain.
-	Parachain(#[codec(compact)] u32),
+	Allychain(#[codec(compact)] u32),
 	/// A 32-byte identifier for an account of a specific network that is respected as a sovereign endpoint within
 	/// the context.
 	///
@@ -163,7 +163,7 @@ impl From<crate::v1::Junction> for Junction {
 	fn from(v1: crate::v1::Junction) -> Junction {
 		use crate::v1::Junction::*;
 		match v1 {
-			Parachain(id) => Self::Parachain(id),
+			Allychain(id) => Self::Allychain(id),
 			AccountId32 { network, id } => Self::AccountId32 { network, id },
 			AccountIndex64 { network, index } => Self::AccountIndex64 { network, index },
 			AccountKey20 { network, key } => Self::AccountKey20 { network, key },
@@ -191,7 +191,7 @@ impl Junction {
 		match self {
 			Junction::Parent => false,
 
-			Junction::Parachain(..) |
+			Junction::Allychain(..) |
 			Junction::AccountId32 { .. } |
 			Junction::AccountIndex64 { .. } |
 			Junction::AccountKey20 { .. } |

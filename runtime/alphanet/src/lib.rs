@@ -47,9 +47,9 @@ use runtime_allychains::{
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, ChildParachainAsNative,
-	ChildParachainConvertsVia, ChildSystemParachainAsSuperuser,
-	CurrencyAdapter as XcmCurrencyAdapter, IsChildSystemParachain, IsConcrete, LocationInverter,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, ChildAllychainAsNative,
+	ChildAllychainConvertsVia, ChildSystemAllychainAsSuperuser,
+	CurrencyAdapter as XcmCurrencyAdapter, IsChildSystemAllychain, IsConcrete, LocationInverter,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	UsingComponents, WeightInfoBounds,
 };
@@ -932,7 +932,7 @@ parameter_types! {
 }
 
 pub type LocationConverter =
-	(ChildParachainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AlphaNetNetwork, AccountId>);
+	(ChildAllychainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AlphaNetNetwork, AccountId>);
 
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
@@ -949,20 +949,20 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 
 type LocalOriginConverter = (
 	SovereignSignedViaLocation<LocationConverter, Origin>,
-	ChildParachainAsNative<allychains_origin::Origin, Origin>,
+	ChildAllychainAsNative<allychains_origin::Origin, Origin>,
 	SignedAccountId32AsNative<AlphaNetNetwork, Origin>,
-	ChildSystemParachainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
 );
 
 /// The XCM router. When we want to send an XCM message, we use this type. It amalgamates all of our
 /// individual routers.
 pub type XcmRouter = (
 	// Only one router so far - use DMP to communicate with child allychains.
-	xcm_sender::ChildParachainRouter<Runtime, XcmPallet>,
+	xcm_sender::ChildAllychainRouter<Runtime, XcmPallet>,
 );
 
 parameter_types! {
-	pub const Westmint: MultiLocation = Parachain(1000).into();
+	pub const Westmint: MultiLocation = Allychain(1000).into();
 	pub const AlphaNetForWestmint: (MultiAssetFilter, MultiLocation) =
 		(Wild(AllOf { fun: WildFungible, id: Concrete(WndLocation::get()) }), Westmint::get());
 	pub const MaxInstructions: u32 = 100;
@@ -976,7 +976,7 @@ pub type Barrier = (
 	// If the message is one that immediately attemps to pay for execution, then allow it.
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Messages coming from system allychains need not pay for execution.
-	AllowUnpaidExecutionFrom<IsChildSystemParachain<ParaId>>,
+	AllowUnpaidExecutionFrom<IsChildSystemAllychain<ParaId>>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
 	// Subscriptions for version tracking are OK.
@@ -1084,8 +1084,8 @@ construct_runtime! {
 		// Provides a semi-sorted list of nominators for staking.
 		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>} = 25,
 
-		// Parachains pallets. Start indices at 40 to leave room.
-		ParachainsOrigin: allychains_origin::{Pallet, Origin} = 41,
+		// Allychains pallets. Start indices at 40 to leave room.
+		AllychainsOrigin: allychains_origin::{Pallet, Origin} = 41,
 		Configuration: allychains_configuration::{Pallet, Call, Storage, Config<T>} = 42,
 		ParasShared: allychains_shared::{Pallet, Call, Storage} = 43,
 		ParaInclusion: allychains_inclusion::{Pallet, Call, Storage, Event<T>} = 44,
@@ -1098,7 +1098,7 @@ construct_runtime! {
 		Hrmp: allychains_hrmp::{Pallet, Call, Storage, Event<T>} = 51,
 		ParaSessionInfo: allychains_session_info::{Pallet, Storage} = 52,
 
-		// Parachain Onboarding Pallets. Start indices at 60 to leave room.
+		// Allychain Onboarding Pallets. Start indices at 60 to leave room.
 		Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>, Config} = 60,
 		Slots: slots::{Pallet, Call, Storage, Event<T>} = 61,
 		ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = 62,
@@ -1203,7 +1203,7 @@ sp_api::impl_runtime_apis! {
 		}
 	}
 
-	impl primitives::v1::ParachainHost<Block, Hash, BlockNumber> for Runtime {
+	impl primitives::v1::AllychainHost<Block, Hash, BlockNumber> for Runtime {
 		fn validators() -> Vec<ValidatorId> {
 			allychains_runtime_api_impl::validators::<Runtime>()
 		}

@@ -1,4 +1,4 @@
-# The AXIA Parachain Host Implementers' Guide
+# The AXIA Allychain Host Implementers' Guide
 
 The implementers' guide is compiled from several source files with [`mdBook`](https://github.com/rust-lang/mdBook).
 To view it live, locally, from the repo root:
