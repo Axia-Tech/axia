@@ -1,20 +1,20 @@
-// Copyright 2019-2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2019-2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Auctioning system to determine the set of Parachains in operation. This includes logic for the
+//! Auctioning system to determine the set of Allychains in operation. This includes logic for the
 //! auctioning mechanism and for reserving balance as part of the "payment". Unreserving the balance
 //! happens elsewhere.
 
@@ -197,13 +197,13 @@ pub mod pallet {
 
 	#[pallet::extra_constants]
 	impl<T: Config> Pallet<T> {
-		//TODO: rename to snake case after https://github.com/axia-tech/axia-core/issues/8826 fixed.
+		//TODO: rename to snake case after https://github.com/axiatech/substrate/issues/8826 fixed.
 		#[allow(non_snake_case)]
 		fn SlotRangeCount() -> u32 {
 			SlotRange::SLOT_RANGE_COUNT as u32
 		}
 
-		//TODO: rename to snake case after https://github.com/axia-tech/axia-core/issues/8826 fixed.
+		//TODO: rename to snake case after https://github.com/axiatech/substrate/issues/8826 fixed.
 		#[allow(non_snake_case)]
 		fn LeasePeriodsPerSlot() -> u32 {
 			SlotRange::LEASE_PERIODS_PER_SLOT as u32
@@ -635,16 +635,10 @@ impl<T: Config> Pallet<T> {
 
 		winning_ranges
 			.into_iter()
-			.map(|range| {
-				let mut final_winner = Default::default();
-				swap(
-					&mut final_winner,
-					winning[range as u8 as usize]
-						.as_mut()
-						.expect("none values are filtered out in previous logic; qed"),
-				);
-				let (bidder, para, amount) = final_winner;
-				(bidder, para, amount, range)
+			.filter_map(|range| {
+				winning[range as u8 as usize]
+					.take()
+					.map(|(bidder, para, amount)| (bidder, para, amount, range))
 			})
 			.collect::<Vec<_>>()
 	}
@@ -655,13 +649,14 @@ impl<T: Config> Pallet<T> {
 mod tests {
 	use super::*;
 	use crate::{auctions, mock::TestRegistrar};
+	use ::test_helpers::{dummy_hash, dummy_head_data, dummy_validation_code};
 	use frame_support::{
 		assert_noop, assert_ok, assert_storage_noop,
 		dispatch::DispatchError::BadOrigin,
 		ord_parameter_types, parameter_types,
-		traits::{OnFinalize, OnInitialize},
+		traits::{EnsureOneOf, OnFinalize, OnInitialize},
 	};
-	use frame_system::{EnsureOneOf, EnsureRoot, EnsureSignedBy};
+	use frame_system::{EnsureRoot, EnsureSignedBy};
 	use pallet_balances;
 	use primitives::v1::{BlockNumber, Header, Id as ParaId};
 	use sp_core::H256;
@@ -710,6 +705,7 @@ mod tests {
 		type SystemWeightInfo = ();
 		type SS58Prefix = ();
 		type OnSetCode = ();
+		type MaxConsumers = frame_support::traits::ConstU32<16>;
 	}
 
 	parameter_types! {
@@ -821,7 +817,7 @@ mod tests {
 		pub const Six: u64 = 6;
 	}
 
-	type RootOrSix = EnsureOneOf<u64, EnsureRoot<u64>, EnsureSignedBy<Six, u64>>;
+	type RootOrSix = EnsureOneOf<EnsureRoot<u64>, EnsureSignedBy<Six, u64>>;
 
 	thread_local! {
 		pub static LAST_RANDOM: RefCell<Option<(H256, u32)>> = RefCell::new(None);
@@ -873,26 +869,26 @@ mod tests {
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
 				0.into(),
-				Default::default(),
-				Default::default()
+				dummy_head_data(),
+				dummy_validation_code()
 			));
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
 				1.into(),
-				Default::default(),
-				Default::default()
+				dummy_head_data(),
+				dummy_validation_code()
 			));
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
 				2.into(),
-				Default::default(),
-				Default::default()
+				dummy_head_data(),
+				dummy_validation_code()
 			));
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
 				3.into(),
-				Default::default(),
-				Default::default()
+				dummy_head_data(),
+				dummy_validation_code()
 			));
 		});
 		ext
@@ -1471,8 +1467,8 @@ mod tests {
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
 				1337.into(),
-				Default::default(),
-				Default::default()
+				dummy_head_data(),
+				dummy_validation_code()
 			));
 			assert_ok!(Auctions::bid(Origin::signed(1), 1337.into(), 1, 1, 4, 1));
 		});
@@ -1602,7 +1598,7 @@ mod tests {
 		new_test_ext().execute_with(|| {
 			EndingPeriod::set(30);
 			SampleLength::set(10);
-			set_last_random(Default::default(), 0);
+			set_last_random(dummy_hash(), 0);
 
 			assert_eq!(
 				Auctions::auction_status(System::block_number()),
@@ -1672,7 +1668,7 @@ mod tests {
 				AuctionStatus::<u32>::VrfDelay(4)
 			);
 
-			set_last_random(Default::default(), 45);
+			set_last_random(dummy_hash(), 45);
 			run_to_block(45);
 			assert_eq!(
 				Auctions::auction_status(System::block_number()),

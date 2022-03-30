@@ -1,22 +1,22 @@
-// Copyright 2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
 
-use std::{sync::Arc, time::Duration};
+use std::{collections::HashSet, sync::Arc, time::Duration};
 
 use assert_matches::assert_matches;
 use futures::{executor, future, Future, SinkExt};
@@ -32,10 +32,14 @@ use sp_runtime::traits::AppVerify;
 use axia_node_network_protocol::{our_view, request_response::IncomingRequest, view};
 use axia_node_primitives::BlockData;
 use axia_node_subsystem_util::TimeoutExt;
-use axia_primitives::v1::{
-	AuthorityDiscoveryId, CandidateDescriptor, CollatorPair, GroupRotationInfo, ScheduledCore,
-	SessionIndex, SessionInfo, ValidatorId, ValidatorIndex,
+use axia_primitives::{
+	v1::{
+		AuthorityDiscoveryId, CollatorPair, GroupRotationInfo, ScheduledCore, SessionIndex,
+		ValidatorId, ValidatorIndex,
+	},
+	v2::SessionInfo,
 };
+use axia_primitives_test_helpers::TestCandidateBuilder;
 use axia_subsystem::{
 	jaeger,
 	messages::{AllMessages, RuntimeApiMessage, RuntimeApiRequest},
@@ -43,32 +47,9 @@ use axia_subsystem::{
 };
 use axia_subsystem_testhelpers as test_helpers;
 
-#[derive(Default)]
-struct TestCandidateBuilder {
-	para_id: ParaId,
-	pov_hash: Hash,
-	relay_parent: Hash,
-	commitments_hash: Hash,
-}
-
-impl TestCandidateBuilder {
-	fn build(self) -> CandidateReceipt {
-		CandidateReceipt {
-			descriptor: CandidateDescriptor {
-				para_id: self.para_id,
-				pov_hash: self.pov_hash,
-				relay_parent: self.relay_parent,
-				..Default::default()
-			},
-			commitments_hash: self.commitments_hash,
-		}
-	}
-}
-
 #[derive(Clone)]
 struct TestState {
 	para_id: ParaId,
-	validators: Vec<Sr25519Keyring>,
 	session_info: SessionInfo,
 	group_rotation_info: GroupRotationInfo,
 	validator_peer_id: Vec<PeerId>,
@@ -121,12 +102,20 @@ impl Default for TestState {
 
 		Self {
 			para_id,
-			validators,
 			session_info: SessionInfo {
 				validators: validator_public,
 				discovery_keys,
 				validator_groups,
-				..Default::default()
+				assignment_keys: vec![],
+				n_cores: 0,
+				zeroth_delay_tranche_width: 0,
+				relay_vrf_modulo_samples: 0,
+				n_delay_tranches: 0,
+				no_show_slots: 0,
+				needed_approvals: 0,
+				active_validator_indices: vec![],
+				dispute_period: 6,
+				random_seed: [0u8; 32],
 			},
 			group_rotation_info,
 			validator_peer_id,
@@ -311,7 +300,7 @@ async fn distribute_collation(
 	// whether or not we expect a connection request or not.
 	should_connect: bool,
 ) -> DistributeCollation {
-	// Now we want to distribute a PoVBlock
+	// Now we want to distribute a `PoVBlock`
 	let pov_block = PoV { block_data: BlockData(vec![42, 43, 44]) };
 
 	let pov_hash = pov_block.hash();
@@ -405,7 +394,7 @@ async fn connect_peer(
 		CollatorProtocolMessage::NetworkBridgeUpdateV1(NetworkBridgeEvent::PeerConnected(
 			peer.clone(),
 			axia_node_network_protocol::ObservedRole::Authority,
-			authority_id,
+			authority_id.map(|v| HashSet::from([v])),
 		)),
 	)
 	.await;
@@ -531,7 +520,7 @@ fn advertise_and_send_collation() {
 
 		// We declare to the connected validators that we are a collator.
 		// We need to catch all `Declare` messages to the validators we've
-		// previosly connected to.
+		// previously connected to.
 		for peer_id in test_state.current_group_validator_peer_ids() {
 			expect_declare_msg(&mut virtual_overseer, &test_state, &peer_id).await;
 		}
@@ -897,7 +886,7 @@ where
 
 		// We declare to the connected validators that we are a collator.
 		// We need to catch all `Declare` messages to the validators we've
-		// previosly connected to.
+		// previously connected to.
 		for peer_id in test_state.current_group_validator_peer_ids() {
 			expect_declare_msg(virtual_overseer, &test_state, &peer_id).await;
 		}

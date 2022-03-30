@@ -1,12 +1,12 @@
-// Copyright 2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -21,12 +21,15 @@ use crate::{
 	configuration, dmp, hrmp, inclusion, initializer, paras, paras_inherent, scheduler,
 	session_info, shared,
 };
-use primitives::v1::{
-	AuthorityDiscoveryId, CandidateEvent, CommittedCandidateReceipt, CoreIndex, CoreOccupied,
-	CoreState, GroupIndex, GroupRotationInfo, Id as ParaId, InboundDownwardMessage,
-	InboundHrmpMessage, OccupiedCore, OccupiedCoreAssumption, PersistedValidationData,
-	ScheduledCore, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidationCode,
-	ValidationCodeHash, ValidatorId, ValidatorIndex,
+use primitives::{
+	v1::{
+		AuthorityDiscoveryId, CandidateEvent, CommittedCandidateReceipt, CoreIndex, CoreOccupied,
+		CoreState, GroupIndex, GroupRotationInfo, Hash, Id as ParaId, InboundDownwardMessage,
+		InboundHrmpMessage, OccupiedCore, OccupiedCoreAssumption, PersistedValidationData,
+		ScheduledCore, ScrapedOnChainVotes, SessionIndex, ValidationCode, ValidationCodeHash,
+		ValidatorId, ValidatorIndex, ValidatorSignature,
+	},
+	v2::{PvfCheckStatement, SessionInfo},
 };
 use sp_runtime::traits::One;
 use sp_std::{collections::btree_map::BTreeMap, prelude::*};
@@ -101,7 +104,7 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 		.enumerate()
 		.map(|(i, core)| match core {
 			Some(occupied) => CoreState::Occupied(match occupied {
-				CoreOccupied::Parachain => {
+				CoreOccupied::Allychain => {
 					let para_id = allychains[i];
 					let pending_availability =
 						<inclusion::Pallet<T>>::pending_availability(para_id)
@@ -173,6 +176,17 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 	core_states
 }
 
+/// Returns current block number being processed and the corresponding root hash.
+fn current_relay_parent<T: frame_system::Config>(
+) -> (<T as frame_system::Config>::BlockNumber, <T as frame_system::Config>::Hash) {
+	use parity_scale_codec::Decode as _;
+	let state_version = <frame_system::Pallet<T>>::runtime_version().state_version();
+	let relay_parent_number = <frame_system::Pallet<T>>::block_number();
+	let relay_parent_storage_root = T::Hash::decode(&mut &sp_io::storage::root(state_version)[..])
+		.expect("storage root must decode to the Hash type; qed");
+	(relay_parent_number, relay_parent_storage_root)
+}
+
 fn with_assumption<Config, T, F>(
 	para_id: ParaId,
 	assumption: OccupiedCoreAssumption,
@@ -203,10 +217,7 @@ pub fn persisted_validation_data<T: initializer::Config>(
 	para_id: ParaId,
 	assumption: OccupiedCoreAssumption,
 ) -> Option<PersistedValidationData<T::Hash, T::BlockNumber>> {
-	use parity_scale_codec::Decode as _;
-	let relay_parent_number = <frame_system::Pallet<T>>::block_number();
-	let relay_parent_storage_root = T::Hash::decode(&mut &sp_io::storage::root()[..])
-		.expect("storage root must decode to the Hash type; qed");
+	let (relay_parent_number, relay_parent_storage_root) = current_relay_parent::<T>();
 	with_assumption::<T, _, _>(para_id, assumption, || {
 		crate::util::make_persisted_validation_data::<T>(
 			para_id,
@@ -214,6 +225,35 @@ pub fn persisted_validation_data<T: initializer::Config>(
 			relay_parent_storage_root,
 		)
 	})
+}
+
+/// Implementation for the `assumed_validation_data` function of the runtime API.
+pub fn assumed_validation_data<T: initializer::Config>(
+	para_id: ParaId,
+	expected_persisted_validation_data_hash: Hash,
+) -> Option<(PersistedValidationData<T::Hash, T::BlockNumber>, ValidationCodeHash)> {
+	let (relay_parent_number, relay_parent_storage_root) = current_relay_parent::<T>();
+	// This closure obtains the `persisted_validation_data` for the given `para_id` and matches
+	// its hash against an expected one.
+	let make_validation_data = || {
+		crate::util::make_persisted_validation_data::<T>(
+			para_id,
+			relay_parent_number,
+			relay_parent_storage_root,
+		)
+		.filter(|validation_data| validation_data.hash() == expected_persisted_validation_data_hash)
+	};
+
+	let persisted_validation_data = make_validation_data().or_else(|| {
+		// Try again with force enacting the core. This check only makes sense if
+		// the core is occupied.
+		<inclusion::Pallet<T>>::pending_availability(para_id).and_then(|_| {
+			<inclusion::Pallet<T>>::force_enact(para_id);
+			make_validation_data()
+		})
+	});
+	// If we were successful, also query current validation code hash.
+	persisted_validation_data.zip(<paras::Pallet<T>>::current_code_hash(&para_id))
 }
 
 /// Implementation for the `check_validation_outputs` function of the runtime API.
@@ -334,4 +374,31 @@ pub fn validation_code_by_hash<T: paras::Config>(
 /// Disputes imported via means of on-chain imports.
 pub fn on_chain_votes<T: paras_inherent::Config>() -> Option<ScrapedOnChainVotes<T::Hash>> {
 	<paras_inherent::Pallet<T>>::on_chain_votes()
+}
+
+/// Submits an PVF pre-checking vote. See [`paras::Pallet::submit_pvf_check_statement`].
+pub fn submit_pvf_check_statement<T: paras::Config>(
+	stmt: PvfCheckStatement,
+	signature: ValidatorSignature,
+) {
+	<paras::Pallet<T>>::submit_pvf_check_statement(stmt, signature)
+}
+
+/// Returns the list of all PVF code hashes that require pre-checking. See
+/// [`paras::Pallet::pvfs_require_precheck`].
+pub fn pvfs_require_precheck<T: paras::Config>() -> Vec<ValidationCodeHash> {
+	<paras::Pallet<T>>::pvfs_require_precheck()
+}
+
+/// Returns the validation code hash for the given allychain making the given `OccupiedCoreAssumption`.
+pub fn validation_code_hash<T>(
+	para_id: ParaId,
+	assumption: OccupiedCoreAssumption,
+) -> Option<ValidationCodeHash>
+where
+	T: inclusion::Config,
+{
+	with_assumption::<T, _, _>(para_id, assumption, || {
+		<paras::Pallet<T>>::current_code_hash(&para_id)
+	})
 }

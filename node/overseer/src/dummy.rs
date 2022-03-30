@@ -1,22 +1,22 @@
-// Copyright 2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	prometheus::Registry, AllMessages, HeadSupportsParachains, MetricsTrait, Overseer,
-	OverseerBuilder, OverseerMetrics, OverseerSignal, OverseerSubsystemContext, SpawnNamed,
+	prometheus::Registry, AllMessages, HeadSupportsAllychains, InitializedOverseerBuilder,
+	MetricsTrait, Overseer, OverseerMetrics, OverseerSignal, OverseerSubsystemContext, SpawnNamed,
 	KNOWN_LEAVES_CACHE_SIZE,
 };
 use lru::LruCache;
@@ -61,14 +61,14 @@ where
 /// Create an overseer with all subsystem being `Sub`.
 ///
 /// Preferred way of initializing a dummy overseer for subsystem tests.
-pub fn dummy_overseer_builder<'a, Spawner, SupportsParachains>(
+pub fn dummy_overseer_builder<'a, Spawner, SupportsAllychains>(
 	spawner: Spawner,
-	supports_allychains: SupportsParachains,
+	supports_allychains: SupportsAllychains,
 	registry: Option<&'a Registry>,
 ) -> Result<
-	OverseerBuilder<
+	InitializedOverseerBuilder<
 		Spawner,
-		SupportsParachains,
+		SupportsAllychains,
 		DummySubsystem,
 		DummySubsystem,
 		DummySubsystem,
@@ -95,21 +95,21 @@ pub fn dummy_overseer_builder<'a, Spawner, SupportsParachains>(
 >
 where
 	Spawner: SpawnNamed + Send + Sync + 'static,
-	SupportsParachains: HeadSupportsParachains,
+	SupportsAllychains: HeadSupportsAllychains,
 {
 	one_for_all_overseer_builder(spawner, supports_allychains, DummySubsystem, registry)
 }
 
 /// Create an overseer with all subsystem being `Sub`.
-pub fn one_for_all_overseer_builder<'a, Spawner, SupportsParachains, Sub>(
+pub fn one_for_all_overseer_builder<'a, Spawner, SupportsAllychains, Sub>(
 	spawner: Spawner,
-	supports_allychains: SupportsParachains,
+	supports_allychains: SupportsAllychains,
 	subsystem: Sub,
 	registry: Option<&'a Registry>,
 ) -> Result<
-	OverseerBuilder<
+	InitializedOverseerBuilder<
 		Spawner,
-		SupportsParachains,
+		SupportsAllychains,
 		Sub,
 		Sub,
 		Sub,
@@ -136,7 +136,7 @@ pub fn one_for_all_overseer_builder<'a, Spawner, SupportsParachains, Sub>(
 >
 where
 	Spawner: SpawnNamed + Send + Sync + 'static,
-	SupportsParachains: HeadSupportsParachains,
+	SupportsAllychains: HeadSupportsAllychains,
 	Sub: Clone
 		+ Subsystem<OverseerSubsystemContext<AvailabilityDistributionMessage>, SubsystemError>
 		+ Subsystem<OverseerSubsystemContext<AvailabilityRecoveryMessage>, SubsystemError>
@@ -156,9 +156,9 @@ where
 		+ Subsystem<OverseerSubsystemContext<ApprovalVotingMessage>, SubsystemError>
 		+ Subsystem<OverseerSubsystemContext<GossipSupportMessage>, SubsystemError>
 		+ Subsystem<OverseerSubsystemContext<DisputeCoordinatorMessage>, SubsystemError>
-		+ Subsystem<OverseerSubsystemContext<DisputeParticipationMessage>, SubsystemError>
 		+ Subsystem<OverseerSubsystemContext<DisputeDistributionMessage>, SubsystemError>
-		+ Subsystem<OverseerSubsystemContext<ChainSelectionMessage>, SubsystemError>,
+		+ Subsystem<OverseerSubsystemContext<ChainSelectionMessage>, SubsystemError>
+		+ Subsystem<OverseerSubsystemContext<PvfCheckerMessage>, SubsystemError>,
 {
 	let metrics = <OverseerMetrics as MetricsTrait>::register(registry)?;
 
@@ -170,6 +170,7 @@ where
 		.bitfield_signing(subsystem.clone())
 		.candidate_backing(subsystem.clone())
 		.candidate_validation(subsystem.clone())
+		.pvf_checker(subsystem.clone())
 		.chain_api(subsystem.clone())
 		.collation_generation(subsystem.clone())
 		.collator_protocol(subsystem.clone())
@@ -181,7 +182,6 @@ where
 		.approval_voting(subsystem.clone())
 		.gossip_support(subsystem.clone())
 		.dispute_coordinator(subsystem.clone())
-		.dispute_participation(subsystem.clone())
 		.dispute_distribution(subsystem.clone())
 		.chain_selection(subsystem)
 		.activation_external_listeners(Default::default())

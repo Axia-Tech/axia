@@ -1,18 +1,18 @@
-// Copyright 2017-2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2017-2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Message types for the overseer and subsystems.
 //!
@@ -38,14 +38,17 @@ use axia_node_primitives::{
 	CollationSecondedSignal, DisputeMessage, ErasureChunk, PoV, SignedDisputeStatement,
 	SignedFullStatement, ValidationResult,
 };
-use axia_primitives::v1::{
-	AuthorityDiscoveryId, BackedCandidate, BlockNumber, CandidateDescriptor, CandidateEvent,
-	CandidateHash, CandidateIndex, CandidateReceipt, CollatorId, CommittedCandidateReceipt,
-	CoreState, GroupIndex, GroupRotationInfo, Hash, Header as BlockHeader, Id as ParaId,
-	InboundDownwardMessage, InboundHrmpMessage, MultiDisputeStatementSet, OccupiedCoreAssumption,
-	PersistedValidationData, SessionIndex, SessionInfo, SignedAvailabilityBitfield,
-	SignedAvailabilityBitfields, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
-	ValidatorSignature,
+use axia_primitives::{
+	v1::{
+		AuthorityDiscoveryId, BackedCandidate, BlockNumber, CandidateDescriptor, CandidateEvent,
+		CandidateHash, CandidateIndex, CandidateReceipt, CollatorId, CommittedCandidateReceipt,
+		CoreState, GroupIndex, GroupRotationInfo, Hash, Header as BlockHeader, Id as ParaId,
+		InboundDownwardMessage, InboundHrmpMessage, MultiDisputeStatementSet,
+		OccupiedCoreAssumption, PersistedValidationData, SessionIndex, SignedAvailabilityBitfield,
+		SignedAvailabilityBitfields, ValidationCode, ValidationCodeHash, ValidatorId,
+		ValidatorIndex, ValidatorSignature,
+	},
+	v2::{PvfCheckStatement, SessionInfo},
 };
 use axia_statement_table::v1::Misbehavior;
 use std::{
@@ -93,6 +96,26 @@ impl BoundToRelayParent for CandidateBackingMessage {
 #[error("Validation failed with {0:?}")]
 pub struct ValidationFailed(pub String);
 
+/// The outcome of the candidate-validation's PVF pre-check request.
+#[derive(Debug, PartialEq)]
+pub enum PreCheckOutcome {
+	/// The PVF has been compiled successfully within the given constraints.
+	Valid,
+	/// The PVF could not be compiled. This variant is used when the candidate-validation subsystem
+	/// can be sure that the PVF is invalid. To give a couple of examples: a PVF that cannot be
+	/// decompressed or that does not represent a structurally valid WebAssembly file.
+	Invalid,
+	/// This variant is used when the PVF cannot be compiled but for other reasons that are not
+	/// included into [`PreCheckOutcome::Invalid`]. This variant can indicate that the PVF in
+	/// question is invalid, however it is not necessary that PVF that received this judgement
+	/// is invalid.
+	///
+	/// For example, if during compilation the preparation worker was killed we cannot be sure why
+	/// it happened: because the PVF was malicious made the worker to use too much memory or its
+	/// because the host machine is under severe memory pressure and it decided to kill the worker.
+	Failed,
+}
+
 /// Messages received by the Validation subsystem.
 ///
 /// ## Validation Requests
@@ -137,6 +160,17 @@ pub enum CandidateValidationMessage {
 		Duration,
 		oneshot::Sender<Result<ValidationResult, ValidationFailed>>,
 	),
+	/// Try to compile the given validation code and send back
+	/// the outcome.
+	///
+	/// The validation code is specified by the hash and will be queried from the runtime API at the
+	/// given relay-parent.
+	PreCheck(
+		// Relay-parent
+		Hash,
+		ValidationCodeHash,
+		oneshot::Sender<PreCheckOutcome>,
+	),
 }
 
 impl CandidateValidationMessage {
@@ -145,6 +179,7 @@ impl CandidateValidationMessage {
 		match self {
 			Self::ValidateFromChainState(_, _, _, _) => None,
 			Self::ValidateFromExhaustive(_, _, _, _, _, _) => None,
+			Self::PreCheck(relay_parent, _, _) => Some(*relay_parent),
 		}
 	}
 }
@@ -193,6 +228,9 @@ impl BoundToRelayParent for CollatorProtocolMessage {
 }
 
 /// Messages received by the dispute coordinator subsystem.
+///
+/// NOTE: Any response oneshots might get cancelled if the `DisputeCoordinator` was not yet
+/// properly initialized for some reason.
 #[derive(Debug)]
 pub enum DisputeCoordinatorMessage {
 	/// Import statements by validators about a candidate.
@@ -275,25 +313,6 @@ pub enum ImportStatementsResult {
 	ValidImport,
 }
 
-/// Messages received by the dispute participation subsystem.
-#[derive(Debug)]
-pub enum DisputeParticipationMessage {
-	/// Validate a candidate for the purposes of participating in a dispute.
-	Participate {
-		/// The hash of the candidate
-		candidate_hash: CandidateHash,
-		/// The candidate receipt itself.
-		candidate_receipt: CandidateReceipt,
-		/// The session the candidate appears in.
-		session: SessionIndex,
-		/// The number of validators in the session.
-		n_validators: u32,
-		/// Give immediate feedback on whether the candidate was available or
-		/// not.
-		report_availability: oneshot::Sender<bool>,
-	},
-}
-
 /// Messages going to the dispute distribution subsystem.
 #[derive(Debug)]
 pub enum DisputeDistributionMessage {
@@ -355,7 +374,7 @@ pub enum NetworkBridgeMessage {
 	/// connected to.
 	ConnectToResolvedValidators {
 		/// Each entry corresponds to the addresses of an already resolved validator.
-		validator_addrs: Vec<Vec<Multiaddr>>,
+		validator_addrs: Vec<HashSet<Multiaddr>>,
 		/// The peer set we want the connection on.
 		peer_set: PeerSet,
 	},
@@ -545,7 +564,8 @@ pub enum ChainApiMessage {
 	/// Request the `k` ancestors block hashes of a block with the given hash.
 	/// The response channel may return a `Vec` of size up to `k`
 	/// filled with ancestors hashes with the following order:
-	/// `parent`, `grandparent`, ...
+	/// `parent`, `grandparent`, ... up to the hash of genesis block
+	/// with number 0, including it.
 	Ancestors {
 		/// The hash of the block in question.
 		hash: Hash,
@@ -611,6 +631,13 @@ pub enum RuntimeApiRequest {
 		OccupiedCoreAssumption,
 		RuntimeApiSender<Option<PersistedValidationData>>,
 	),
+	/// Get the persisted validation data for a particular para along with the current validation code
+	/// hash, matching the data hash against an expected one.
+	AssumedValidationData(
+		ParaId,
+		Hash,
+		RuntimeApiSender<Option<(PersistedValidationData, ValidationCodeHash)>>,
+	),
 	/// Sends back `true` if the validation outputs pass all acceptance criteria checks.
 	CheckValidationOutputs(
 		ParaId,
@@ -645,6 +672,17 @@ pub enum RuntimeApiRequest {
 	CurrentBabeEpoch(RuntimeApiSender<BabeEpoch>),
 	/// Get all disputes in relation to a relay parent.
 	FetchOnChainVotes(RuntimeApiSender<Option<axia_primitives::v1::ScrapedOnChainVotes>>),
+	/// Submits a PVF pre-checking statement into the transaction pool.
+	SubmitPvfCheckStatement(PvfCheckStatement, ValidatorSignature, RuntimeApiSender<()>),
+	/// Returns code hashes of PVFs that require pre-checking by validators in the active set.
+	PvfsRequirePrecheck(RuntimeApiSender<Vec<ValidationCodeHash>>),
+	/// Get the validation code used by the specified para, taking the given `OccupiedCoreAssumption`, which
+	/// will inform on how the validation data should be computed if the para currently occupies a core.
+	ValidationCodeHash(
+		ParaId,
+		OccupiedCoreAssumption,
+		RuntimeApiSender<Option<ValidationCodeHash>>,
+	),
 }
 
 /// A message to the Runtime API subsystem.
@@ -875,3 +913,9 @@ pub enum GossipSupportMessage {
 	#[from]
 	NetworkBridgeUpdateV1(NetworkBridgeEvent<protocol_v1::GossipSuppportNetworkMessage>),
 }
+
+/// PVF checker message.
+///
+/// Currently non-instantiable.
+#[derive(Debug)]
+pub enum PvfCheckerMessage {}

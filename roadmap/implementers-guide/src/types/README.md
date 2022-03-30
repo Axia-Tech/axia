@@ -8,7 +8,7 @@ Diagrams are rendered in high resolution; open them in a separate tab to see ful
 
 These data types are defined in `axia/primitives/src/v1.rs`:
 
-```dot process
+```axc process
 digraph {
     rankdir = LR;
     node [shape = plain]
@@ -201,7 +201,7 @@ digraph {
         <table>
             <tr><td border="0" colspan="2" port="name"><i>enum</i> CoreOccupied</td></tr>
             <tr><td></td><td port="parathread">Parathread(ParathreadEntry)</td></tr>
-            <tr><td></td><td port="allychain">Parachain</td></tr>
+            <tr><td></td><td port="allychain">Allychain</td></tr>
         </table>
     >]
 
@@ -316,7 +316,7 @@ digraph {
             <tr><td>max_upward_message_size</td><td port="max_upward_message_size">u32</td></tr>
             <tr><td>max_upward_messages_num_per_candidate</td><td port="max_upward_messages_num_per_candidate">u32</td></tr>
             <tr><td>hrmp_max_message_num_per_candidate</td><td port="hrmp_max_message_num_per_candidate">u32</td></tr>
-            <tr><td>validation_upgrade_frequency</td><td port="validation_upgrade_frequency">BlockNumber</td></tr>
+            <tr><td>validation_upgrade_cooldown</td><td port="validation_upgrade_cooldown">BlockNumber</td></tr>
             <tr><td>validation_upgrade_delay</td><td port="validation_upgrade_delay">BlockNumber</td></tr>
         </table>
     >]
@@ -339,7 +339,7 @@ digraph {
 
 These data types are defined in `axia/allychain/src/primitives.rs`:
 
-```dot process
+```axc process
 digraph {
     rankdir = LR;
     node [shape = plain]

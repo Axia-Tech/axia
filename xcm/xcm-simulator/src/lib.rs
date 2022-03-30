@@ -1,18 +1,18 @@
-// Copyright 2021 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2021 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test kit to simulate cross-chain message passing and XCM execution
 
@@ -187,7 +187,7 @@ macro_rules! __impl_ext {
 						panic!("Relay chain XCM execution failure: {:?}", xcm_error);
 					}
 					if let Err(xcm_error) = process_para_messages() {
-						panic!("Parachain XCM execution failure: {:?}", xcm_error);
+						panic!("Allychain XCM execution failure: {:?}", xcm_error);
 					}
 				}
 			}
@@ -250,7 +250,7 @@ macro_rules! decl_test_network {
 						}
 					},
 					$(
-						$crate::X1($crate::Parachain(id)) if *id == $para_id && destination.parent_count() == 1 => {
+						$crate::X1($crate::Allychain(id)) if *id == $para_id && destination.parent_count() == 1 => {
 							let encoded = $crate::encode_xcm(message, $crate::MessageKind::Xcmp);
 							let messages = vec![(para_id, 1, &encoded[..])];
 							let _weight = <$allychain>::handle_xcmp_messages(
@@ -276,7 +276,7 @@ macro_rules! decl_test_network {
 				|b| b.borrow_mut().pop_front()) {
 				match destination.interior() {
 					$(
-						$crate::X1($crate::Parachain(id)) if *id == $para_id && destination.parent_count() == 0 => {
+						$crate::X1($crate::Allychain(id)) if *id == $para_id && destination.parent_count() == 0 => {
 							let encoded = $crate::encode_xcm(message, $crate::MessageKind::Dmp);
 							// NOTE: RelayChainBlockNumber is hard-coded to 1
 							let messages = vec![(1, encoded)];
@@ -293,9 +293,9 @@ macro_rules! decl_test_network {
 		}
 
 		/// XCM router for allychain.
-		pub struct ParachainXcmRouter<T>($crate::PhantomData<T>);
+		pub struct AllychainXcmRouter<T>($crate::PhantomData<T>);
 
-		impl<T: $crate::Get<$crate::ParaId>> $crate::SendXcm for ParachainXcmRouter<T> {
+		impl<T: $crate::Get<$crate::ParaId>> $crate::SendXcm for AllychainXcmRouter<T> {
 			fn send_xcm(destination: impl Into<$crate::MultiLocation>, message: $crate::Xcm<()>) -> $crate::SendResult {
 				use $crate::{UmpSink, XcmpMessageHandlerT};
 
@@ -307,7 +307,7 @@ macro_rules! decl_test_network {
 						Ok(())
 					},
 					$(
-						$crate::X1($crate::Parachain(id)) if *id == $para_id && destination.parent_count() == 1 => {
+						$crate::X1($crate::Allychain(id)) if *id == $para_id && destination.parent_count() == 1 => {
 							$crate::PARA_MESSAGE_BUS.with(
 								|b| b.borrow_mut().push_back((T::get(), destination, message)));
 							Ok(())
@@ -327,7 +327,7 @@ macro_rules! decl_test_network {
 				let destination = destination.into();
 				match destination.interior() {
 					$(
-						$crate::X1($crate::Parachain(id)) if *id == $para_id && destination.parent_count() == 0 => {
+						$crate::X1($crate::Allychain(id)) if *id == $para_id && destination.parent_count() == 0 => {
 							$crate::RELAY_MESSAGE_BUS.with(
 								|b| b.borrow_mut().push_back((destination, message)));
 							Ok(())

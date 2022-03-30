@@ -1,8 +1,8 @@
 # Protocol Overview
 
-This section aims to describe, at a high level, the actors and protocols involved in running allychains in AXIA. Specifically, we describe how different actors communicate with each other, what data structures they keep both individually and collectively, and the high-level purpose on why they do these things.
+This section aims to describe, at a high level, the actors and protocols involved in running allychains in Axia. Specifically, we describe how different actors communicate with each other, what data structures they keep both individually and collectively, and the high-level purpose on why they do these things.
 
-Our top-level goal is to carry a allychain block from authoring to secure inclusion, and define a process which can be carried out repeatedly and in parallel for many different allychains to extend them over time. Understanding of the high-level approach taken here is important to provide context for the proposed architecture further on. The key parts of AXIA relevant to this are the main AXIA blockchain, known as the relay-chain, and the actors which provide security and inputs to this blockchain.
+Our top-level goal is to carry a allychain block from authoring to secure inclusion, and define a process which can be carried out repeatedly and in parallel for many different allychains to extend them over time. Understanding of the high-level approach taken here is important to provide context for the proposed architecture further on. The key parts of Axia relevant to this are the main Axia blockchain, known as the relay-chain, and the actors which provide security and inputs to this blockchain.
 
 First, it's important to go over the main actors we have involved in this protocol.
 
@@ -34,7 +34,7 @@ Note that the candidate can fail to be included in any of the following ways:
 
 This process can be divided further down. Steps 2 & 3 relate to the work of the collator in collating and distributing the candidate to validators via the Collation Distribution Subsystem. Steps 3 & 4 relate to the work of the validators in the Candidate Backing Subsystem and the block author (itself a validator) to include the block into the relay chain. Steps 6, 7, and 8 correspond to the logic of the relay-chain state-machine (otherwise known as the Runtime) used to fully incorporate the block into the chain. Step 7 requires further work on the validators' parts to participate in the Availability Distribution Subsystem and include that information into the relay chain for step 8 to be fully realized.
 
-This brings us to the second part of the process. Once a parablock is considered available and part of the allychain, it is still "pending approval". At this stage in the pipeline, the parablock has been backed by a majority of validators in the group assigned to that allychain, and its data has been guaranteed available by the set of validators as a whole. Once it's considered available, the host will even begin to accept children of that block. At this point, we can consider the parablock as having been tentatively included in the allychain, although more confirmations are desired. However, the validators in the allychain-group (known as the "Parachain Validators" for that allychain) are sampled from a validator set which contains some proportion of byzantine, or arbitrarily malicious members. This implies that the Parachain Validators for some allychain may be majority-dishonest, which means that (secondary) approval checks must be done on the block before it can be considered approved. This is necessary only because the Parachain Validators for a given allychain are sampled from an overall validator set which is assumed to be up to <1/3 dishonest - meaning that there is a chance to randomly sample Parachain Validators for a allychain that are majority or fully dishonest and can back a candidate wrongly. The Approval Process allows us to detect such misbehavior after-the-fact without allocating more Parachain Validators and reducing the throughput of the system. A parablock's failure to pass the approval process will invalidate the block as well as all of its descendants. However, only the validators who backed the block in question will be slashed, not the validators who backed the descendants.
+This brings us to the second part of the process. Once a parablock is considered available and part of the allychain, it is still "pending approval". At this stage in the pipeline, the parablock has been backed by a majority of validators in the group assigned to that allychain, and its data has been guaranteed available by the set of validators as a whole. Once it's considered available, the host will even begin to accept children of that block. At this point, we can consider the parablock as having been tentatively included in the allychain, although more confirmations are desired. However, the validators in the allychain-group (known as the "Allychain Validators" for that allychain) are sampled from a validator set which contains some proportion of byzantine, or arbitrarily malicious members. This implies that the Allychain Validators for some allychain may be majority-dishonest, which means that (secondary) approval checks must be done on the block before it can be considered approved. This is necessary only because the Allychain Validators for a given allychain are sampled from an overall validator set which is assumed to be up to <1/3 dishonest - meaning that there is a chance to randomly sample Allychain Validators for a allychain that are majority or fully dishonest and can back a candidate wrongly. The Approval Process allows us to detect such misbehavior after-the-fact without allocating more Allychain Validators and reducing the throughput of the system. A parablock's failure to pass the approval process will invalidate the block as well as all of its descendants. However, only the validators who backed the block in question will be slashed, not the validators who backed the descendants.
 
 The Approval Process, at a glance, looks like this:
 
@@ -58,11 +58,11 @@ Reiterating the lifecycle of a candidate:
 1. Included: Backed and considered available.
 1. Accepted: Backed, available, and undisputed
 
-```dot process Inclusion Pipeline
+```axc process Inclusion Pipeline
 digraph {
 	subgraph cluster_vg {
 		label=<
-			Parachain Validators
+			Allychain Validators
 			<br/>
 			(subset of all)
 		>
@@ -133,7 +133,7 @@ The diagram above shows the happy path of a block from (1) Candidate to the (7) 
 It is also important to take note of the fact that the relay-chain is extended by BABE, which is a forkful algorithm. That means that different block authors can be chosen at the same time, and may not be building on the same block parent. Furthermore, the set of validators is not fixed, nor is the set of allychains. And even with the same set of validators and allychains, the validators' assignments to allychains is flexible. This means that the architecture proposed in the next chapters must deal with the variability and multiplicity of the network state.
 
 
-```dot process
+```axc process
 digraph {
 	rca [label="Relay Block A" shape=box]
 	rcb [label="Relay Block B" shape=box]
@@ -172,7 +172,7 @@ digraph {
 
 In this example, group 1 has received block C while the others have not due to network asynchrony. Now, a validator from group 2 may be able to build another block on top of B, called `C'`. Assume that afterwards, some validators become aware of both C and `C'`, while others remain only aware of one.
 
-```dot process
+```axc process
 digraph {
 	rca [label="Relay Block A" shape=box]
 	rcb [label="Relay Block B" shape=box]

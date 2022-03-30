@@ -1,18 +1,18 @@
-// Copyright 2017-2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2017-2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 #![warn(unused_crate_dependencies)]
 
@@ -21,9 +21,9 @@
 //! When compiled with standard library support, this crate exports a `wasm`
 //! module that can be used to validate allychain WASM.
 //!
-//! ## Parachain WASM
+//! ## Allychain WASM
 //!
-//! AXIA allychain WASM is in the form of a module which imports a memory
+//! Axia allychain WASM is in the form of a module which imports a memory
 //! instance and exports a function `validate_block`.
 //!
 //! `validate` accepts as input two `i32` values, representing a pointer/length pair

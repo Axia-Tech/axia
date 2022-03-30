@@ -1,18 +1,18 @@
-// Copyright 2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Shows a basic usage of the `Overseer`:
 //!   * Spawning subsystems and subsystem child jobs
@@ -22,6 +22,7 @@ use futures::{channel::oneshot, pending, pin_mut, select, stream, FutureExt, Str
 use futures_timer::Delay;
 use std::time::Duration;
 
+use ::test_helpers::{dummy_candidate_descriptor, dummy_hash};
 use axia_node_primitives::{BlockData, PoV};
 use axia_node_subsystem_types::messages::{
 	CandidateBackingMessage, CandidateValidationMessage,
@@ -30,12 +31,12 @@ use axia_overseer::{
 	self as overseer,
 	dummy::dummy_overseer_builder,
 	gen::{FromOverseer, SpawnedSubsystem},
-	AllMessages, HeadSupportsParachains, OverseerSignal, SubsystemError,
+	AllMessages, HeadSupportsAllychains, OverseerSignal, SubsystemError,
 };
 use axia_primitives::v1::Hash;
 
-struct AlwaysSupportsParachains;
-impl HeadSupportsParachains for AlwaysSupportsParachains {
+struct AlwaysSupportsAllychains;
+impl HeadSupportsAllychains for AlwaysSupportsAllychains {
 	fn head_supports_allychains(&self, _head: &Hash) -> bool {
 		true
 	}
@@ -73,7 +74,7 @@ impl Subsystem1 {
 			let (tx, _) = oneshot::channel();
 
 			let msg = CandidateValidationMessage::ValidateFromChainState(
-				Default::default(),
+				dummy_candidate_descriptor(dummy_hash()),
 				PoV { block_data: BlockData(Vec::new()) }.into(),
 				Default::default(),
 				tx,
@@ -171,7 +172,7 @@ fn main() {
 			Delay::new(Duration::from_secs(1)).await;
 		});
 
-		let (overseer, _handle) = dummy_overseer_builder(spawner, AlwaysSupportsParachains, None)
+		let (overseer, _handle) = dummy_overseer_builder(spawner, AlwaysSupportsAllychains, None)
 			.unwrap()
 			.replace_candidate_validation(|_| Subsystem2)
 			.replace_candidate_backing(|orig| orig)

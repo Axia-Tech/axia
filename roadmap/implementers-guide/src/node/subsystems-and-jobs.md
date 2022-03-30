@@ -21,7 +21,7 @@ Which subsystems send messages to which other subsystems.
 **Note**: Messages with a filled diamond arrowhead ("♦") include a `oneshot::Sender` which communicates a response from the recipient.
 Messages with an open triangle arrowhead ("Δ") do not include a return sender.
 
-```dot process
+```axc process
 digraph {
     rankdir=LR;
     node [shape = oval];
@@ -126,7 +126,7 @@ digraph {
 ## The Path to Inclusion (Node Side)
 
 Let's contextualize that diagram a bit by following a allychain block from its creation through finalization.
-Parachains can use completely arbitrary processes to generate blocks. The relay chain doesn't know or care about
+Allychains can use completely arbitrary processes to generate blocks. The relay chain doesn't know or care about
 the details; each allychain just needs to provide a [collator](collators/collation-generation.md).
 
 **Note**: Inter-subsystem communications are relayed via the overseer, but that step is omitted here for brevity.
@@ -380,7 +380,7 @@ sequenceDiagram
     participant CB as CandidateBacking
     participant BD as BitfieldDistribution
     participant RA as RuntimeApi
-    participant PI as ParachainsInherentDataProvider
+    participant PI as AllychainsInherentDataProvider
 
     alt receive provisionable data
         alt
@@ -412,7 +412,7 @@ sequenceDiagram
 ```
 
 In principle, any arbitrary subsystem could send a `RequestInherentData` to the `Provisioner`. In practice,
-only the `ParachainsInherentDataProvider` does so.
+only the `AllychainsInherentDataProvider` does so.
 
-The tuple `(SignedAvailabilityBitfields, BackedCandidates, ParentHeader)` is injected by the `ParachainsInherentDataProvider`
+The tuple `(SignedAvailabilityBitfields, BackedCandidates, ParentHeader)` is injected by the `AllychainsInherentDataProvider`
 into the inherent data. From that point on, control passes from the node to the runtime.

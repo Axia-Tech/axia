@@ -1,18 +1,18 @@
-// Copyright 2021 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2021 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Helper functions and tools to generate mock data useful for testing this subsystem.
 
@@ -22,10 +22,16 @@ use sp_keyring::Sr25519Keyring;
 
 use axia_erasure_coding::{branches, obtain_chunks_v1 as obtain_chunks};
 use axia_node_primitives::{AvailableData, BlockData, ErasureChunk, PoV, Proof};
-use axia_primitives::v1::{
-	CandidateCommitments, CandidateDescriptor, CandidateHash, CommittedCandidateReceipt,
-	GroupIndex, Hash, HeadData, Id as ParaId, OccupiedCore, PersistedValidationData, SessionInfo,
-	ValidatorIndex,
+use axia_primitives::{
+	v1::{
+		CandidateCommitments, CandidateDescriptor, CandidateHash, CommittedCandidateReceipt,
+		GroupIndex, Hash, HeadData, Id as ParaId, OccupiedCore, PersistedValidationData,
+		ValidatorIndex,
+	},
+	v2::SessionInfo,
+};
+use axia_primitives_test_helpers::{
+	dummy_collator, dummy_collator_signature, dummy_hash, dummy_validation_code,
 };
 
 /// Create dummy session info with two validator groups.
@@ -58,6 +64,9 @@ pub fn make_session_info() -> SessionInfo {
 		n_delay_tranches: 0,
 		no_show_slots: 0,
 		needed_approvals: 0,
+		active_validator_indices: Vec::new(),
+		dispute_period: 6,
+		random_seed: [0u8; 32],
 	}
 }
 
@@ -114,7 +123,11 @@ impl TestCandidateBuilder {
 				pov_hash: self.pov_hash,
 				relay_parent: self.relay_parent,
 				erasure_root: self.erasure_root,
-				..Default::default()
+				collator: dummy_collator(),
+				persisted_validation_data_hash: dummy_hash(),
+				signature: dummy_collator_signature(),
+				para_head: dummy_hash(),
+				validation_code_hash: dummy_validation_code().hash(),
 			},
 			commitments: CandidateCommitments { head_data: self.head_data, ..Default::default() },
 		}

@@ -1,18 +1,18 @@
-// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2019-2021 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Mocking utilities for testing with real pallets.
 
@@ -32,11 +32,16 @@ use frame_system::EnsureRoot;
 use primitives::v1::{
 	BlockNumber, HeadData, Header, Id as ParaId, ValidationCode, LOWEST_PUBLIC_ID,
 };
-use runtime_allychains::{configuration, paras, shared, Origin as ParaOrigin, ParaLifecycle};
+use runtime_allychains::{
+	configuration, origin, paras, shared, Origin as ParaOrigin, ParaLifecycle,
+};
 use sp_core::{crypto::KeyTypeId, H256};
 use sp_io::TestExternalities;
 use sp_keystore::{testing::KeyStore, KeystoreExt};
-use sp_runtime::traits::{BlakeTwo256, IdentityLookup, One};
+use sp_runtime::{
+	traits::{BlakeTwo256, IdentityLookup, One},
+	transaction_validity::TransactionPriority,
+};
 use sp_std::sync::Arc;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -57,10 +62,11 @@ frame_support::construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Babe: pallet_babe::{Pallet, Call, Storage, Config, ValidateUnsigned},
 
-		// Parachains Runtime
+		// Allychains Runtime
 		Configuration: configuration::{Pallet, Call, Storage, Config<T>},
-		Paras: paras::{Pallet, Origin, Call, Storage, Event, Config},
+		Paras: paras::{Pallet, Call, Storage, Event, Config},
 		ParasShared: shared::{Pallet, Call, Storage},
+		AllychainsOrigin: origin::{Pallet, Origin},
 
 		// Para Onboarding Pallets
 		Registrar: paras_registrar::{Pallet, Call, Storage, Event<T>},
@@ -69,6 +75,14 @@ frame_support::construct_runtime!(
 		Slots: slots::{Pallet, Call, Storage, Event<T>},
 	}
 );
+
+impl<C> frame_system::offchain::SendTransactionTypes<C> for Test
+where
+	Call: From<C>,
+{
+	type Extrinsic = UncheckedExtrinsic;
+	type OverarchingCall = Call;
+}
 
 use crate::{auctions::Error as AuctionsError, crowdloan::Error as CrowdloanError};
 
@@ -102,6 +116,7 @@ impl frame_system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -164,10 +179,17 @@ impl configuration::Config for Test {
 
 impl shared::Config for Test {}
 
+impl origin::Config for Test {}
+
+parameter_types! {
+	pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+}
+
 impl paras::Config for Test {
-	type Origin = Origin;
 	type Event = Event;
 	type WeightInfo = paras::TestWeightInfo;
+	type UnsignedPriority = ParasUnsignedPriority;
+	type NextSessionRotation = crate::mock::TestNextSessionRotation;
 }
 
 parameter_types! {
@@ -212,6 +234,7 @@ impl slots::Config for Test {
 	type Registrar = Registrar;
 	type LeasePeriod = LeasePeriod;
 	type LeaseOffset = LeaseOffset;
+	type ForceOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = crate::slots::TestWeightInfo;
 }
 
@@ -281,19 +304,17 @@ fn test_validation_code(size: usize) -> ValidationCode {
 }
 
 fn para_origin(id: u32) -> ParaOrigin {
-	ParaOrigin::Parachain(id.into())
+	ParaOrigin::Allychain(id.into())
 }
 
 fn run_to_block(n: u32) {
 	assert!(System::block_number() < n);
 	while System::block_number() < n {
 		let block_number = System::block_number();
-		AllPallets::on_finalize(block_number);
-		System::on_finalize(block_number);
+		AllPalletsWithSystem::on_finalize(block_number);
 		System::set_block_number(block_number + 1);
-		System::on_initialize(block_number + 1);
 		maybe_new_session(block_number + 1);
-		AllPallets::on_initialize(block_number + 1);
+		AllPalletsWithSystem::on_initialize(block_number + 1);
 	}
 }
 
@@ -304,6 +325,10 @@ fn run_to_session(n: u32) {
 
 fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
+}
+
+fn contains_event(event: Event) -> bool {
+	System::events().iter().any(|x| x.event == event)
 }
 
 // Runs an end to end test of the auction, crowdloan, slots, and onboarding process over varying
@@ -386,10 +411,9 @@ fn basic_end_to_end_works() {
 
 			// Auction ends at block 110 + offset
 			run_to_block(109 + offset);
-			assert_eq!(
-				last_event(),
-				crowdloan::Event::<Test>::HandleBidResult(ParaId::from(para_2), Ok(())).into(),
-			);
+			assert!(contains_event(
+				crowdloan::Event::<Test>::HandleBidResult(ParaId::from(para_2), Ok(())).into()
+			));
 			run_to_block(110 + offset);
 			assert_eq!(last_event(), auctions::Event::<Test>::AuctionClosed(1).into());
 
@@ -424,7 +448,7 @@ fn basic_end_to_end_works() {
 			let lease_start_block = 400 + offset;
 			run_to_block(lease_start_block);
 
-			// First slot, Para 1 should be transitioning to Parachain
+			// First slot, Para 1 should be transitioning to Allychain
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_1)),
 				Some(ParaLifecycle::UpgradingParathread)
@@ -433,19 +457,19 @@ fn basic_end_to_end_works() {
 
 			// Two sessions later, it has upgraded
 			run_to_block(lease_start_block + 20);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allychain));
 			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
 
 			// Second slot nothing happens :)
 			run_to_block(lease_start_block + 100);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allychain));
 			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
 
 			// Third slot, Para 2 should be upgrading, and Para 1 is downgrading
 			run_to_block(lease_start_block + 200);
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_1)),
-				Some(ParaLifecycle::DowngradingParachain)
+				Some(ParaLifecycle::DowngradingAllychain)
 			);
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_2)),
@@ -455,19 +479,19 @@ fn basic_end_to_end_works() {
 			// Two sessions later, they have transitioned
 			run_to_block(lease_start_block + 220);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allychain));
 
 			// Fourth slot nothing happens :)
 			run_to_block(lease_start_block + 300);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parachain));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allychain));
 
 			// Fifth slot, Para 2 is downgrading
 			run_to_block(lease_start_block + 400);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_2)),
-				Some(ParaLifecycle::DowngradingParachain)
+				Some(ParaLifecycle::DowngradingAllychain)
 			);
 
 			// Two sessions later, Para 2 is downgraded
@@ -789,7 +813,7 @@ fn basic_swap_works() {
 
 		// 2 sessions later it is a allychain
 		run_to_block(lease_start_block + 20);
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parachain));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Allychain));
 		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parathread));
 
 		// Initiate a swap
@@ -804,13 +828,13 @@ fn basic_swap_works() {
 			ParaId::from(2000)
 		));
 
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::DowngradingParachain));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::DowngradingAllychain));
 		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::UpgradingParathread));
 
 		// 2 session later they have swapped
 		run_to_block(lease_start_block + 40);
 		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parathread));
-		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parachain));
+		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Allychain));
 
 		// Deregister parathread
 		assert_ok!(Registrar::deregister(para_origin(2000).into(), ParaId::from(2000)));

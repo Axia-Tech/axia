@@ -1,31 +1,34 @@
-// Copyright 2019-2021 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2019-2021 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Mocking utilities for testing.
 
 use crate::traits::Registrar;
-use frame_support::dispatch::{DispatchError, DispatchResult};
+use frame_support::{
+	dispatch::{DispatchError, DispatchResult},
+	weights::Weight,
+};
 use parity_scale_codec::{Decode, Encode};
 use primitives::v1::{HeadData, Id as ParaId, ValidationCode};
-use sp_runtime::traits::SaturatedConversion;
+use sp_runtime::{traits::SaturatedConversion, Permill};
 use std::{cell::RefCell, collections::HashMap};
 
 thread_local! {
 	static OPERATIONS: RefCell<Vec<(ParaId, u32, bool)>> = RefCell::new(Vec::new());
-	static PARACHAINS: RefCell<Vec<ParaId>> = RefCell::new(Vec::new());
+	static ALLYCHAINS: RefCell<Vec<ParaId>> = RefCell::new(Vec::new());
 	static PARATHREADS: RefCell<Vec<ParaId>> = RefCell::new(Vec::new());
 	static LOCKS: RefCell<HashMap<ParaId, bool>> = RefCell::new(HashMap::new());
 	static MANAGERS: RefCell<HashMap<ParaId, Vec<u8>>> = RefCell::new(HashMap::new());
@@ -41,7 +44,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 	}
 
 	fn allychains() -> Vec<ParaId> {
-		PARACHAINS.with(|x| x.borrow().clone())
+		ALLYCHAINS.with(|x| x.borrow().clone())
 	}
 
 	fn is_parathread(id: ParaId) -> bool {
@@ -63,10 +66,10 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		_validation_code: ValidationCode,
 	) -> DispatchResult {
 		// Should not be allychain.
-		PARACHAINS.with(|x| {
+		ALLYCHAINS.with(|x| {
 			let allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
-				Ok(_) => Err(DispatchError::Other("Already Parachain")),
+				Ok(_) => Err(DispatchError::Other("Already Allychain")),
 				Err(_) => Ok(()),
 			}
 		})?;
@@ -87,7 +90,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 
 	fn deregister(id: ParaId) -> DispatchResult {
 		// Should not be allychain.
-		PARACHAINS.with(|x| {
+		ALLYCHAINS.with(|x| {
 			let allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
 				Ok(_) => Err(DispatchError::Other("cannot deregister allychain")),
@@ -120,7 +123,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 				Err(_) => Err(DispatchError::Other("not parathread, so cannot `make_allychain`")),
 			}
 		})?;
-		PARACHAINS.with(|x| {
+		ALLYCHAINS.with(|x| {
 			let mut allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
 				Ok(_) => Err(DispatchError::Other("already allychain, so cannot `make_allychain`")),
@@ -140,7 +143,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		Ok(())
 	}
 	fn make_parathread(id: ParaId) -> DispatchResult {
-		PARACHAINS.with(|x| {
+		ALLYCHAINS.with(|x| {
 			let mut allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
 				Ok(i) => {
@@ -194,7 +197,7 @@ impl<T: frame_system::Config> TestRegistrar<T> {
 
 	#[allow(dead_code)]
 	pub fn allychains() -> Vec<ParaId> {
-		PARACHAINS.with(|x| x.borrow().clone())
+		ALLYCHAINS.with(|x| x.borrow().clone())
 	}
 
 	#[allow(dead_code)]
@@ -205,8 +208,26 @@ impl<T: frame_system::Config> TestRegistrar<T> {
 	#[allow(dead_code)]
 	pub fn clear_storage() {
 		OPERATIONS.with(|x| x.borrow_mut().clear());
-		PARACHAINS.with(|x| x.borrow_mut().clear());
+		ALLYCHAINS.with(|x| x.borrow_mut().clear());
 		PARATHREADS.with(|x| x.borrow_mut().clear());
 		MANAGERS.with(|x| x.borrow_mut().clear());
+	}
+}
+
+/// A very dumb implementation of `EstimateNextSessionRotation`. At the moment of writing, this
+/// is more to satisfy type requirements rather than to test anything.
+pub struct TestNextSessionRotation;
+
+impl frame_support::traits::EstimateNextSessionRotation<u32> for TestNextSessionRotation {
+	fn average_session_length() -> u32 {
+		10
+	}
+
+	fn estimate_current_session_progress(_now: u32) -> (Option<Permill>, Weight) {
+		(None, 0)
+	}
+
+	fn estimate_next_session_rotation(_now: u32) -> (Option<u32>, Weight) {
+		(None, 0)
 	}
 }

@@ -1,20 +1,20 @@
-// Copyright 2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
-//! AXIA Jaeger span definitions.
+//! Axia Jaeger span definitions.
 //!
 //! ```rust
 //! # use axia_primitives::v1::{CandidateHash, Hash};
@@ -41,7 +41,7 @@
 //! 		.with_string_fmt_debug_tag("foo", foo)
 //! 		// anything that implements `trait std::str::ToString`
 //! 		.with_string_tag("again", 1337_u32)
-//! 		// add a `Stage` for [`dot-jaeger`](https://github.com/axia/dot-jaeger)
+//! 		// add a `Stage` for [`dot-jaeger`](https://github.com/axiatech/dot-jaeger)
 //! 		.with_stage(jaeger::Stage::CandidateBacking);
 //! 		// complete by design, no completion required
 //! # }
@@ -155,7 +155,7 @@ pub enum Stage {
 	// through the inclusion pipeline, or according to the descriptions
 	// in [the path of a para chain block]
 	// (https://axia.network/the-path-of-a-allychain-block/)
-	// see [issue](https://github.com/axia/axia/issues/2389)
+	// see [issue](https://github.com/axiatech/axia/issues/2389)
 }
 
 /// A wrapper type for a span.

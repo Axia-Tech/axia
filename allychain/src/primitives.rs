@@ -1,18 +1,18 @@
-// Copyright 2020 AXIA Technologies (UK) Ltd.
-// This file is part of AXIA.
+// Copyright 2020 Axia Technologies (UK) Ltd.
+// This file is part of Axia.
 
-// AXIA is free software: you can redistribute it and/or modify
+// Axia is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// AXIA is distributed in the hope that it will be useful,
+// Axia is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with AXIA.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Primitive types which are strictly necessary from a allychain-execution point
 //! of view.
@@ -20,7 +20,7 @@
 use sp_std::vec::Vec;
 
 use frame_support::weights::Weight;
-use parity_scale_codec::{CompactAs, Decode, Encode};
+use parity_scale_codec::{CompactAs, Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_core::{RuntimeDebug, TypeId};
 use sp_runtime::traits::Hash as _;
@@ -39,11 +39,11 @@ use axia_core_primitives::{Hash, OutboundHrmpMessage};
 /// Block number type used by the relay chain.
 pub use axia_core_primitives::BlockNumber as RelayChainBlockNumber;
 
-/// Parachain head data included in the chain.
+/// Allychain head data included in the chain.
 #[derive(
 	PartialEq, Eq, Clone, PartialOrd, Ord, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo,
 )]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Default, Hash, MallocSizeOf))]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Hash, MallocSizeOf, Default))]
 pub struct HeadData(#[cfg_attr(feature = "std", serde(with = "bytes"))] pub Vec<u8>);
 
 impl HeadData {
@@ -53,10 +53,8 @@ impl HeadData {
 	}
 }
 
-/// Parachain validation code.
-#[derive(
-	Default, PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo,
-)]
+/// Allychain validation code.
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize, Hash, MallocSizeOf))]
 pub struct ValidationCode(#[cfg_attr(feature = "std", serde(with = "bytes"))] pub Vec<u8>);
 
@@ -72,7 +70,7 @@ impl ValidationCode {
 /// This type is produced by [`ValidationCode::hash`].
 ///
 /// This type makes it easy to enforce that a hash is a validation code hash on the type level.
-#[derive(Clone, Copy, Encode, Decode, Default, Hash, Eq, PartialEq, PartialOrd, Ord, TypeInfo)]
+#[derive(Clone, Copy, Encode, Decode, Hash, Eq, PartialEq, PartialOrd, Ord, TypeInfo)]
 #[cfg_attr(feature = "std", derive(MallocSizeOf))]
 pub struct ValidationCodeHash(Hash);
 
@@ -112,11 +110,11 @@ impl sp_std::fmt::LowerHex for ValidationCodeHash {
 	}
 }
 
-/// Parachain block data.
+/// Allychain block data.
 ///
 /// Contains everything required to validate para-block, may contain block and witness data.
-#[derive(PartialEq, Eq, Clone, Encode, Decode, derive_more::From, TypeInfo)]
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug, MallocSizeOf))]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, derive_more::From, TypeInfo, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, MallocSizeOf))]
 pub struct BlockData(#[cfg_attr(feature = "std", serde(with = "bytes"))] pub Vec<u8>);
 
 /// Unique identifier of a allychain.
@@ -129,6 +127,7 @@ pub struct BlockData(#[cfg_attr(feature = "std", serde(with = "bytes"))] pub Vec
 	Encode,
 	Eq,
 	Hash,
+	MaxEncodedLen,
 	Ord,
 	PartialEq,
 	PartialOrd,
@@ -306,11 +305,11 @@ impl<'a> parity_scale_codec::Input for TrailingZeroInput<'a> {
 
 /// Format is b"para" ++ encode(allychain ID) ++ 00.... where 00... is indefinite trailing
 /// zeroes to fill [`AccountId`].
-impl<T: Encode + Decode + Default> AccountIdConversion<T> for Id {
+impl<T: Encode + Decode> AccountIdConversion<T> for Id {
 	fn into_account(&self) -> T {
 		(b"para", self)
 			.using_encoded(|b| T::decode(&mut TrailingZeroInput(b)))
-			.unwrap_or_default()
+			.expect("infinite length input; no invalid inputs for type; qed")
 	}
 
 	fn try_from_account(x: &T) -> Option<Self> {
@@ -409,7 +408,7 @@ impl XcmpMessageHandler for () {
 }
 
 /// Validation parameters for evaluating the allychain validity function.
-// TODO: balance downloads (https://github.com/axia/axia/issues/220)
+// TODO: balance downloads (https://github.com/axiatech/axia/issues/220)
 #[derive(PartialEq, Eq, Decode, Clone)]
 #[cfg_attr(feature = "std", derive(Debug, Encode))]
 pub struct ValidationParams {
@@ -424,7 +423,7 @@ pub struct ValidationParams {
 }
 
 /// The result of allychain validation.
-// TODO: balance uploads (https://github.com/axia/axia/issues/220)
+// TODO: balance uploads (https://github.com/axiatech/axia/issues/220)
 #[derive(PartialEq, Eq, Clone, Encode)]
 #[cfg_attr(feature = "std", derive(Debug, Decode))]
 pub struct ValidationResult {
@@ -432,13 +431,13 @@ pub struct ValidationResult {
 	pub head_data: HeadData,
 	/// An update to the validation code that should be scheduled in the relay chain.
 	pub new_validation_code: Option<ValidationCode>,
-	/// Upward messages send by the Parachain.
+	/// Upward messages send by the Allychain.
 	pub upward_messages: Vec<UpwardMessage>,
 	/// Outbound horizontal messages sent by the allychain.
 	pub horizontal_messages: Vec<OutboundHrmpMessage<Id>>,
-	/// Number of downward messages that were processed by the Parachain.
+	/// Number of downward messages that were processed by the Allychain.
 	///
-	/// It is expected that the Parachain processes them from first to last.
+	/// It is expected that the Allychain processes them from first to last.
 	pub processed_downward_messages: u32,
 	/// The mark which specifies the block number up to which all inbound HRMP messages are processed.
 	pub hrmp_watermark: RelayChainBlockNumber,

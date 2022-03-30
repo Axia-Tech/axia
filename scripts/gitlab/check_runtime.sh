@@ -16,9 +16,9 @@ set -e # fail on any error
 #shellcheck source=../common/lib.sh
 . "$(dirname "${0}")/../common/lib.sh"
 
-SUBSTRATE_REPO="https://github.com/axia-tech/axia-core"
-SUBSTRATE_REPO_CARGO="git\+${SUBSTRATE_REPO}"
-SUBSTRATE_VERSIONS_FILE="bin/node/runtime/src/lib.rs"
+AXLIB_REPO="https://github.com/purestake/substrate"
+AXLIB_REPO_CARGO="git\+${AXLIB_REPO}"
+AXLIB_VERSIONS_FILE="bin/node/runtime/src/lib.rs"
 
 # figure out the latest release tag
 boldprint "make sure we have all tags (including those from the release branch)"
@@ -35,7 +35,7 @@ git fetch --depth="${GIT_DEPTH:-100}" origin master
 
 
 runtimes=(
-  "axiatest"
+  "axctest"
   "axia"
   "alphanet"
 )
@@ -54,13 +54,13 @@ if ! has_runtime_changes "${LATEST_TAG}" "${CI_COMMIT_SHA}"; then
   # continue checking if Cargo.lock was updated with a new substrate reference
   # and if that change includes a {spec|impl}_version update.
 
-  SUBSTRATE_REFS_CHANGED="$(
+  AXLIB_REFS_CHANGED="$(
     git diff "refs/tags/${LATEST_TAG}...${CI_COMMIT_SHA}" Cargo.lock \
-    | sed -n -r "s~^[\+\-]source = \"${SUBSTRATE_REPO_CARGO}#([a-f0-9]+)\".*$~\1~p" | sort -u | wc -l
+    | sed -n -r "s~^[\+\-]source = \"${AXLIB_REPO_CARGO}#([a-f0-9]+)\".*$~\1~p" | sort -u | wc -l
   )"
 
   # check Cargo.lock for substrate ref change
-  case "${SUBSTRATE_REFS_CHANGED}" in
+  case "${AXLIB_REFS_CHANGED}" in
     (0)
       boldprint "substrate refs not changed in Cargo.lock"
       exit 0
@@ -69,37 +69,37 @@ if ! has_runtime_changes "${LATEST_TAG}" "${CI_COMMIT_SHA}"; then
       boldprint "substrate refs updated since ${LATEST_TAG}"
       ;;
     (*)
-      boldprint "check unsupported: more than one commit targeted in repo ${SUBSTRATE_REPO_CARGO}"
+      boldprint "check unsupported: more than one commit targeted in repo ${AXLIB_REPO_CARGO}"
       exit 1
   esac
 
 
-  SUBSTRATE_PREV_REF="$(
+  AXLIB_PREV_REF="$(
     git diff "refs/tags/${LATEST_TAG}...${CI_COMMIT_SHA}" Cargo.lock \
-    | sed -n -r "s~^\-source = \"${SUBSTRATE_REPO_CARGO}#([a-f0-9]+)\".*$~\1~p" | sort -u | head -n 1
+    | sed -n -r "s~^\-source = \"${AXLIB_REPO_CARGO}#([a-f0-9]+)\".*$~\1~p" | sort -u | head -n 1
   )"
 
-  SUBSTRATE_NEW_REF="$(
+  AXLIB_NEW_REF="$(
     git diff "refs/tags/${LATEST_TAG}...${CI_COMMIT_SHA}" Cargo.lock \
-    | sed -n -r "s~^\+source = \"${SUBSTRATE_REPO_CARGO}#([a-f0-9]+)\".*$~\1~p" | sort -u | head -n 1
+    | sed -n -r "s~^\+source = \"${AXLIB_REPO_CARGO}#([a-f0-9]+)\".*$~\1~p" | sort -u | head -n 1
   )"
 
 
   boldcat <<EOT
-previous substrate commit id ${SUBSTRATE_PREV_REF}
-new substrate commit id      ${SUBSTRATE_NEW_REF}
+previous substrate commit id ${AXLIB_PREV_REF}
+new substrate commit id      ${AXLIB_NEW_REF}
 EOT
 
   # okay so now need to fetch the substrate repository and check whether spec_version or impl_version has changed there
-  SUBSTRATE_CLONE_DIR="$(mktemp -t -d substrate-XXXXXX)"
-  trap 'rm -rf "${SUBSTRATE_CLONE_DIR}"' INT QUIT TERM ABRT EXIT
+  AXLIB_CLONE_DIR="$(mktemp -t -d substrate-XXXXXX)"
+  trap 'rm -rf "${AXLIB_CLONE_DIR}"' INT QUIT TERM ABRT EXIT
 
   git clone --depth="${GIT_DEPTH:-100}" --no-tags \
-    "${SUBSTRATE_REPO}" "${SUBSTRATE_CLONE_DIR}"
+    "${AXLIB_REPO}" "${AXLIB_CLONE_DIR}"
 
   # check if there are changes to the spec|impl versions
-  git -C "${SUBSTRATE_CLONE_DIR}" diff \
-    "${SUBSTRATE_PREV_REF}..${SUBSTRATE_NEW_REF}" "${SUBSTRATE_VERSIONS_FILE}" \
+  git -C "${AXLIB_CLONE_DIR}" diff \
+    "${AXLIB_PREV_REF}..${AXLIB_NEW_REF}" "${AXLIB_VERSIONS_FILE}" \
     | grep -E '^[\+\-][[:space:]]+(spec|impl)_version: +([0-9]+),$' || exit 0
 
   boldcat <<EOT
