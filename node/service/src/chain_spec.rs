@@ -398,8 +398,8 @@ fn axia_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axia::GenesisConfi
 		)
 	];
 
-	const ENDOWMENT: u128 = 1_000_000_000 * AXC;
-	const STASH: u128 = 1_000_000_000 * AXC;
+	const ENDOWMENT: u128 = 1_000_000_000_000 * AXC;
+	const STASH: u128 = 100 * AXC;
 
 	axia::GenesisConfig {
 		system: axia::SystemConfig { code: wasm_binary.to_vec() },
@@ -438,12 +438,12 @@ fn axia_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axia::GenesisConfi
 				.map(|x| (x.0.clone(), x.1.clone(), STASH, axia::StakerStatus::Validator))
 				.collect(),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			force_era: Forcing::ForceNone,
+			force_era: Forcing::NotForcing,
 			slash_reward_fraction: Perbill::from_percent(10),
 			..Default::default()
 		},
 		phragmen_election: Default::default(),
-		democracy: Default::default(),
+		democracy: axia::DemocracyConfig::default(),
 		council: axia::CouncilConfig { members: vec![], phantom: Default::default() },
 		technical_committee: axia::TechnicalCommitteeConfig {
 			members: vec![],
@@ -1360,7 +1360,10 @@ pub fn axia_testnet_genesis(
 		system: axia::SystemConfig { code: wasm_binary.to_vec() },
 		indices: axia::IndicesConfig { indices: vec![] },
 		balances: axia::BalancesConfig {
-			balances: endowed_accounts.iter().map(|k| (k.clone(), ENDOWMENT)).collect(),
+			balances: endowed_accounts
+				.iter()
+				.map(|k| (k.clone(), ENDOWMENT))
+				.collect(),
 		},
 		session: axia::SessionConfig {
 			keys: initial_authorities
@@ -1394,7 +1397,7 @@ pub fn axia_testnet_genesis(
 			..Default::default()
 		},
 		phragmen_election: Default::default(),
-		democracy: axia::DemocracyConfig::default(),
+		democracy: Default::default(),
 		council: axia::CouncilConfig { members: vec![], phantom: Default::default() },
 		technical_committee: axia::TechnicalCommitteeConfig {
 			members: vec![],
