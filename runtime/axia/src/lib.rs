@@ -99,7 +99,7 @@ use axia_runtime_constants::{currency::*, fee::*, time::*};
 
 // Weights used in the runtime.
 mod weights;
-
+mod validator_manager;
 mod bag_thresholds;
 
 pub mod xcm_config;
@@ -1330,6 +1330,11 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
+impl validator_manager::Config for Runtime {
+	type Event = Event;
+	type PrivilegedOrigin = EnsureRoot<AccountId>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1421,6 +1426,9 @@ construct_runtime! {
 		// New
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>} = 74,
 		ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = 75,
+
+		// Validator
+		ValidatorManager: validator_manager = 78,
 
 		// Pallet for sending XCM.
 		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 99,
