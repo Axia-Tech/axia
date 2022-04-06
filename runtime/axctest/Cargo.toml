@@ -92,6 +92,8 @@ xcm = { package = "xcm", path = "../../xcm", default-features = false }
 xcm-executor = { package = "xcm-executor", path = "../../xcm/xcm-executor", default-features = false }
 xcm-builder = { package = "xcm-builder", path = "../../xcm/xcm-builder", default-features = false }
 
+pallet-sudo = { git = "https://github.com/axia-tech/axlib", default-features = false , branch = "axlib" }
+
 [dev-dependencies]
 hex-literal = "0.3.4"
 tiny-keccak = "2.0.2"
@@ -180,6 +182,7 @@ std = [
 	"xcm-executor/std",
 	"xcm-builder/std",
 	"frame-election-provider-support/std",
+	"pallet-sudo/std"
 ]
 runtime-benchmarks = [
 	"runtime-common/runtime-benchmarks",
@@ -256,6 +259,7 @@ try-runtime = [
 	"pallet-vesting/try-runtime",
 	"pallet-babe/try-runtime",
 	"runtime-common/try-runtime",
+	"pallet-sudo/try-runtime"
 ]
 # When enabled, the runtime API will not be build.
 #

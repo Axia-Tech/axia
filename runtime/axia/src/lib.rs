@@ -99,7 +99,7 @@ use axia_runtime_constants::{currency::*, fee::*, time::*};
 
 // Weights used in the runtime.
 mod weights;
-
+mod validator_manager;
 mod bag_thresholds;
 
 pub mod xcm_config;
@@ -293,11 +293,12 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-	pub EpochDuration: u64 = prod_or_fast!(
-		EPOCH_DURATION_IN_SLOTS as u64,
-		2 * MINUTES as u64,
-		"KSM_EPOCH_DURATION"
-	);
+	// pub EpochDuration: u64 = prod_or_fast!(
+	// 	EPOCH_DURATION_IN_SLOTS as u64,
+	// 	2 * MINUTES as u64,
+	// 	"KSM_EPOCH_DURATION"
+	// );
+	pub EpochDuration: u64 = 10 * MINUTES as u64;
 	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
 	pub ReportLongevity: u64 =
 		BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
@@ -537,7 +538,7 @@ pallet_staking_reward_curve::build! {
 
 parameter_types! {
 	// Six sessions in an era (24 hours).
-	pub const SessionsPerEra: SessionIndex = 6;
+	pub const SessionsPerEra: SessionIndex = 1;
 	// 28 eras for unbonding (28 days).
 	pub const BondingDuration: sp_staking::EraIndex = 28;
 	pub const SlashDeferDuration: sp_staking::EraIndex = 27;
@@ -1330,6 +1331,11 @@ impl pallet_sudo::Config for Runtime {
 	type Call = Call;
 }
 
+impl validator_manager::Config for Runtime {
+	type Event = Event;
+	type PrivilegedOrigin = EnsureRoot<AccountId>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1421,6 +1427,9 @@ construct_runtime! {
 		// New
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>} = 74,
 		ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = 75,
+
+		// Validator
+		ValidatorManager: validator_manager = 78,
 
 		// Pallet for sending XCM.
 		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 99,
