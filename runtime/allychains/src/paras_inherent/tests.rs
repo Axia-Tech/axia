@@ -1183,7 +1183,7 @@ mod sanitizers {
 			match group_index {
 				group_index if group_index == GroupIndex::from(0) => Some(vec![0, 1]),
 				group_index if group_index == GroupIndex::from(1) => Some(vec![2, 3]),
-				_ => panic!("Group index out of bounds for 2 allychains and 1 parathread core"),
+				_ => panic!("Group index out of bounds for 2 allychains and 1 allythread core"),
 			}
 			.map(|m| m.into_iter().map(ValidatorIndex).collect::<Vec<_>>())
 		};

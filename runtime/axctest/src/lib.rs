@@ -138,7 +138,7 @@ pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
-/// Don't allow swaps until parathread story is more mature.
+/// Don't allow swaps until allythread story is more mature.
 pub struct BaseFilter;
 impl Contains<Call> for BaseFilter {
 	fn contains(c: &Call) -> bool {

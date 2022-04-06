@@ -47,7 +47,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		ALLYCHAINS.with(|x| x.borrow().clone())
 	}
 
-	fn is_parathread(id: ParaId) -> bool {
+	fn is_allythread(id: ParaId) -> bool {
 		PARATHREADS.with(|x| x.borrow().binary_search(&id).is_ok())
 	}
 
@@ -73,13 +73,13 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 				Err(_) => Ok(()),
 			}
 		})?;
-		// Should not be parathread, then make it.
+		// Should not be allythread, then make it.
 		PARATHREADS.with(|x| {
-			let mut parathreads = x.borrow_mut();
-			match parathreads.binary_search(&id) {
-				Ok(_) => Err(DispatchError::Other("Already Parathread")),
+			let mut allythreads = x.borrow_mut();
+			match allythreads.binary_search(&id) {
+				Ok(_) => Err(DispatchError::Other("Already Allythread")),
 				Err(i) => {
-					parathreads.insert(i, id);
+					allythreads.insert(i, id);
 					Ok(())
 				},
 			}
@@ -97,15 +97,15 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 				Err(_) => Ok(()),
 			}
 		})?;
-		// Remove from parathread.
+		// Remove from allythread.
 		PARATHREADS.with(|x| {
-			let mut parathreads = x.borrow_mut();
-			match parathreads.binary_search(&id) {
+			let mut allythreads = x.borrow_mut();
+			match allythreads.binary_search(&id) {
 				Ok(i) => {
-					parathreads.remove(i);
+					allythreads.remove(i);
 					Ok(())
 				},
-				Err(_) => Err(DispatchError::Other("not parathread, so cannot `deregister`")),
+				Err(_) => Err(DispatchError::Other("not allythread, so cannot `deregister`")),
 			}
 		})?;
 		MANAGERS.with(|x| x.borrow_mut().remove(&id));
@@ -114,13 +114,13 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 
 	fn make_allychain(id: ParaId) -> DispatchResult {
 		PARATHREADS.with(|x| {
-			let mut parathreads = x.borrow_mut();
-			match parathreads.binary_search(&id) {
+			let mut allythreads = x.borrow_mut();
+			match allythreads.binary_search(&id) {
 				Ok(i) => {
-					parathreads.remove(i);
+					allythreads.remove(i);
 					Ok(())
 				},
-				Err(_) => Err(DispatchError::Other("not parathread, so cannot `make_allychain`")),
+				Err(_) => Err(DispatchError::Other("not allythread, so cannot `make_allychain`")),
 			}
 		})?;
 		ALLYCHAINS.with(|x| {
@@ -142,7 +142,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		});
 		Ok(())
 	}
-	fn make_parathread(id: ParaId) -> DispatchResult {
+	fn make_allythread(id: ParaId) -> DispatchResult {
 		ALLYCHAINS.with(|x| {
 			let mut allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
@@ -150,16 +150,16 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 					allychains.remove(i);
 					Ok(())
 				},
-				Err(_) => Err(DispatchError::Other("not allychain, so cannot `make_parathread`")),
+				Err(_) => Err(DispatchError::Other("not allychain, so cannot `make_allythread`")),
 			}
 		})?;
 		PARATHREADS.with(|x| {
-			let mut parathreads = x.borrow_mut();
-			match parathreads.binary_search(&id) {
+			let mut allythreads = x.borrow_mut();
+			match allythreads.binary_search(&id) {
 				Ok(_) =>
-					Err(DispatchError::Other("already parathread, so cannot `make_parathread`")),
+					Err(DispatchError::Other("already allythread, so cannot `make_allythread`")),
 				Err(i) => {
-					parathreads.insert(i, id);
+					allythreads.insert(i, id);
 					Ok(())
 				},
 			}
@@ -201,7 +201,7 @@ impl<T: frame_system::Config> TestRegistrar<T> {
 	}
 
 	#[allow(dead_code)]
-	pub fn parathreads() -> Vec<ParaId> {
+	pub fn allythreads() -> Vec<ParaId> {
 		PARATHREADS.with(|x| x.borrow().clone())
 	}
 

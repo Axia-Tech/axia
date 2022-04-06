@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
-//! The scheduler module for allychains and parathreads.
+//! The scheduler module for allychains and allythreads.
 //!
 //! This module is responsible for two main tasks:
-//!   - Partitioning validators into groups and assigning groups to allychains and parathreads
-//!   - Scheduling allychains and parathreads
+//!   - Partitioning validators into groups and assigning groups to allychains and allythreads
+//!   - Scheduling allychains and allythreads
 //!
 //! It aims to achieve these tasks with these goals in mind:
 //! - It should be possible to know at least a block ahead-of-time, ideally more,
@@ -27,18 +27,18 @@
 //!   should not be assigned.
 //! - Validator assignments should not be gameable. Malicious cartels should not be able to
 //!   manipulate the scheduler to assign themselves as desired.
-//! - High or close to optimal throughput of allychains and parathreads. Work among validator groups should be balanced.
+//! - High or close to optimal throughput of allychains and allythreads. Work among validator groups should be balanced.
 //!
 //! The Scheduler manages resource allocation using the concept of "Availability Cores".
 //! There will be one availability core for each allychain, and a fixed number of cores
-//! used for multiplexing parathreads. Validators will be partitioned into groups, with the same
+//! used for multiplexing allythreads. Validators will be partitioned into groups, with the same
 //! number of groups as availability cores. Validator groups will be assigned to different availability cores
 //! over time.
 
 use frame_support::pallet_prelude::*;
 use primitives::v1::{
 	CollatorId, CoreIndex, CoreOccupied, GroupIndex, GroupRotationInfo, Id as ParaId,
-	ParathreadClaim, ParathreadEntry, ScheduledCore, ValidatorIndex,
+	AllythreadClaim, AllythreadEntry, ScheduledCore, ValidatorIndex,
 };
 use scale_info::TypeInfo;
 use sp_runtime::traits::{One, Saturating};
@@ -51,48 +51,48 @@ pub use pallet::*;
 #[cfg(test)]
 mod tests;
 
-/// A queued parathread entry, pre-assigned to a core.
+/// A queued allythread entry, pre-assigned to a core.
 #[derive(Encode, Decode, TypeInfo)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct QueuedParathread {
-	claim: ParathreadEntry,
+pub struct QueuedAllythread {
+	claim: AllythreadEntry,
 	core_offset: u32,
 }
 
-/// The queue of all parathread claims.
+/// The queue of all allythread claims.
 #[derive(Encode, Decode, TypeInfo)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
-pub struct ParathreadClaimQueue {
-	queue: Vec<QueuedParathread>,
-	// this value is between 0 and config.parathread_cores
+pub struct AllythreadClaimQueue {
+	queue: Vec<QueuedAllythread>,
+	// this value is between 0 and config.allythread_cores
 	next_core_offset: u32,
 }
 
-impl ParathreadClaimQueue {
-	/// Queue a parathread entry to be processed.
+impl AllythreadClaimQueue {
+	/// Queue a allythread entry to be processed.
 	///
-	/// Provide the entry and the number of parathread cores, which must be greater than 0.
-	fn enqueue_entry(&mut self, entry: ParathreadEntry, n_parathread_cores: u32) {
+	/// Provide the entry and the number of allythread cores, which must be greater than 0.
+	fn enqueue_entry(&mut self, entry: AllythreadEntry, n_allythread_cores: u32) {
 		let core_offset = self.next_core_offset;
-		self.next_core_offset = (self.next_core_offset + 1) % n_parathread_cores;
+		self.next_core_offset = (self.next_core_offset + 1) % n_allythread_cores;
 
-		self.queue.push(QueuedParathread { claim: entry, core_offset })
+		self.queue.push(QueuedAllythread { claim: entry, core_offset })
 	}
 
 	/// Take next queued entry with given core offset, if any.
-	fn take_next_on_core(&mut self, core_offset: u32) -> Option<ParathreadEntry> {
+	fn take_next_on_core(&mut self, core_offset: u32) -> Option<AllythreadEntry> {
 		let pos = self.queue.iter().position(|queued| queued.core_offset == core_offset);
 		pos.map(|i| self.queue.remove(i).claim)
 	}
 
 	/// Get the next queued entry with given core offset, if any.
-	fn get_next_on_core(&self, core_offset: u32) -> Option<&ParathreadEntry> {
+	fn get_next_on_core(&self, core_offset: u32) -> Option<&AllythreadEntry> {
 		let pos = self.queue.iter().position(|queued| queued.core_offset == core_offset);
 		pos.map(|i| &self.queue[i].claim)
 	}
 }
 
-impl Default for ParathreadClaimQueue {
+impl Default for AllythreadClaimQueue {
 	fn default() -> Self {
 		Self { queue: vec![], next_core_offset: 0 }
 	}
@@ -113,8 +113,8 @@ pub enum FreedReason {
 pub enum AssignmentKind {
 	/// A allychain.
 	Allychain,
-	/// A parathread.
-	Parathread(CollatorId, u32),
+	/// A allythread.
+	Allythread(CollatorId, u32),
 }
 
 /// How a free core is scheduled to be assigned.
@@ -136,7 +136,7 @@ impl CoreAssignment {
 	pub fn required_collator(&self) -> Option<&CollatorId> {
 		match self.kind {
 			AssignmentKind::Allychain => None,
-			AssignmentKind::Parathread(ref id, _) => Some(id),
+			AssignmentKind::Allythread(ref id, _) => Some(id),
 		}
 	}
 
@@ -144,9 +144,9 @@ impl CoreAssignment {
 	pub fn to_core_occupied(&self) -> CoreOccupied {
 		match self.kind {
 			AssignmentKind::Allychain => CoreOccupied::Allychain,
-			AssignmentKind::Parathread(ref collator, retries) =>
-				CoreOccupied::Parathread(ParathreadEntry {
-					claim: ParathreadClaim(self.para_id, collator.clone()),
+			AssignmentKind::Allythread(ref collator, retries) =>
+				CoreOccupied::Allythread(AllythreadEntry {
+					claim: AllythreadClaim(self.para_id, collator.clone()),
 					retries,
 				}),
 		}
@@ -169,7 +169,7 @@ pub mod pallet {
 	/// broader set of Axia validators, but instead just the subset used for allychains during
 	/// this session.
 	///
-	/// Bound: The number of cores is the sum of the numbers of allychains and parathread multiplexers.
+	/// Bound: The number of cores is the sum of the numbers of allychains and allythread multiplexers.
 	/// Reasonably, 100-1000. The dominant factor is the number of validators: safe upper bound at 10k.
 	#[pallet::storage]
 	#[pallet::getter(fn validator_groups)]
@@ -178,28 +178,28 @@ pub mod pallet {
 	/// A queue of upcoming claims and which core they should be mapped onto.
 	///
 	/// The number of queued claims is bounded at the `scheduling_lookahead`
-	/// multiplied by the number of parathread multiplexer cores. Reasonably, 10 * 50 = 500.
+	/// multiplied by the number of allythread multiplexer cores. Reasonably, 10 * 50 = 500.
 	#[pallet::storage]
-	pub(crate) type ParathreadQueue<T> = StorageValue<_, ParathreadClaimQueue, ValueQuery>;
+	pub(crate) type AllythreadQueue<T> = StorageValue<_, AllythreadClaimQueue, ValueQuery>;
 
 	/// One entry for each availability core. Entries are `None` if the core is not currently occupied. Can be
 	/// temporarily `Some` if scheduled but not occupied.
 	/// The i'th allychain belongs to the i'th core, with the remaining cores all being
-	/// parathread-multiplexers.
+	/// allythread-multiplexers.
 	///
 	/// Bounded by the maximum of either of these two values:
-	///   * The number of allychains and parathread multiplexers
+	///   * The number of allychains and allythread multiplexers
 	///   * The number of validators divided by `configuration.max_validators_per_core`.
 	#[pallet::storage]
 	#[pallet::getter(fn availability_cores)]
 	pub(crate) type AvailabilityCores<T> = StorageValue<_, Vec<Option<CoreOccupied>>, ValueQuery>;
 
-	/// An index used to ensure that only one claim on a parathread exists in the queue or is
+	/// An index used to ensure that only one claim on a allythread exists in the queue or is
 	/// currently being handled by an occupied core.
 	///
-	/// Bounded by the number of parathread cores and scheduling lookahead. Reasonably, 10 * 50 = 500.
+	/// Bounded by the number of allythread cores and scheduling lookahead. Reasonably, 10 * 50 = 500.
 	#[pallet::storage]
-	pub(crate) type ParathreadClaimIndex<T> = StorageValue<_, Vec<ParaId>, ValueQuery>;
+	pub(crate) type AllythreadClaimIndex<T> = StorageValue<_, Vec<ParaId>, ValueQuery>;
 
 	/// The block number where the session start occurred. Used to track how many group rotations have occurred.
 	///
@@ -213,7 +213,7 @@ pub mod pallet {
 
 	/// Currently scheduled cores - free but up to be occupied.
 	///
-	/// Bounded by the number of cores: one for each allychain and parathread multiplexer.
+	/// Bounded by the number of cores: one for each allychain and allythread multiplexer.
 	///
 	/// The value contained here will not be valid after the end of a block. Runtime APIs should be used to determine scheduled cores/
 	/// for the upcoming block.
@@ -239,10 +239,10 @@ impl<T: Config> Pallet<T> {
 		let &SessionChangeNotification { ref validators, ref new_config, .. } = notification;
 		let config = new_config;
 
-		let mut thread_queue = ParathreadQueue::<T>::get();
+		let mut thread_queue = AllythreadQueue::<T>::get();
 		let n_allychains = <paras::Pallet<T>>::allychains().len() as u32;
 		let n_cores = core::cmp::max(
-			n_allychains + config.parathread_cores,
+			n_allychains + config.allythread_cores,
 			match config.max_validators_per_core {
 				Some(x) if x != 0 => validators.len() as u32 / x,
 				_ => 0,
@@ -252,8 +252,8 @@ impl<T: Config> Pallet<T> {
 		AvailabilityCores::<T>::mutate(|cores| {
 			// clear all occupied cores.
 			for maybe_occupied in cores.iter_mut() {
-				if let Some(CoreOccupied::Parathread(claim)) = maybe_occupied.take() {
-					let queued = QueuedParathread {
+				if let Some(CoreOccupied::Allythread(claim)) = maybe_occupied.take() {
+					let queued = QueuedAllythread {
 						claim,
 						core_offset: 0, // this gets set later in the re-balancing.
 					};
@@ -299,20 +299,20 @@ impl<T: Config> Pallet<T> {
 			ValidatorGroups::<T>::set(groups);
 		}
 
-		// prune out all parathread claims with too many retries.
+		// prune out all allythread claims with too many retries.
 		// assign all non-pruned claims to new cores, if they've changed.
-		ParathreadClaimIndex::<T>::mutate(|claim_index| {
-			// wipe all parathread metadata if no parathread cores are configured.
-			if config.parathread_cores == 0 {
-				thread_queue = ParathreadClaimQueue { queue: Vec::new(), next_core_offset: 0 };
+		AllythreadClaimIndex::<T>::mutate(|claim_index| {
+			// wipe all allythread metadata if no allythread cores are configured.
+			if config.allythread_cores == 0 {
+				thread_queue = AllythreadClaimQueue { queue: Vec::new(), next_core_offset: 0 };
 				claim_index.clear();
 				return
 			}
 
-			// prune out all entries beyond retry or that no longer correspond to live parathread.
+			// prune out all entries beyond retry or that no longer correspond to live allythread.
 			thread_queue.queue.retain(|queued| {
-				let will_keep = queued.claim.retries <= config.parathread_retries &&
-					<paras::Pallet<T>>::is_parathread(queued.claim.claim.0);
+				let will_keep = queued.claim.retries <= config.allythread_retries &&
+					<paras::Pallet<T>>::is_allythread(queued.claim.claim.0);
 
 				if !will_keep {
 					let claim_para = queued.claim.claim.0;
@@ -329,33 +329,33 @@ impl<T: Config> Pallet<T> {
 			// do re-balancing of claims.
 			{
 				for (i, queued) in thread_queue.queue.iter_mut().enumerate() {
-					queued.core_offset = (i as u32) % config.parathread_cores;
+					queued.core_offset = (i as u32) % config.allythread_cores;
 				}
 
 				thread_queue.next_core_offset =
-					((thread_queue.queue.len()) as u32) % config.parathread_cores;
+					((thread_queue.queue.len()) as u32) % config.allythread_cores;
 			}
 		});
-		ParathreadQueue::<T>::set(thread_queue);
+		AllythreadQueue::<T>::set(thread_queue);
 
 		let now = <frame_system::Pallet<T>>::block_number() + One::one();
 		<SessionStartBlock<T>>::set(now);
 	}
 
-	/// Add a parathread claim to the queue. If there is a competing claim in the queue or currently
+	/// Add a allythread claim to the queue. If there is a competing claim in the queue or currently
 	/// assigned to a core, this call will fail. This call will also fail if the queue is full.
 	///
-	/// Fails if the claim does not correspond to any live parathread.
+	/// Fails if the claim does not correspond to any live allythread.
 	#[allow(unused)]
-	pub fn add_parathread_claim(claim: ParathreadClaim) {
-		if !<paras::Pallet<T>>::is_parathread(claim.0) {
+	pub fn add_allythread_claim(claim: AllythreadClaim) {
+		if !<paras::Pallet<T>>::is_allythread(claim.0) {
 			return
 		}
 
 		let config = <configuration::Pallet<T>>::config();
-		let queue_max_size = config.parathread_cores * config.scheduling_lookahead;
+		let queue_max_size = config.allythread_cores * config.scheduling_lookahead;
 
-		ParathreadQueue::<T>::mutate(|queue| {
+		AllythreadQueue::<T>::mutate(|queue| {
 			if queue.queue.len() >= queue_max_size as usize {
 				return
 			}
@@ -363,7 +363,7 @@ impl<T: Config> Pallet<T> {
 			let para_id = claim.0;
 
 			let competes_with_another =
-				ParathreadClaimIndex::<T>::mutate(|index| match index.binary_search(&para_id) {
+				AllythreadClaimIndex::<T>::mutate(|index| match index.binary_search(&para_id) {
 					Ok(_) => true,
 					Err(i) => {
 						index.insert(i, para_id);
@@ -375,8 +375,8 @@ impl<T: Config> Pallet<T> {
 				return
 			}
 
-			let entry = ParathreadEntry { claim, retries: 0 };
-			queue.enqueue_entry(entry, config.parathread_cores);
+			let entry = AllythreadEntry { claim, retries: 0 };
+			queue.enqueue_entry(entry, config.allythread_cores);
 		})
 	}
 
@@ -391,22 +391,22 @@ impl<T: Config> Pallet<T> {
 					match cores[freed_index.0 as usize].take() {
 						None => continue,
 						Some(CoreOccupied::Allychain) => {},
-						Some(CoreOccupied::Parathread(entry)) => {
+						Some(CoreOccupied::Allythread(entry)) => {
 							match freed_reason {
 								FreedReason::Concluded => {
-									// After a parathread candidate has successfully been included,
+									// After a allythread candidate has successfully been included,
 									// open it up for further claims!
-									ParathreadClaimIndex::<T>::mutate(|index| {
+									AllythreadClaimIndex::<T>::mutate(|index| {
 										if let Ok(i) = index.binary_search(&entry.claim.0) {
 											index.remove(i);
 										}
 									})
 								},
 								FreedReason::TimedOut => {
-									// If a parathread candidate times out, it's not the collator's fault,
+									// If a allythread candidate times out, it's not the collator's fault,
 									// so we don't increment retries.
-									ParathreadQueue::<T>::mutate(|queue| {
-										queue.enqueue_entry(entry, config.parathread_cores);
+									AllythreadQueue::<T>::mutate(|queue| {
+										queue.enqueue_entry(entry, config.allythread_cores);
 									})
 								},
 							}
@@ -429,7 +429,7 @@ impl<T: Config> Pallet<T> {
 		let cores = AvailabilityCores::<T>::get();
 		let allychains = <paras::Pallet<T>>::allychains();
 		let mut scheduled = Scheduled::<T>::get();
-		let mut parathread_queue = ParathreadQueue::<T>::get();
+		let mut allythread_queue = AllythreadQueue::<T>::get();
 
 		if ValidatorGroups::<T>::get().is_empty() {
 			return
@@ -490,11 +490,11 @@ impl<T: Config> Pallet<T> {
 						),
 					})
 				} else {
-					// parathread core offset, rel. to beginning.
+					// allythread core offset, rel. to beginning.
 					let core_offset = (core_index - allychains.len()) as u32;
 
-					parathread_queue.take_next_on_core(core_offset).map(|entry| CoreAssignment {
-						kind: AssignmentKind::Parathread(entry.claim.1, entry.retries),
+					allythread_queue.take_next_on_core(core_offset).map(|entry| CoreAssignment {
+						kind: AssignmentKind::Allythread(entry.claim.1, entry.retries),
 						para_id: entry.claim.0,
 						core: core.clone(),
 						group_idx: Self::group_assigned_to_core(core, now).expect(
@@ -528,7 +528,7 @@ impl<T: Config> Pallet<T> {
 		}
 
 		Scheduled::<T>::set(scheduled);
-		ParathreadQueue::<T>::set(parathread_queue);
+		AllythreadQueue::<T>::set(allythread_queue);
 	}
 
 	/// Note that the given cores have become occupied. Behavior undefined if any of the given cores were not scheduled
@@ -578,7 +578,7 @@ impl<T: Config> Pallet<T> {
 				let allychains = <paras::Pallet<T>>::allychains();
 				Some(allychains[core_index.0 as usize])
 			},
-			Some(CoreOccupied::Parathread(ref entry)) => Some(entry.claim.0),
+			Some(CoreOccupied::Allythread(ref entry)) => Some(entry.claim.0),
 		}
 	}
 
@@ -624,7 +624,7 @@ impl<T: Config> Pallet<T> {
 	/// Returns an optional predicate that should be used for timing out occupied cores.
 	///
 	/// If `None`, no timing-out should be done. The predicate accepts the index of the core, and the
-	/// block number since which it has been occupied, and the respective allychain and parathread
+	/// block number since which it has been occupied, and the respective allychain and allythread
 	/// timeouts, i.e. only within `max(config.chain_availability_period, config.thread_availability_period)`
 	/// of the last rotation would this return `Some`, unless there are no rotations.
 	///
@@ -660,7 +660,7 @@ impl<T: Config> Pallet<T> {
 							now.saturating_sub(pending_since) >= config.chain_availability_period
 						}
 					},
-					Some(Some(CoreOccupied::Parathread(_))) => {
+					Some(Some(CoreOccupied::Allythread(_))) => {
 						if blocks_since_last_rotation >= config.thread_availability_period {
 							false // no pruning except recently after rotation.
 						} else {
@@ -685,14 +685,14 @@ impl<T: Config> Pallet<T> {
 	/// occupied and the candidate occupying it became available.
 	///
 	/// For allychains, this is always the ID of the allychain and no specified collator.
-	/// For parathreads, this is based on the next item in the `ParathreadQueue` assigned to that
+	/// For allythreads, this is based on the next item in the `AllythreadQueue` assigned to that
 	/// core, and is None if there isn't one.
 	pub(crate) fn next_up_on_available(core: CoreIndex) -> Option<ScheduledCore> {
 		let allychains = <paras::Pallet<T>>::allychains();
 		if (core.0 as usize) < allychains.len() {
 			Some(ScheduledCore { para_id: allychains[core.0 as usize], collator: None })
 		} else {
-			let queue = ParathreadQueue::<T>::get();
+			let queue = AllythreadQueue::<T>::get();
 			let core_offset = (core.0 as usize - allychains.len()) as u32;
 			queue.get_next_on_core(core_offset).map(|entry| ScheduledCore {
 				para_id: entry.claim.0,
@@ -705,7 +705,7 @@ impl<T: Config> Pallet<T> {
 	/// occupied and the candidate occupying it became available.
 	///
 	/// For allychains, this is always the ID of the allychain and no specified collator.
-	/// For parathreads, this is based on the next item in the `ParathreadQueue` assigned to that
+	/// For allythreads, this is based on the next item in the `AllythreadQueue` assigned to that
 	/// core, or if there isn't one, the claim that is currently occupying the core, as long
 	/// as the claim's retries would not exceed the limit. Otherwise None.
 	pub(crate) fn next_up_on_time_out(core: CoreIndex) -> Option<ScheduledCore> {
@@ -713,7 +713,7 @@ impl<T: Config> Pallet<T> {
 		if (core.0 as usize) < allychains.len() {
 			Some(ScheduledCore { para_id: allychains[core.0 as usize], collator: None })
 		} else {
-			let queue = ParathreadQueue::<T>::get();
+			let queue = AllythreadQueue::<T>::get();
 
 			// This is the next scheduled para on this core.
 			let core_offset = (core.0 as usize - allychains.len()) as u32;
@@ -729,7 +729,7 @@ impl<T: Config> Pallet<T> {
 					let cores = AvailabilityCores::<T>::get();
 					cores.get(core.0 as usize).and_then(|c| c.as_ref()).and_then(|o| {
 						match o {
-							CoreOccupied::Parathread(entry) => Some(ScheduledCore {
+							CoreOccupied::Allythread(entry) => Some(ScheduledCore {
 								para_id: entry.claim.0,
 								collator: Some(entry.claim.1.clone()),
 							}),
@@ -740,23 +740,23 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	// Free all scheduled cores and return parathread claims to queue, with retries incremented.
+	// Free all scheduled cores and return allythread claims to queue, with retries incremented.
 	pub(crate) fn clear() {
 		let config = <configuration::Pallet<T>>::config();
-		ParathreadQueue::<T>::mutate(|queue| {
+		AllythreadQueue::<T>::mutate(|queue| {
 			for core_assignment in Scheduled::<T>::take() {
-				if let AssignmentKind::Parathread(collator, retries) = core_assignment.kind {
-					if !<paras::Pallet<T>>::is_parathread(core_assignment.para_id) {
+				if let AssignmentKind::Allythread(collator, retries) = core_assignment.kind {
+					if !<paras::Pallet<T>>::is_allythread(core_assignment.para_id) {
 						continue
 					}
 
-					let entry = ParathreadEntry {
-						claim: ParathreadClaim(core_assignment.para_id, collator),
+					let entry = AllythreadEntry {
+						claim: AllythreadClaim(core_assignment.para_id, collator),
 						retries: retries + 1,
 					};
 
-					if entry.retries <= config.parathread_retries {
-						queue.enqueue_entry(entry, config.parathread_cores);
+					if entry.retries <= config.allythread_retries {
+						queue.enqueue_entry(entry, config.allythread_cores);
 					}
 				}
 			}

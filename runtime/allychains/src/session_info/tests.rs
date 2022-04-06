@@ -62,7 +62,7 @@ fn run_to_block(
 
 fn default_config() -> HostConfiguration<BlockNumber> {
 	HostConfiguration {
-		parathread_cores: 1,
+		allythread_cores: 1,
 		dispute_period: 2,
 		needed_approvals: 3,
 		..Default::default()

@@ -45,20 +45,20 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The specified allychain or parathread is not registered.
+		/// The specified allychain or allythread is not registered.
 		ParaDoesntExist,
-		/// The specified allychain or parathread is already registered.
+		/// The specified allychain or allythread is already registered.
 		ParaAlreadyExists,
 		/// A DMP message couldn't be sent because it exceeds the maximum size allowed for a downward
 		/// message.
 		ExceedsMaxMessageSize,
 		/// Could not schedule para cleanup.
 		CouldntCleanup,
-		/// Not a parathread.
-		NotParathread,
+		/// Not a allythread.
+		NotAllythread,
 		/// Not a allychain.
 		NotAllychain,
-		/// Cannot upgrade parathread.
+		/// Cannot upgrade allythread.
 		CannotUpgrade,
 		/// Cannot downgrade allychain.
 		CannotDowngrade,
@@ -91,24 +91,24 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Upgrade a parathread to a allychain
+		/// Upgrade a allythread to a allychain
 		#[pallet::weight((1_000, DispatchClass::Operational))]
-		pub fn sudo_schedule_parathread_upgrade(
+		pub fn sudo_schedule_allythread_upgrade(
 			origin: OriginFor<T>,
 			id: ParaId,
 		) -> DispatchResult {
 			ensure_root(origin)?;
-			// Para backend should think this is a parathread...
+			// Para backend should think this is a allythread...
 			ensure!(
-				paras::Pallet::<T>::lifecycle(id) == Some(ParaLifecycle::Parathread),
-				Error::<T>::NotParathread,
+				paras::Pallet::<T>::lifecycle(id) == Some(ParaLifecycle::Allythread),
+				Error::<T>::NotAllythread,
 			);
-			runtime_allychains::schedule_parathread_upgrade::<T>(id)
+			runtime_allychains::schedule_allythread_upgrade::<T>(id)
 				.map_err(|_| Error::<T>::CannotUpgrade)?;
 			Ok(())
 		}
 
-		/// Downgrade a allychain to a parathread
+		/// Downgrade a allychain to a allythread
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_schedule_allychain_downgrade(
 			origin: OriginFor<T>,

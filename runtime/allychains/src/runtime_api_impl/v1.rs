@@ -132,7 +132,7 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 						candidate_descriptor: pending_availability.candidate_descriptor().clone(),
 					}
 				},
-				CoreOccupied::Parathread(p) => {
+				CoreOccupied::Allythread(p) => {
 					let para_id = p.claim.0;
 					let pending_availability =
 						<inclusion::Pallet<T>>::pending_availability(para_id)

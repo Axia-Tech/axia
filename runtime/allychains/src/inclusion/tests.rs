@@ -48,7 +48,7 @@ use test_helpers::{
 
 fn default_config() -> HostConfiguration<BlockNumber> {
 	let mut config = HostConfiguration::default();
-	config.parathread_cores = 1;
+	config.allythread_cores = 1;
 	config.max_code_size = 3;
 	config
 }
@@ -197,7 +197,7 @@ pub(crate) fn run_to_block(
 }
 
 pub(crate) fn expected_bits() -> usize {
-	Paras::allychains().len() + Configuration::config().parathread_cores as usize
+	Paras::allychains().len() + Configuration::config().allythread_cores as usize
 }
 
 fn default_bitfield() -> AvailabilityBitfield {
@@ -741,7 +741,7 @@ fn supermajority_bitfields_trigger_availability() {
 			core if core == CoreIndex::from(0) => Some(chain_a),
 			core if core == CoreIndex::from(1) => Some(chain_b),
 			core if core == CoreIndex::from(2) => Some(thread_a),
-			_ => panic!("Core out of bounds for 2 allychains and 1 parathread core."),
+			_ => panic!("Core out of bounds for 2 allychains and 1 allythread core."),
 		};
 
 		let candidate_a = TestCandidateBuilder {
@@ -932,7 +932,7 @@ fn candidate_checks() {
 				group_index if group_index == GroupIndex::from(0) => Some(vec![0, 1]),
 				group_index if group_index == GroupIndex::from(1) => Some(vec![2, 3]),
 				group_index if group_index == GroupIndex::from(2) => Some(vec![4]),
-				_ => panic!("Group index out of bounds for 2 allychains and 1 parathread core"),
+				_ => panic!("Group index out of bounds for 2 allychains and 1 allythread core"),
 			}
 			.map(|m| m.into_iter().map(ValidatorIndex).collect::<Vec<_>>())
 		};
@@ -956,7 +956,7 @@ fn candidate_checks() {
 		let thread_a_assignment = CoreAssignment {
 			core: CoreIndex::from(2),
 			para_id: thread_a,
-			kind: AssignmentKind::Parathread(thread_collator.clone(), 0),
+			kind: AssignmentKind::Allythread(thread_collator.clone(), 0),
 			group_idx: GroupIndex::from(2),
 		};
 
@@ -1475,7 +1475,7 @@ fn backing_works() {
 				group_index if group_index == GroupIndex::from(0) => Some(vec![0, 1]),
 				group_index if group_index == GroupIndex::from(1) => Some(vec![2, 3]),
 				group_index if group_index == GroupIndex::from(2) => Some(vec![4]),
-				_ => panic!("Group index out of bounds for 2 allychains and 1 parathread core"),
+				_ => panic!("Group index out of bounds for 2 allychains and 1 allythread core"),
 			}
 			.map(|vs| vs.into_iter().map(ValidatorIndex).collect::<Vec<_>>())
 		};
@@ -1499,7 +1499,7 @@ fn backing_works() {
 		let thread_a_assignment = CoreAssignment {
 			core: CoreIndex::from(2),
 			para_id: thread_a,
-			kind: AssignmentKind::Parathread(thread_collator.clone(), 0),
+			kind: AssignmentKind::Allythread(thread_collator.clone(), 0),
 			group_idx: GroupIndex::from(2),
 		};
 

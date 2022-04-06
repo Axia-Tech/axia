@@ -52,8 +52,8 @@ enum CoreState {
     /// If a particular Collator is required to author this block, that is also present in this
     /// variant.
     Scheduled(ScheduledCore),
-    /// The core is currently free and there is nothing scheduled. This can be the case for parathread
-    /// cores when there are no parathread blocks queued. Allychain cores will never be left idle.
+    /// The core is currently free and there is nothing scheduled. This can be the case for allythread
+    /// cores when there are no allythread blocks queued. Allychain cores will never be left idle.
     Free,
 }
 ```

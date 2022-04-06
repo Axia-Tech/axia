@@ -171,41 +171,41 @@ digraph {
         </table>
     >]
 
-    ParathreadClaim [label = <
+    AllythreadClaim [label = <
         <table>
-            <tr><td border="0" colspan="2" port="name">ParathreadClaim</td></tr>
+            <tr><td border="0" colspan="2" port="name">AllythreadClaim</td></tr>
             <tr><td>0</td><td port="0">Id</td></tr>
             <tr><td>1</td><td port="1">CollatorId</td></tr>
         </table>
     >]
 
-    ParathreadClaim:0 -> Id:w
-    ParathreadClaim:1 -> CollatorId:w
+    AllythreadClaim:0 -> Id:w
+    AllythreadClaim:1 -> CollatorId:w
 
     MessageQueueChainLink [label = "(prev_head, B, H(M))\nSee doc of AbridgedHrmpChannel::mqc_head"]
     MQCHash [label = "Hash", shape="doublecircle", fill="gray90"]
 
     MQCHash -> MessageQueueChainLink
 
-    ParathreadEntry [label = <
+    AllythreadEntry [label = <
         <table>
-            <tr><td border="0" colspan="2" port="name">ParathreadEntry</td></tr>
-            <tr><td>claim</td><td port="claim">ParathreadClaim</td></tr>
+            <tr><td border="0" colspan="2" port="name">AllythreadEntry</td></tr>
+            <tr><td>claim</td><td port="claim">AllythreadClaim</td></tr>
             <tr><td>retries</td><td port="retries">u32</td></tr>
         </table>
     >]
 
-    ParathreadEntry:claim -> ParathreadClaim:name
+    AllythreadEntry:claim -> AllythreadClaim:name
 
     CoreOccupied [label = <
         <table>
             <tr><td border="0" colspan="2" port="name"><i>enum</i> CoreOccupied</td></tr>
-            <tr><td></td><td port="parathread">Parathread(ParathreadEntry)</td></tr>
+            <tr><td></td><td port="allythread">Allythread(AllythreadEntry)</td></tr>
             <tr><td></td><td port="allychain">Allychain</td></tr>
         </table>
     >]
 
-    CoreOccupied:parathread -> ParathreadEntry:name
+    CoreOccupied:allythread -> AllythreadEntry:name
 
     AvailableData [label = <
         <table>

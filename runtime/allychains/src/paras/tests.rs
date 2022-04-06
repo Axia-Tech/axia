@@ -918,7 +918,7 @@ fn para_incoming_at_session() {
 		assert_eq!(<Paras as Store>::ActionsQueue::get(Paras::scheduled_session()), Vec::new());
 
 		// Lifecycle is tracked correctly
-		assert_eq!(<Paras as Store>::ParaLifecycles::get(&a), Some(ParaLifecycle::Parathread));
+		assert_eq!(<Paras as Store>::ParaLifecycles::get(&a), Some(ParaLifecycle::Allythread));
 		assert_eq!(<Paras as Store>::ParaLifecycles::get(&b), Some(ParaLifecycle::Allychain));
 		assert_eq!(<Paras as Store>::ParaLifecycles::get(&c), Some(ParaLifecycle::Allychain));
 

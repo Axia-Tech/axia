@@ -158,7 +158,7 @@ pub trait ActiveParas {
 	/// other collator's block.
 	///
 	/// NOTE: The initial implementation simply concatenates the (ordered) set of (permanent)
-	/// allychain IDs with the (unordered) set of parathread IDs selected for this block.
+	/// allychain IDs with the (unordered) set of allythread IDs selected for this block.
 	fn active_paras() -> Vec<(Id, Option<(CollatorId, Retriable)>)>;
 }
 
@@ -167,7 +167,7 @@ pub trait ActiveParas {
 pub enum Scheduling {
 	/// Scheduled every block.
 	Always,
-	/// Scheduled dynamically (i.e. a parathread).
+	/// Scheduled dynamically (i.e. a allythread).
 	Dynamic,
 }
 
@@ -181,7 +181,7 @@ pub struct Info {
 /// An `Info` value for a standard leased allychain.
 pub const ALLYCHAIN_INFO: Info = Info { scheduling: Scheduling::Always };
 
-/// Auxiliary for when there's an attempt to swap two allychains/parathreads.
+/// Auxiliary for when there's an attempt to swap two allychains/allythreads.
 pub trait SwapAux {
 	/// Result describing whether it is possible to swap two allychains. Doesn't mutate state.
 	fn ensure_can_swap(one: Id, other: Id) -> Result<(), &'static str>;

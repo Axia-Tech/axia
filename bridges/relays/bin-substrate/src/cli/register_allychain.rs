@@ -140,7 +140,7 @@ impl RegisterAllychain {
 			.await?;
 			log::info!(target: "bridge", "Reserved allychain id: {:?}", para_id);
 
-			// step 2: register parathread
+			// step 2: register allythread
 			let para_genesis_header = para_client.header_by_number(Zero::zero()).await?;
 			let para_code = para_client
 				.raw_storage_value(StorageKey(CODE.to_vec()), Some(para_genesis_header.hash()))
@@ -156,13 +156,13 @@ impl RegisterAllychain {
 				para_genesis_header.encode().len(),
 				para_code.len(),
 			);
-			let register_parathread_call: CallOf<Relaychain> = ParaRegistrarCall::register {
+			let register_allythread_call: CallOf<Relaychain> = ParaRegistrarCall::register {
 				id: para_id,
 				genesis_head: ParaHeadData(para_genesis_header.encode()),
 				validation_code: ParaValidationCode(para_code),
 			}
 			.into();
-			let register_parathread_signer = relay_sign.clone();
+			let register_allythread_signer = relay_sign.clone();
 			wait_until_transaction_is_finalized::<Relaychain>(
 				relay_client
 					.submit_and_watch_signed_extrinsic(
@@ -171,10 +171,10 @@ impl RegisterAllychain {
 							Bytes(
 								Relaychain::sign_transaction(
 									relay_genesis_hash,
-									&register_parathread_signer,
+									&register_allythread_signer,
 									relay_substrate_client::TransactionEra::immortal(),
 									UnsignedTransaction::new(
-										register_parathread_call,
+										register_allythread_call,
 										transaction_nonce,
 									),
 								)
@@ -187,7 +187,7 @@ impl RegisterAllychain {
 			.await?;
 			log::info!(target: "bridge", "Registered allychain: {:?}. Waiting for onboarding", para_id);
 
-			// wait until parathread is onboarded
+			// wait until allythread is onboarded
 			let para_state_key = bp_runtime::storage_map_final_key_twox64_concat(
 				PARAS_PALLET_NAME,
 				PARAS_LIFECYCLES_STORAGE_NAME,
@@ -196,8 +196,8 @@ impl RegisterAllychain {
 			wait_para_state(
 				&relay_client,
 				&para_state_key.0,
-				&[ParaLifecycle::Onboarding, ParaLifecycle::Parathread],
-				ParaLifecycle::Parathread,
+				&[ParaLifecycle::Onboarding, ParaLifecycle::Allythread],
+				ParaLifecycle::Allythread,
 			)
 			.await?;
 
@@ -247,8 +247,8 @@ impl RegisterAllychain {
 				&para_state_key.0,
 				&[
 					ParaLifecycle::Onboarding,
-					ParaLifecycle::UpgradingParathread,
-					ParaLifecycle::Parathread,
+					ParaLifecycle::UpgradingAllythread,
+					ParaLifecycle::Allythread,
 				],
 				ParaLifecycle::Allychain,
 			)
