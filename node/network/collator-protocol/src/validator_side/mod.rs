@@ -399,9 +399,9 @@ impl ActiveParas {
 					},
 				};
 
-			// This code won't work well, if at all for parathreads. For parathreads we'll
-			// have to be aware of which core the parathread claim is going to be multiplexed
-			// onto. The parathread claim will also have a known collator, and we should always
+			// This code won't work well, if at all for allythreads. For allythreads we'll
+			// have to be aware of which core the allythread claim is going to be multiplexed
+			// onto. The allythread claim will also have a known collator, and we should always
 			// allow an incoming connection from that collator. If not even connecting to them
 			// directly.
 			//

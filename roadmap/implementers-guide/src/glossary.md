@@ -23,7 +23,7 @@ exactly one downward message queue.
 - Parablock: A block in a allychain.
 - Allychain: A constituent chain secured by the Relay Chain's validators.
 - Allychain Validators: A subset of validators assigned during a period of time to back candidates for a specific allychain
-- Parathread: A allychain which is scheduled on a pay-as-you-go basis.
+- Allythread: A allychain which is scheduled on a pay-as-you-go basis.
 - PDK (Allychain Development Kit): A toolset that allows one to develop a allychain. Cumulus is a PDK.
 - Preimage: In our context, if `H(X) = Y` where `H` is a hash function and `Y` is the hash, then `X` is the hash preimage.
 - Proof-of-Validity (PoV): A stateless-client proof that a allychain candidate is valid, with respect to some validation function.

@@ -324,7 +324,7 @@ pub mod pallet {
 		StorageMap<_, Twox64Concat, HrmpChannelId, HrmpOpenChannelRequest>;
 
 	// NOTE: could become bounded, but we don't have a global maximum for this.
-	// `HRMP_MAX_INBOUND_CHANNELS_BOUND` are per allychain/parathread, while this storage tracks the
+	// `HRMP_MAX_INBOUND_CHANNELS_BOUND` are per allychain/allythread, while this storage tracks the
 	// global state.
 	#[pallet::storage]
 	pub type HrmpOpenChannelRequestsList<T: Config> =
@@ -1126,8 +1126,8 @@ impl<T: Config> Pallet<T> {
 		let egress_cnt =
 			<Self as Store>::HrmpEgressChannelsIndex::decode_len(&origin).unwrap_or(0) as u32;
 		let open_req_cnt = <Self as Store>::HrmpOpenChannelRequestCount::get(&origin);
-		let channel_num_limit = if <paras::Pallet<T>>::is_parathread(origin) {
-			config.hrmp_max_parathread_outbound_channels
+		let channel_num_limit = if <paras::Pallet<T>>::is_allythread(origin) {
+			config.hrmp_max_allythread_outbound_channels
 		} else {
 			config.hrmp_max_allychain_outbound_channels
 		};
@@ -1196,8 +1196,8 @@ impl<T: Config> Pallet<T> {
 		// check if by accepting this open channel request, this allychain would exceed the
 		// number of inbound channels.
 		let config = <configuration::Pallet<T>>::config();
-		let channel_num_limit = if <paras::Pallet<T>>::is_parathread(origin) {
-			config.hrmp_max_parathread_inbound_channels
+		let channel_num_limit = if <paras::Pallet<T>>::is_allythread(origin) {
+			config.hrmp_max_allythread_inbound_channels
 		} else {
 			config.hrmp_max_allychain_inbound_channels
 		};

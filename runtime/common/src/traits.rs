@@ -31,7 +31,7 @@ pub trait Registrar {
 	/// Report the manager (permissioned owner) of a allychain, if there is one.
 	fn manager_of(id: ParaId) -> Option<Self::AccountId>;
 
-	/// All allychains. Ordered ascending by `ParaId`. Parathreads are not included.
+	/// All allychains. Ordered ascending by `ParaId`. Allythreads are not included.
 	fn allychains() -> Vec<ParaId>;
 
 	/// Return if a `ParaId` is a Allychain.
@@ -39,12 +39,12 @@ pub trait Registrar {
 		Self::allychains().binary_search(&id).is_ok()
 	}
 
-	/// Return if a `ParaId` is a Parathread.
-	fn is_parathread(id: ParaId) -> bool;
+	/// Return if a `ParaId` is a Allythread.
+	fn is_allythread(id: ParaId) -> bool;
 
 	/// Return if a `ParaId` is registered in the system.
 	fn is_registered(id: ParaId) -> bool {
-		Self::is_parathread(id) || Self::is_allychain(id)
+		Self::is_allythread(id) || Self::is_allychain(id)
 	}
 
 	/// Apply a lock to the para registration so that it cannot be modified by
@@ -71,7 +71,7 @@ pub trait Registrar {
 	fn make_allychain(id: ParaId) -> DispatchResult;
 
 	/// Lower a para back to normal from allychain status.
-	fn make_parathread(id: ParaId) -> DispatchResult;
+	fn make_allythread(id: ParaId) -> DispatchResult;
 
 	#[cfg(any(feature = "runtime-benchmarks", test))]
 	fn worst_head_data() -> HeadData;
@@ -80,7 +80,7 @@ pub trait Registrar {
 	fn worst_validation_code() -> ValidationCode;
 
 	/// Execute any pending state transitions for paras.
-	/// For example onboarding to parathread, or parathread to allychain.
+	/// For example onboarding to allythread, or allythread to allychain.
 	#[cfg(any(feature = "runtime-benchmarks", test))]
 	fn execute_pending_transitions();
 }
@@ -250,7 +250,7 @@ pub trait Auctioneer<BlockNumber> {
 	fn has_won_an_auction(para: ParaId, bidder: &Self::AccountId) -> bool;
 }
 
-/// Runtime hook for when we swap a allychain and parathread.
+/// Runtime hook for when we swap a allychain and allythread.
 #[impl_trait_for_tuples::impl_for_tuples(30)]
 pub trait OnSwap {
 	/// Updates any needed state/references to enact a logical swap of two allychains. Identity,

@@ -69,12 +69,12 @@ pub fn schedule_para_cleanup<T: paras::Config>(id: primitives::v1::Id) -> Result
 	<paras::Pallet<T>>::schedule_para_cleanup(id).map_err(|_| ())
 }
 
-/// Schedule a parathread to be upgraded to a allychain.
-pub fn schedule_parathread_upgrade<T: paras::Config>(id: ParaId) -> Result<(), ()> {
-	paras::Pallet::<T>::schedule_parathread_upgrade(id).map_err(|_| ())
+/// Schedule a allythread to be upgraded to a allychain.
+pub fn schedule_allythread_upgrade<T: paras::Config>(id: ParaId) -> Result<(), ()> {
+	paras::Pallet::<T>::schedule_allythread_upgrade(id).map_err(|_| ())
 }
 
-/// Schedule a allychain to be downgraded to a parathread.
+/// Schedule a allychain to be downgraded to a allythread.
 pub fn schedule_allychain_downgrade<T: paras::Config>(id: ParaId) -> Result<(), ()> {
 	paras::Pallet::<T>::schedule_allychain_downgrade(id).map_err(|_| ())
 }

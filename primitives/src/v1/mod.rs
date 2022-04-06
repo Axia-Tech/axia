@@ -677,17 +677,17 @@ impl From<u32> for GroupIndex {
 	}
 }
 
-/// A claim on authoring the next block for a given parathread.
+/// A claim on authoring the next block for a given allythread.
 #[derive(Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(PartialEq))]
-pub struct ParathreadClaim(pub Id, pub CollatorId);
+pub struct AllythreadClaim(pub Id, pub CollatorId);
 
 /// An entry tracking a claim to ensure it does not pass the maximum number of retries.
 #[derive(Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(PartialEq))]
-pub struct ParathreadEntry {
+pub struct AllythreadEntry {
 	/// The claim.
-	pub claim: ParathreadClaim,
+	pub claim: AllythreadClaim,
 	/// Number of retries.
 	pub retries: u32,
 }
@@ -696,8 +696,8 @@ pub struct ParathreadEntry {
 #[derive(Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 #[cfg_attr(feature = "std", derive(PartialEq))]
 pub enum CoreOccupied {
-	/// A parathread.
-	Parathread(ParathreadEntry),
+	/// A allythread.
+	Allythread(AllythreadEntry),
 	/// A allychain.
 	Allychain,
 }
@@ -850,8 +850,8 @@ pub enum CoreState<H = Hash, N = BlockNumber> {
 	/// variant.
 	#[codec(index = 1)]
 	Scheduled(ScheduledCore),
-	/// The core is currently free and there is nothing scheduled. This can be the case for parathread
-	/// cores when there are no parathread blocks queued. Allychain cores will never be left idle.
+	/// The core is currently free and there is nothing scheduled. This can be the case for allythread
+	/// cores when there are no allythread blocks queued. Allychain cores will never be left idle.
 	#[codec(index = 2)]
 	Free,
 }
@@ -1102,10 +1102,10 @@ pub const AXIA_ENGINE_ID: runtime_primitives::ConsensusEngineId = *b"POL1";
 /// A consensus log item for axia validation. To be used with [`AXIA_ENGINE_ID`].
 #[derive(Decode, Encode, Clone, PartialEq, Eq)]
 pub enum ConsensusLog {
-	/// A allychain or parathread upgraded its code.
+	/// A allychain or allythread upgraded its code.
 	#[codec(index = 1)]
 	ParaUpgradeCode(Id, ValidationCodeHash),
-	/// A allychain or parathread scheduled a code upgrade.
+	/// A allychain or allythread scheduled a code upgrade.
 	#[codec(index = 2)]
 	ParaScheduleUpgradeCode(Id, ValidationCodeHash, BlockNumber),
 	/// Governance requests to auto-approve every candidate included up to the given block

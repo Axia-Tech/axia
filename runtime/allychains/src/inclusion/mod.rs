@@ -15,7 +15,7 @@
 // along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! The inclusion pallet is responsible for inclusion and availability of scheduled allychains
-//! and parathreads.
+//! and allythreads.
 //!
 //! It is responsible for carrying candidates from being backable to being backed, and then from backed
 //! to included.

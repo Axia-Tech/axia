@@ -18,13 +18,13 @@
 //!
 //! # Tracking State of Paras
 //!
-//! The most important responsibility of this module is to track which allychains and parathreads
+//! The most important responsibility of this module is to track which allychains and allythreads
 //! are active and what their current state is. The current state of a para consists of the current
 //! head data and the current validation code (AKA Allychain Validation Function (PVF)).
 //!
 //! A para is not considered live until it is registered and activated in this pallet.
 //!
-//! The set of allychains and parathreads cannot change except at session boundaries. This is
+//! The set of allychains and allythreads cannot change except at session boundaries. This is
 //! primarily to ensure that the number and meaning of bits required for the availability bitfields
 //! does not change except at session boundaries.
 //!
@@ -61,7 +61,7 @@
 //!
 //! # Para Lifecycle Management
 //!
-//! A para can be in one of the two stable states: it is either a allychain or a parathread.
+//! A para can be in one of the two stable states: it is either a allychain or a allythread.
 //!
 //! However, in order to get into one of those two states, it must first be onboarded. Onboarding
 //! can be only enacted at session boundaries. Onboarding must take at least one full session.
@@ -178,34 +178,34 @@ pub struct ParaPastCodeMeta<N> {
 /// state will be used to determine the state transition to apply to the para.
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum ParaLifecycle {
-	/// Para is new and is onboarding as a Parathread or Allychain.
+	/// Para is new and is onboarding as a Allythread or Allychain.
 	Onboarding,
-	/// Para is a Parathread.
-	Parathread,
+	/// Para is a Allythread.
+	Allythread,
 	/// Para is a Allychain.
 	Allychain,
-	/// Para is a Parathread which is upgrading to a Allychain.
-	UpgradingParathread,
-	/// Para is a Allychain which is downgrading to a Parathread.
+	/// Para is a Allythread which is upgrading to a Allychain.
+	UpgradingAllythread,
+	/// Para is a Allychain which is downgrading to a Allythread.
 	DowngradingAllychain,
-	/// Parathread is queued to be offboarded.
-	OffboardingParathread,
+	/// Allythread is queued to be offboarded.
+	OffboardingAllythread,
 	/// Allychain is queued to be offboarded.
 	OffboardingAllychain,
 }
 
 impl ParaLifecycle {
 	/// Returns true if allychain is currently onboarding. To learn if the
-	/// allychain is onboarding as a allychain or parathread, look at the
+	/// allychain is onboarding as a allychain or allythread, look at the
 	/// `UpcomingGenesis` storage item.
 	pub fn is_onboarding(&self) -> bool {
 		matches!(self, ParaLifecycle::Onboarding)
 	}
 
 	/// Returns true if para is in a stable state, i.e. it is currently
-	/// a allychain or parathread, and not in any transition state.
+	/// a allychain or allythread, and not in any transition state.
 	pub fn is_stable(&self) -> bool {
-		matches!(self, ParaLifecycle::Parathread | ParaLifecycle::Allychain)
+		matches!(self, ParaLifecycle::Allythread | ParaLifecycle::Allychain)
 	}
 
 	/// Returns true if para is currently treated as a allychain.
@@ -220,21 +220,21 @@ impl ParaLifecycle {
 		)
 	}
 
-	/// Returns true if para is currently treated as a parathread.
+	/// Returns true if para is currently treated as a allythread.
 	/// This also includes transitioning states, so you may want to combine
-	/// this check with `is_stable` if you specifically want `Paralifecycle::Parathread`.
-	pub fn is_parathread(&self) -> bool {
+	/// this check with `is_stable` if you specifically want `Paralifecycle::Allythread`.
+	pub fn is_allythread(&self) -> bool {
 		matches!(
 			self,
-			ParaLifecycle::Parathread |
-				ParaLifecycle::UpgradingParathread |
-				ParaLifecycle::OffboardingParathread
+			ParaLifecycle::Allythread |
+				ParaLifecycle::UpgradingAllythread |
+				ParaLifecycle::OffboardingAllythread
 		)
 	}
 
 	/// Returns true if para is currently offboarding.
 	pub fn is_offboarding(&self) -> bool {
-		matches!(self, ParaLifecycle::OffboardingParathread | ParaLifecycle::OffboardingAllychain)
+		matches!(self, ParaLifecycle::OffboardingAllythread | ParaLifecycle::OffboardingAllychain)
 	}
 
 	/// Returns true if para is in any transitionary state.
@@ -294,7 +294,7 @@ pub struct ParaGenesisArgs {
 	pub genesis_head: HeadData,
 	/// The initial validation code to use.
 	pub validation_code: ValidationCode,
-	/// True if allychain, false if parathread.
+	/// True if allychain, false if allythread.
 	pub allychain: bool,
 }
 
@@ -499,7 +499,7 @@ pub mod pallet {
 		CannotOffboard,
 		/// Para cannot be upgraded to a allychain.
 		CannotUpgrade,
-		/// Para cannot be downgraded to a parathread.
+		/// Para cannot be downgraded to a allythread.
 		CannotDowngrade,
 		/// The statement for PVF pre-checking is stale.
 		PvfCheckStatementStale,
@@ -536,7 +536,7 @@ pub mod pallet {
 	pub(super) type PvfActiveVoteList<T: Config> =
 		StorageValue<_, Vec<ValidationCodeHash>, ValueQuery>;
 
-	/// All allychains. Ordered ascending by `ParaId`. Parathreads are not included.
+	/// All allychains. Ordered ascending by `ParaId`. Allythreads are not included.
 	#[pallet::storage]
 	#[pallet::getter(fn allychains)]
 	pub(crate) type Allychains<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
@@ -704,7 +704,7 @@ pub mod pallet {
 				if genesis_args.allychain {
 					ParaLifecycles::<T>::insert(&id, ParaLifecycle::Allychain);
 				} else {
-					ParaLifecycles::<T>::insert(&id, ParaLifecycle::Parathread);
+					ParaLifecycles::<T>::insert(&id, ParaLifecycle::Allythread);
 				}
 			}
 		}
@@ -1077,7 +1077,7 @@ impl<T: Config> Pallet<T> {
 	// The actions to take are based on the lifecycle of of the paras.
 	//
 	// The final state of any para after the actions queue should be as a
-	// allychain, parathread, or not registered. (stable states)
+	// allychain, allythread, or not registered. (stable states)
 	//
 	// Returns the list of outgoing paras from the actions queue.
 	fn apply_actions_queue(session: SessionIndex) -> Vec<ParaId> {
@@ -1089,7 +1089,7 @@ impl<T: Config> Pallet<T> {
 		for para in actions {
 			let lifecycle = ParaLifecycles::<T>::get(&para);
 			match lifecycle {
-				None | Some(ParaLifecycle::Parathread) | Some(ParaLifecycle::Allychain) => { /* Nothing to do... */
+				None | Some(ParaLifecycle::Allythread) | Some(ParaLifecycle::Allychain) => { /* Nothing to do... */
 				},
 				Some(ParaLifecycle::Onboarding) => {
 					if let Some(genesis_data) = <Self as Store>::UpcomingParasGenesis::take(&para) {
@@ -1099,7 +1099,7 @@ impl<T: Config> Pallet<T> {
 							}
 							ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allychain);
 						} else {
-							ParaLifecycles::<T>::insert(&para, ParaLifecycle::Parathread);
+							ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allythread);
 						}
 
 						// HACK: see the notice in `schedule_para_initialize`.
@@ -1116,23 +1116,23 @@ impl<T: Config> Pallet<T> {
 						<Self as Store>::Heads::insert(&para, genesis_data.genesis_head);
 					}
 				},
-				// Upgrade a parathread to a allychain
-				Some(ParaLifecycle::UpgradingParathread) => {
+				// Upgrade a allythread to a allychain
+				Some(ParaLifecycle::UpgradingAllythread) => {
 					if let Err(i) = allychains.binary_search(&para) {
 						allychains.insert(i, para);
 					}
 					ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allychain);
 				},
-				// Downgrade a allychain to a parathread
+				// Downgrade a allychain to a allythread
 				Some(ParaLifecycle::DowngradingAllychain) => {
 					if let Ok(i) = allychains.binary_search(&para) {
 						allychains.remove(i);
 					}
-					ParaLifecycles::<T>::insert(&para, ParaLifecycle::Parathread);
+					ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allythread);
 				},
-				// Offboard a parathread or allychain from the system
+				// Offboard a allythread or allychain from the system
 				Some(ParaLifecycle::OffboardingAllychain) |
-				Some(ParaLifecycle::OffboardingParathread) => {
+				Some(ParaLifecycle::OffboardingAllythread) => {
 					if let Ok(i) = allychains.binary_search(&para) {
 						allychains.remove(i);
 					}
@@ -1576,7 +1576,7 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Will return error if either is true:
 	///
-	/// - para is not a stable allychain or parathread (i.e. [`ParaLifecycle::is_stable`] is `false`)
+	/// - para is not a stable allychain or allythread (i.e. [`ParaLifecycle::is_stable`] is `false`)
 	/// - para has a pending upgrade.
 	///
 	/// No-op if para is not registered at all.
@@ -1596,8 +1596,8 @@ impl<T: Config> Pallet<T> {
 		match lifecycle {
 			// If para is not registered, nothing to do!
 			None => return Ok(()),
-			Some(ParaLifecycle::Parathread) => {
-				ParaLifecycles::<T>::insert(&id, ParaLifecycle::OffboardingParathread);
+			Some(ParaLifecycle::Allythread) => {
+				ParaLifecycles::<T>::insert(&id, ParaLifecycle::OffboardingAllythread);
 			},
 			Some(ParaLifecycle::Allychain) => {
 				ParaLifecycles::<T>::insert(&id, ParaLifecycle::OffboardingAllychain);
@@ -1615,16 +1615,16 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/// Schedule a parathread to be upgraded to a allychain.
+	/// Schedule a allythread to be upgraded to a allychain.
 	///
-	/// Will return error if `ParaLifecycle` is not `Parathread`.
-	pub(crate) fn schedule_parathread_upgrade(id: ParaId) -> DispatchResult {
+	/// Will return error if `ParaLifecycle` is not `Allythread`.
+	pub(crate) fn schedule_allythread_upgrade(id: ParaId) -> DispatchResult {
 		let scheduled_session = Self::scheduled_session();
 		let lifecycle = ParaLifecycles::<T>::get(&id).ok_or(Error::<T>::NotRegistered)?;
 
-		ensure!(lifecycle == ParaLifecycle::Parathread, Error::<T>::CannotUpgrade);
+		ensure!(lifecycle == ParaLifecycle::Allythread, Error::<T>::CannotUpgrade);
 
-		ParaLifecycles::<T>::insert(&id, ParaLifecycle::UpgradingParathread);
+		ParaLifecycles::<T>::insert(&id, ParaLifecycle::UpgradingAllythread);
 		ActionsQueue::<T>::mutate(scheduled_session, |v| {
 			if let Err(i) = v.binary_search(&id) {
 				v.insert(i, id);
@@ -1634,7 +1634,7 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/// Schedule a allychain to be downgraded to a parathread.
+	/// Schedule a allychain to be downgraded to a allythread.
 	///
 	/// Noop if `ParaLifecycle` is not `Allychain`.
 	pub(crate) fn schedule_allychain_downgrade(id: ParaId) -> DispatchResult {
@@ -1912,7 +1912,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Whether a para ID corresponds to any live allychain.
 	///
-	/// Includes allychains which will downgrade to a parathread in the future.
+	/// Includes allychains which will downgrade to a allythread in the future.
 	pub fn is_allychain(id: ParaId) -> bool {
 		if let Some(state) = ParaLifecycles::<T>::get(&id) {
 			state.is_allychain()
@@ -1921,12 +1921,12 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Whether a para ID corresponds to any live parathread.
+	/// Whether a para ID corresponds to any live allythread.
 	///
-	/// Includes parathreads which will upgrade to allychains in the future.
-	pub fn is_parathread(id: ParaId) -> bool {
+	/// Includes allythreads which will upgrade to allychains in the future.
+	pub fn is_allythread(id: ParaId) -> bool {
 		if let Some(state) = ParaLifecycles::<T>::get(&id) {
-			state.is_parathread()
+			state.is_allythread()
 		} else {
 			false
 		}

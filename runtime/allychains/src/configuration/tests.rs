@@ -299,8 +299,8 @@ fn setting_pending_config_members() {
 			max_code_size: 100_000,
 			max_pov_size: 1024,
 			max_head_data_size: 1_000,
-			parathread_cores: 2,
-			parathread_retries: 5,
+			allythread_cores: 2,
+			allythread_retries: 5,
 			group_rotation_frequency: 20,
 			chain_availability_period: 10,
 			thread_availability_period: 8,
@@ -327,10 +327,10 @@ fn setting_pending_config_members() {
 			hrmp_channel_max_capacity: 3921,
 			hrmp_channel_max_total_size: 7687,
 			hrmp_max_allychain_inbound_channels: 37,
-			hrmp_max_parathread_inbound_channels: 19,
+			hrmp_max_allythread_inbound_channels: 19,
 			hrmp_channel_max_message_size: 8192,
 			hrmp_max_allychain_outbound_channels: 10,
-			hrmp_max_parathread_outbound_channels: 20,
+			hrmp_max_allythread_outbound_channels: 20,
 			hrmp_max_message_num_per_candidate: 20,
 			ump_max_individual_weight: 909,
 			pvf_checking_enabled: true,
@@ -356,8 +356,8 @@ fn setting_pending_config_members() {
 		Configuration::set_max_pov_size(Origin::root(), new_config.max_pov_size).unwrap();
 		Configuration::set_max_head_data_size(Origin::root(), new_config.max_head_data_size)
 			.unwrap();
-		Configuration::set_parathread_cores(Origin::root(), new_config.parathread_cores).unwrap();
-		Configuration::set_parathread_retries(Origin::root(), new_config.parathread_retries)
+		Configuration::set_allythread_cores(Origin::root(), new_config.allythread_cores).unwrap();
+		Configuration::set_allythread_retries(Origin::root(), new_config.allythread_retries)
 			.unwrap();
 		Configuration::set_group_rotation_frequency(
 			Origin::root(),
@@ -467,9 +467,9 @@ fn setting_pending_config_members() {
 			new_config.hrmp_max_allychain_inbound_channels,
 		)
 		.unwrap();
-		Configuration::set_hrmp_max_parathread_inbound_channels(
+		Configuration::set_hrmp_max_allythread_inbound_channels(
 			Origin::root(),
-			new_config.hrmp_max_parathread_inbound_channels,
+			new_config.hrmp_max_allythread_inbound_channels,
 		)
 		.unwrap();
 		Configuration::set_hrmp_channel_max_message_size(
@@ -482,9 +482,9 @@ fn setting_pending_config_members() {
 			new_config.hrmp_max_allychain_outbound_channels,
 		)
 		.unwrap();
-		Configuration::set_hrmp_max_parathread_outbound_channels(
+		Configuration::set_hrmp_max_allythread_outbound_channels(
 			Origin::root(),
-			new_config.hrmp_max_parathread_outbound_channels,
+			new_config.hrmp_max_allythread_outbound_channels,
 		)
 		.unwrap();
 		Configuration::set_hrmp_max_message_num_per_candidate(

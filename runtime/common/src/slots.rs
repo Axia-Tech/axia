@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Parathread and allychains leasing system. Allows para IDs to be claimed, the code and data to be initialized and
-//! allychain slots (i.e. continuous scheduling) to be leased. Also allows for allychains and parathreads to be
+//! Allythread and allychains leasing system. Allows para IDs to be claimed, the code and data to be initialized and
+//! allychain slots (i.e. continuous scheduling) to be leased. Also allows for allychains and allythreads to be
 //! swapped.
 //!
 //! This doesn't handle the mechanics of determining which para ID actually ends up with a allychain lease. This
@@ -241,7 +241,7 @@ impl<T: Config> Pallet<T> {
 			if lease_periods.len() == 1 {
 				// Just one entry, which corresponds to the now-ended lease period.
 				//
-				// `para` is now just a parathread.
+				// `para` is now just a allythread.
 				//
 				// Unreserve whatever is left.
 				if let Some((who, value)) = &lease_periods[0] {
@@ -291,7 +291,7 @@ impl<T: Config> Pallet<T> {
 		for para in old_allychains.iter() {
 			if allychains.binary_search(para).is_err() {
 				// outgoing.
-				let res = T::Registrar::make_parathread(*para);
+				let res = T::Registrar::make_allythread(*para);
 				debug_assert!(res.is_ok());
 			}
 		}
@@ -937,7 +937,7 @@ mod tests {
 				Error::<Test>::ParaNotOnboarding
 			);
 
-			// Trying Para 2 again should fail cause they are not currently a parathread
+			// Trying Para 2 again should fail cause they are not currently a allythread
 			assert!(Slots::trigger_onboard(Origin::signed(1), 2.into()).is_err());
 
 			assert_eq!(TestRegistrar::<Test>::operations(), vec![(2.into(), 1, true),]);
@@ -995,7 +995,7 @@ mod benchmarking {
 		assert_eq!(event, &system_event);
 	}
 
-	fn register_a_parathread<T: Config>(i: u32) -> (ParaId, T::AccountId) {
+	fn register_a_allythread<T: Config>(i: u32) -> (ParaId, T::AccountId) {
 		let para = ParaId::from(i);
 		let leaser: T::AccountId = account("leaser", i, 0);
 		T::Currency::make_free_balance_be(&leaser, BalanceOf::<T>::max_value());
@@ -1026,7 +1026,7 @@ mod benchmarking {
 			assert_last_event::<T>(Event::<T>::Leased(para, leaser, period_begin, period_count, amount, amount).into());
 		}
 
-		// Worst case scenario, T parathreads onboard, and C allychains offboard.
+		// Worst case scenario, T allythreads onboard, and C allychains offboard.
 		manage_lease_period_start {
 			// Assume reasonable maximum of 100 paras at any time
 			let c in 1 .. 100;
@@ -1035,14 +1035,14 @@ mod benchmarking {
 			let period_begin = 1u32.into();
 			let period_count = 4u32.into();
 
-			// Make T parathreads
+			// Make T allythreads
 			let paras_info = (0..t).map(|i| {
-				register_a_parathread::<T>(i)
+				register_a_allythread::<T>(i)
 			}).collect::<Vec<_>>();
 
 			T::Registrar::execute_pending_transitions();
 
-			// T parathread are upgrading to allychains
+			// T allythread are upgrading to allychains
 			for (para, leaser) in paras_info {
 				let amount = T::Currency::minimum_balance();
 
@@ -1051,16 +1051,16 @@ mod benchmarking {
 
 			T::Registrar::execute_pending_transitions();
 
-			// C allychains are downgrading to parathreads
+			// C allychains are downgrading to allythreads
 			for i in 200 .. 200 + c {
-				let (para, leaser) = register_a_parathread::<T>(i);
+				let (para, leaser) = register_a_allythread::<T>(i);
 				T::Registrar::make_allychain(para)?;
 			}
 
 			T::Registrar::execute_pending_transitions();
 
 			for i in 0 .. t {
-				assert!(T::Registrar::is_parathread(ParaId::from(i)));
+				assert!(T::Registrar::is_allythread(ParaId::from(i)));
 			}
 
 			for i in 200 .. 200 + c {
@@ -1075,7 +1075,7 @@ mod benchmarking {
 				assert!(T::Registrar::is_allychain(ParaId::from(i)));
 			}
 			for i in 200 .. 200 + c {
-				assert!(T::Registrar::is_parathread(ParaId::from(i)));
+				assert!(T::Registrar::is_allythread(ParaId::from(i)));
 			}
 		}
 
@@ -1083,7 +1083,7 @@ mod benchmarking {
 		// This would cover at least 4 years of leases in the worst case scenario.
 		clear_all_leases {
 			let max_people = 8;
-			let (para, _) = register_a_parathread::<T>(1);
+			let (para, _) = register_a_allythread::<T>(1);
 
 			for i in 0 .. max_people {
 				let leaser = account("lease_deposit", i, 0);
@@ -1111,9 +1111,9 @@ mod benchmarking {
 
 		trigger_onboard {
 			// get a allychain into a bad state where they did not onboard
-			let (para, _) = register_a_parathread::<T>(1);
+			let (para, _) = register_a_allythread::<T>(1);
 			Leases::<T>::insert(para, vec![Some((account::<T::AccountId>("lease_insert", 0, 0), BalanceOf::<T>::default()))]);
-			assert!(T::Registrar::is_parathread(para));
+			assert!(T::Registrar::is_allythread(para));
 			let caller = whitelisted_caller();
 		}: _(RawOrigin::Signed(caller), para)
 		verify {

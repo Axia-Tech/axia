@@ -344,7 +344,7 @@ fn basic_end_to_end_works() {
 			// User 1 and 2 will own allychains
 			Balances::make_free_balance_be(&1, 1_000_000_000);
 			Balances::make_free_balance_be(&2, 1_000_000_000);
-			// First register 2 parathreads
+			// First register 2 allythreads
 			let genesis_head = Registrar::worst_head_data();
 			let validation_code = Registrar::worst_validation_code();
 			assert_ok!(Registrar::reserve(Origin::signed(1)));
@@ -371,10 +371,10 @@ fn basic_end_to_end_works() {
 			let lease_period_index_start = 4u32;
 			assert_ok!(Auctions::new_auction(Origin::root(), duration, lease_period_index_start));
 
-			// 2 sessions later they are parathreads
+			// 2 sessions later they are allythreads
 			run_to_session(2);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allythread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allythread));
 
 			// Para 1 will bid directly for slot 1, 2
 			// Open a crowdloan for Para 2 for slot 3, 4
@@ -451,19 +451,19 @@ fn basic_end_to_end_works() {
 			// First slot, Para 1 should be transitioning to Allychain
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_1)),
-				Some(ParaLifecycle::UpgradingParathread)
+				Some(ParaLifecycle::UpgradingAllythread)
 			);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allythread));
 
 			// Two sessions later, it has upgraded
 			run_to_block(lease_start_block + 20);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allychain));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allythread));
 
 			// Second slot nothing happens :)
 			run_to_block(lease_start_block + 100);
 			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allychain));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allythread));
 
 			// Third slot, Para 2 should be upgrading, and Para 1 is downgrading
 			run_to_block(lease_start_block + 200);
@@ -473,22 +473,22 @@ fn basic_end_to_end_works() {
 			);
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_2)),
-				Some(ParaLifecycle::UpgradingParathread)
+				Some(ParaLifecycle::UpgradingAllythread)
 			);
 
 			// Two sessions later, they have transitioned
 			run_to_block(lease_start_block + 220);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allythread));
 			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allychain));
 
 			// Fourth slot nothing happens :)
 			run_to_block(lease_start_block + 300);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allythread));
 			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allychain));
 
 			// Fifth slot, Para 2 is downgrading
 			run_to_block(lease_start_block + 400);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allythread));
 			assert_eq!(
 				Paras::lifecycle(ParaId::from(para_2)),
 				Some(ParaLifecycle::DowngradingAllychain)
@@ -496,8 +496,8 @@ fn basic_end_to_end_works() {
 
 			// Two sessions later, Para 2 is downgraded
 			run_to_block(lease_start_block + 420);
-			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Parathread));
-			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Parathread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_1)), Some(ParaLifecycle::Allythread));
+			assert_eq!(Paras::lifecycle(ParaId::from(para_2)), Some(ParaLifecycle::Allythread));
 		});
 	}
 }
@@ -733,13 +733,13 @@ fn competing_bids() {
 
 #[test]
 fn basic_swap_works() {
-	// This test will test a swap between a allychain and parathread works successfully.
+	// This test will test a swap between a allychain and allythread works successfully.
 	new_test_ext().execute_with(|| {
 		assert!(System::block_number().is_one()); // So events are emitted
 										  // User 1 and 2 will own paras
 		Balances::make_free_balance_be(&1, 1_000_000_000);
 		Balances::make_free_balance_be(&2, 1_000_000_000);
-		// First register 2 parathreads with different data
+		// First register 2 allythreads with different data
 		assert_ok!(Registrar::reserve(Origin::signed(1)));
 		assert_ok!(Registrar::register(
 			Origin::signed(1),
@@ -764,10 +764,10 @@ fn basic_swap_works() {
 		let lease_period_index_start = 4u32;
 		assert_ok!(Auctions::new_auction(Origin::root(), duration, lease_period_index_start));
 
-		// 2 sessions later they are parathreads
+		// 2 sessions later they are allythreads
 		run_to_session(2);
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parathread));
-		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parathread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Allythread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Allythread));
 
 		// Open a crowdloan for Para 1 for slots 0-3
 		assert_ok!(Crowdloan::create(
@@ -814,7 +814,7 @@ fn basic_swap_works() {
 		// 2 sessions later it is a allychain
 		run_to_block(lease_start_block + 20);
 		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Allychain));
-		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parathread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Allythread));
 
 		// Initiate a swap
 		assert_ok!(Registrar::swap(
@@ -829,14 +829,14 @@ fn basic_swap_works() {
 		));
 
 		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::DowngradingAllychain));
-		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::UpgradingParathread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::UpgradingAllythread));
 
 		// 2 session later they have swapped
 		run_to_block(lease_start_block + 40);
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parathread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Allythread));
 		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Allychain));
 
-		// Deregister parathread
+		// Deregister allythread
 		assert_ok!(Registrar::deregister(para_origin(2000).into(), ParaId::from(2000)));
 		// Correct deposit is unreserved
 		assert_eq!(Balances::reserved_balance(&1), 100); // crowdloan deposit left over
@@ -886,7 +886,7 @@ fn crowdloan_ending_period_bid() {
 										  // User 1 and 2 will own paras
 		Balances::make_free_balance_be(&1, 1_000_000_000);
 		Balances::make_free_balance_be(&2, 1_000_000_000);
-		// First register 2 parathreads
+		// First register 2 allythreads
 		assert_ok!(Registrar::reserve(Origin::signed(1)));
 		assert_ok!(Registrar::register(
 			Origin::signed(1),
@@ -911,10 +911,10 @@ fn crowdloan_ending_period_bid() {
 		let lease_period_index_start = 4u32;
 		assert_ok!(Auctions::new_auction(Origin::root(), duration, lease_period_index_start));
 
-		// 2 sessions later they are parathreads
+		// 2 sessions later they are allythreads
 		run_to_session(2);
-		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Parathread));
-		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Parathread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2000)), Some(ParaLifecycle::Allythread));
+		assert_eq!(Paras::lifecycle(ParaId::from(2001)), Some(ParaLifecycle::Allythread));
 
 		// Open a crowdloan for Para 1 for slots 0-3
 		assert_ok!(Crowdloan::create(
@@ -1200,7 +1200,7 @@ fn cant_bid_on_existing_lease_periods() {
 	new_test_ext().execute_with(|| {
 		assert!(System::block_number().is_one()); // So events are emitted
 		Balances::make_free_balance_be(&1, 1_000_000_000);
-		// First register a parathread
+		// First register a allythread
 		assert_ok!(Registrar::reserve(Origin::signed(1)));
 		assert_ok!(Registrar::register(
 			Origin::signed(1),
@@ -1215,7 +1215,7 @@ fn cant_bid_on_existing_lease_periods() {
 		let lease_period_index_start = 4u32;
 		assert_ok!(Auctions::new_auction(Origin::root(), duration, lease_period_index_start));
 
-		// 2 sessions later they are parathreads
+		// 2 sessions later they are allythreads
 		run_to_session(2);
 
 		// Open a crowdloan for Para 1 for slots 0-3

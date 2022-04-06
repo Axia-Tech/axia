@@ -161,11 +161,11 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// The specified allychain or parathread is not registered.
+		/// The specified allychain or allythread is not registered.
 		ParaDoesntExist,
-		/// Not a parathread.
-		NotParathread,
-		/// Cannot upgrade parathread.
+		/// Not a allythread.
+		NotAllythread,
+		/// Cannot upgrade allythread.
 		CannotUpgrade,
 		/// Cannot downgrade allychain.
 		CannotDowngrade,
@@ -206,7 +206,7 @@ pub mod pallet {
 
 			let manager = T::Registrar::manager_of(id).ok_or(Error::<T>::ParaDoesntExist)?;
 
-			ensure!(T::Registrar::is_parathread(id), Error::<T>::NotParathread,);
+			ensure!(T::Registrar::is_allythread(id), Error::<T>::NotAllythread,);
 
 			ensure!(
 				!Self::has_permanent_slot(id) && !Self::has_temporary_slot(id),
@@ -268,7 +268,7 @@ pub mod pallet {
 
 			let manager = T::Registrar::manager_of(id).ok_or(Error::<T>::ParaDoesntExist)?;
 
-			ensure!(T::Registrar::is_parathread(id), Error::<T>::NotParathread);
+			ensure!(T::Registrar::is_allythread(id), Error::<T>::NotAllythread);
 
 			ensure!(
 				!Self::has_permanent_slot(id) && !Self::has_temporary_slot(id),
@@ -369,7 +369,7 @@ pub mod pallet {
 				}
 			}
 
-			// Force downgrade to parathread (if needed) before end of lease period
+			// Force downgrade to allythread (if needed) before end of lease period
 			if is_allychain {
 				if let Err(err) = runtime_allychains::schedule_allychain_downgrade::<T>(id) {
 					// Treat failed downgrade as warning .. slot lease has been cleared,
@@ -757,7 +757,7 @@ mod tests {
 	}
 
 	#[test]
-	fn assign_perm_slot_fails_when_not_parathread() {
+	fn assign_perm_slot_fails_when_not_allythread() {
 		new_test_ext().execute_with(|| {
 			run_to_block(1);
 
@@ -771,7 +771,7 @@ mod tests {
 
 			assert_noop!(
 				AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),),
-				Error::<Test>::NotParathread
+				Error::<Test>::NotAllythread
 			);
 		});
 	}
@@ -847,7 +847,7 @@ mod tests {
 	}
 
 	#[test]
-	fn assign_perm_slot_succeeds_for_parathread() {
+	fn assign_perm_slot_succeeds_for_allythread() {
 		new_test_ext().execute_with(|| {
 			let mut block = 1;
 			run_to_block(block);
@@ -879,8 +879,8 @@ mod tests {
 				run_to_block(block);
 			}
 
-			// Para lease ended, downgraded back to parathread
-			assert_eq!(TestRegistrar::<Test>::is_parathread(ParaId::from(1)), true);
+			// Para lease ended, downgraded back to allythread
+			assert_eq!(TestRegistrar::<Test>::is_allythread(ParaId::from(1)), true);
 			assert_eq!(Slots::already_leased(ParaId::from(1), 0, 5), false);
 		});
 	}
@@ -918,7 +918,7 @@ mod tests {
 	}
 
 	#[test]
-	fn assign_temp_slot_fails_when_not_parathread() {
+	fn assign_temp_slot_fails_when_not_allythread() {
 		new_test_ext().execute_with(|| {
 			run_to_block(1);
 
@@ -936,7 +936,7 @@ mod tests {
 					ParaId::from(1),
 					SlotLeasePeriodStart::Current
 				),
-				Error::<Test>::NotParathread
+				Error::<Test>::NotAllythread
 			);
 		});
 	}
@@ -1024,7 +1024,7 @@ mod tests {
 	}
 
 	#[test]
-	fn assign_temp_slot_succeeds_for_single_parathread() {
+	fn assign_temp_slot_succeeds_for_single_allythread() {
 		new_test_ext().execute_with(|| {
 			let mut block = 1;
 			run_to_block(block);
@@ -1078,8 +1078,8 @@ mod tests {
 			println!("lease period #{}", AssignedSlots::current_lease_period_index());
 			println!("lease {:?}", Slots::lease(ParaId::from(1)));
 
-			// Para lease ended, downgraded back to parathread
-			assert_eq!(TestRegistrar::<Test>::is_parathread(ParaId::from(1)), true);
+			// Para lease ended, downgraded back to allythread
+			assert_eq!(TestRegistrar::<Test>::is_allythread(ParaId::from(1)), true);
 			assert_eq!(Slots::already_leased(ParaId::from(1), 0, 3), false);
 			assert_eq!(AssignedSlots::active_temporary_slot_count(), 0);
 
@@ -1097,7 +1097,7 @@ mod tests {
 	}
 
 	#[test]
-	fn assign_temp_slot_succeeds_for_multiple_parathreads() {
+	fn assign_temp_slot_succeeds_for_multiple_allythreads() {
 		new_test_ext().execute_with(|| {
 			// Block 1, Period 0
 			run_to_block(1);

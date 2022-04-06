@@ -955,7 +955,7 @@ where
 }
 
 parameter_types! {
-	pub const ParathreadDeposit: Balance = 500 * DOLLARS;
+	pub const AllythreadDeposit: Balance = 500 * DOLLARS;
 	pub const MaxRetries: u32 = 3;
 }
 
