@@ -19,10 +19,10 @@
 //! # Tracking State of Paras
 //!
 //! The most important responsibility of this module is to track which allychains and allythreads
-//! are active and what their current state is. The current state of a para consists of the current
+//! are active and what their current state is. The current state of a ally consists of the current
 //! head data and the current validation code (AKA Allychain Validation Function (PVF)).
 //!
-//! A para is not considered live until it is registered and activated in this pallet.
+//! A ally is not considered live until it is registered and activated in this pallet.
 //!
 //! The set of allychains and allythreads cannot change except at session boundaries. This is
 //! primarily to ensure that the number and meaning of bits required for the availability bitfields
@@ -30,10 +30,10 @@
 //!
 //! # Validation Code Upgrades
 //!
-//! When a para signals the validation code upgrade it will be processed by this module. This can
+//! When a ally signals the validation code upgrade it will be processed by this module. This can
 //! be in turn split into more fine grained items:
 //!
-//! - Part of the acceptance criteria checks if the para can indeed signal an upgrade,
+//! - Part of the acceptance criteria checks if the ally can indeed signal an upgrade,
 //!
 //! - When the candidate is enacted, this module schedules code upgrade, storing the prospective
 //!   validation code.
@@ -41,7 +41,7 @@
 //! - Actually assign the prospective validation code to be the current one after all conditions are
 //!   fulfilled.
 //!
-//! The conditions that must be met before the para can use the new validation code are:
+//! The conditions that must be met before the ally can use the new validation code are:
 //!
 //! 1. The validation code should have been "soaked" in the storage for a given number of blocks. That
 //!    is, the validation code should have been stored in on-chain storage for some time, so that in
@@ -55,19 +55,19 @@
 //!
 //! Potentially, one validation code can be used by several different paras. For example, during
 //! initial stages of deployment several paras can use the same "shell" validation code, or
-//! there can be shards of the same para that use the same validation code.
+//! there can be shards of the same ally that use the same validation code.
 //!
 //! In case a validation code ceases to have any users it must be pruned from the on-chain storage.
 //!
-//! # Para Lifecycle Management
+//! # Ally Lifecycle Management
 //!
-//! A para can be in one of the two stable states: it is either a allychain or a allythread.
+//! A ally can be in one of the two stable states: it is either a allychain or a allythread.
 //!
 //! However, in order to get into one of those two states, it must first be onboarded. Onboarding
 //! can be only enacted at session boundaries. Onboarding must take at least one full session.
 //! Moreover, a brand new validation code should go through the PVF pre-checking process.
 //!
-//! Once the para is in one of the two stable states, it can switch to the other stable state or to
+//! Once the ally is in one of the two stable states, it can switch to the other stable state or to
 //! initiate offboarding process. The result of offboarding is removal of all data related to that
 //! para.
 //!
@@ -113,7 +113,7 @@ use frame_system::pallet_prelude::*;
 use parity_scale_codec::{Decode, Encode};
 use primitives::{
 	v1::{
-		ConsensusLog, HeadData, Id as ParaId, SessionIndex, UpgradeGoAhead, UpgradeRestriction,
+		ConsensusLog, HeadData, Id as AllyId, SessionIndex, UpgradeGoAhead, UpgradeRestriction,
 		ValidationCode, ValidationCodeHash, ValidatorSignature,
 	},
 	v2::PvfCheckStatement,
@@ -164,7 +164,7 @@ pub struct ParaPastCodeMeta<N> {
 	/// was actually replaced, respectively. The first is used to do accurate lookups
 	/// of historic code in historic contexts, whereas the second is used to do
 	/// pruning on an accurate timeframe. These can be used as indices
-	/// into the `PastCodeHash` map along with the `ParaId` to fetch the code itself.
+	/// into the `PastCodeHash` map along with the `AllyId` to fetch the code itself.
 	upgrade_times: Vec<ReplacementTimes<N>>,
 	/// Tracks the highest pruned code-replacement, if any. This is the `activated_at` value,
 	/// not the `expected_at` value.
@@ -173,20 +173,20 @@ pub struct ParaPastCodeMeta<N> {
 
 /// The possible states of a para, to take into account delayed lifecycle changes.
 ///
-/// If the para is in a "transition state", it is expected that the allychain is
+/// If the ally is in a "transition state", it is expected that the allychain is
 /// queued in the `ActionsQueue` to transition it into a stable state. Its lifecycle
 /// state will be used to determine the state transition to apply to the para.
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum ParaLifecycle {
-	/// Para is new and is onboarding as a Allythread or Allychain.
+	/// Ally is new and is onboarding as a Allythread or Allychain.
 	Onboarding,
-	/// Para is a Allythread.
+	/// Ally is a Allythread.
 	Allythread,
-	/// Para is a Allychain.
+	/// Ally is a Allychain.
 	Allychain,
-	/// Para is a Allythread which is upgrading to a Allychain.
+	/// Ally is a Allythread which is upgrading to a Allychain.
 	UpgradingAllythread,
-	/// Para is a Allychain which is downgrading to a Allythread.
+	/// Ally is a Allychain which is downgrading to a Allythread.
 	DowngradingAllychain,
 	/// Allythread is queued to be offboarded.
 	OffboardingAllythread,
@@ -202,13 +202,13 @@ impl ParaLifecycle {
 		matches!(self, ParaLifecycle::Onboarding)
 	}
 
-	/// Returns true if para is in a stable state, i.e. it is currently
+	/// Returns true if ally is in a stable state, i.e. it is currently
 	/// a allychain or allythread, and not in any transition state.
 	pub fn is_stable(&self) -> bool {
 		matches!(self, ParaLifecycle::Allythread | ParaLifecycle::Allychain)
 	}
 
-	/// Returns true if para is currently treated as a allychain.
+	/// Returns true if ally is currently treated as a allychain.
 	/// This also includes transitioning states, so you may want to combine
 	/// this check with `is_stable` if you specifically want `Paralifecycle::Allychain`.
 	pub fn is_allychain(&self) -> bool {
@@ -220,7 +220,7 @@ impl ParaLifecycle {
 		)
 	}
 
-	/// Returns true if para is currently treated as a allythread.
+	/// Returns true if ally is currently treated as a allythread.
 	/// This also includes transitioning states, so you may want to combine
 	/// this check with `is_stable` if you specifically want `Paralifecycle::Allythread`.
 	pub fn is_allythread(&self) -> bool {
@@ -232,12 +232,12 @@ impl ParaLifecycle {
 		)
 	}
 
-	/// Returns true if para is currently offboarding.
+	/// Returns true if ally is currently offboarding.
 	pub fn is_offboarding(&self) -> bool {
 		matches!(self, ParaLifecycle::OffboardingAllythread | ParaLifecycle::OffboardingAllychain)
 	}
 
-	/// Returns true if para is in any transitionary state.
+	/// Returns true if ally is in any transitionary state.
 	pub fn is_transitioning(&self) -> bool {
 		!Self::is_stable(self)
 	}
@@ -303,11 +303,11 @@ pub struct ParaGenesisArgs {
 #[derive(Encode, Decode, TypeInfo)]
 enum PvfCheckCause<BlockNumber> {
 	/// PVF vote was initiated by the initial onboarding process of the given para.
-	Onboarding(ParaId),
+	Onboarding(AllyId),
 	/// PVF vote was initiated by signalling of an upgrade by the given para.
 	Upgrade {
 		/// The ID of the allychain that initiated or is waiting for the conclusion of pre-checking.
-		id: ParaId,
+		id: AllyId,
 		/// The relay-chain block number that was used as the relay-parent for the parablock that
 		/// initiated the upgrade.
 		relay_parent_number: BlockNumber,
@@ -315,8 +315,8 @@ enum PvfCheckCause<BlockNumber> {
 }
 
 impl<BlockNumber> PvfCheckCause<BlockNumber> {
-	/// Returns the ID of the para that initiated or subscribed to the pre-checking vote.
-	fn para_id(&self) -> ParaId {
+	/// Returns the ID of the ally that initiated or subscribed to the pre-checking vote.
+	fn ally_id(&self) -> AllyId {
 		match *self {
 			PvfCheckCause::Onboarding(id) => id,
 			PvfCheckCause::Upgrade { id, .. } => id,
@@ -468,38 +468,38 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event {
-		/// Current code has been updated for a Para. `para_id`
-		CurrentCodeUpdated(ParaId),
-		/// Current head has been updated for a Para. `para_id`
-		CurrentHeadUpdated(ParaId),
-		/// A code upgrade has been scheduled for a Para. `para_id`
-		CodeUpgradeScheduled(ParaId),
-		/// A new head has been noted for a Para. `para_id`
-		NewHeadNoted(ParaId),
-		/// A para has been queued to execute pending actions. `para_id`
-		ActionQueued(ParaId, SessionIndex),
-		/// The given para either initiated or subscribed to a PVF check for the given validation
-		/// code. `code_hash` `para_id`
-		PvfCheckStarted(ValidationCodeHash, ParaId),
+		/// Current code has been updated for a Para. `ally_id`
+		CurrentCodeUpdated(AllyId),
+		/// Current head has been updated for a Para. `ally_id`
+		CurrentHeadUpdated(AllyId),
+		/// A code upgrade has been scheduled for a Para. `ally_id`
+		CodeUpgradeScheduled(AllyId),
+		/// A new head has been noted for a Para. `ally_id`
+		NewHeadNoted(AllyId),
+		/// A ally has been queued to execute pending actions. `ally_id`
+		ActionQueued(AllyId, SessionIndex),
+		/// The given ally either initiated or subscribed to a PVF check for the given validation
+		/// code. `code_hash` `ally_id`
+		PvfCheckStarted(ValidationCodeHash, AllyId),
 		/// The given validation code was rejected by the PVF pre-checking vote.
-		/// `code_hash` `para_id`
-		PvfCheckAccepted(ValidationCodeHash, ParaId),
+		/// `code_hash` `ally_id`
+		PvfCheckAccepted(ValidationCodeHash, AllyId),
 		/// The given validation code was accepted by the PVF pre-checking vote.
-		/// `code_hash` `para_id`
-		PvfCheckRejected(ValidationCodeHash, ParaId),
+		/// `code_hash` `ally_id`
+		PvfCheckRejected(ValidationCodeHash, AllyId),
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
-		/// Para is not registered in our system.
+		/// Ally is not registered in our system.
 		NotRegistered,
-		/// Para cannot be onboarded because it is already tracked by our system.
+		/// Ally cannot be onboarded because it is already tracked by our system.
 		CannotOnboard,
-		/// Para cannot be offboarded at this time.
+		/// Ally cannot be offboarded at this time.
 		CannotOffboard,
-		/// Para cannot be upgraded to a allychain.
+		/// Ally cannot be upgraded to a allychain.
 		CannotUpgrade,
-		/// Para cannot be downgraded to a allythread.
+		/// Ally cannot be downgraded to a allythread.
 		CannotDowngrade,
 		/// The statement for PVF pre-checking is stale.
 		PvfCheckStatementStale,
@@ -536,19 +536,19 @@ pub mod pallet {
 	pub(super) type PvfActiveVoteList<T: Config> =
 		StorageValue<_, Vec<ValidationCodeHash>, ValueQuery>;
 
-	/// All allychains. Ordered ascending by `ParaId`. Allythreads are not included.
+	/// All allychains. Ordered ascending by `AllyId`. Allythreads are not included.
 	#[pallet::storage]
 	#[pallet::getter(fn allychains)]
-	pub(crate) type Allychains<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
+	pub(crate) type Allychains<T: Config> = StorageValue<_, Vec<AllyId>, ValueQuery>;
 
-	/// The current lifecycle of a all known Para IDs.
+	/// The current lifecycle of a all known Ally IDs.
 	#[pallet::storage]
-	pub(super) type ParaLifecycles<T: Config> = StorageMap<_, Twox64Concat, ParaId, ParaLifecycle>;
+	pub(super) type ParaLifecycles<T: Config> = StorageMap<_, Twox64Concat, AllyId, ParaLifecycle>;
 
 	/// The head-data of every registered para.
 	#[pallet::storage]
 	#[pallet::getter(fn para_head)]
-	pub(super) type Heads<T: Config> = StorageMap<_, Twox64Concat, ParaId, HeadData>;
+	pub(super) type Heads<T: Config> = StorageMap<_, Twox64Concat, AllyId, HeadData>;
 
 	/// The validation code hash of every live para.
 	///
@@ -556,15 +556,15 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn current_code_hash)]
 	pub(super) type CurrentCodeHash<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, ValidationCodeHash>;
+		StorageMap<_, Twox64Concat, AllyId, ValidationCodeHash>;
 
-	/// Actual past code hash, indicated by the para id as well as the block number at which it
+	/// Actual past code hash, indicated by the ally id as well as the block number at which it
 	/// became outdated.
 	///
 	/// Corresponding code can be retrieved with [`CodeByHash`].
 	#[pallet::storage]
 	pub(super) type PastCodeHash<T: Config> =
-		StorageMap<_, Twox64Concat, (ParaId, T::BlockNumber), ValidationCodeHash>;
+		StorageMap<_, Twox64Concat, (AllyId, T::BlockNumber), ValidationCodeHash>;
 
 	/// Past code of allychains. The allychains themselves may not be registered anymore,
 	/// but we also keep their code on-chain for the same amount of time as outdated code
@@ -572,17 +572,17 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn past_code_meta)]
 	pub(super) type PastCodeMeta<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, ParaPastCodeMeta<T::BlockNumber>, ValueQuery>;
+		StorageMap<_, Twox64Concat, AllyId, ParaPastCodeMeta<T::BlockNumber>, ValueQuery>;
 
 	/// Which paras have past code that needs pruning and the relay-chain block at which the code was replaced.
 	/// Note that this is the actual height of the included block, not the expected height at which the
 	/// code upgrade would be applied, although they may be equal.
 	/// This is to ensure the entire acceptance period is covered, not an offset acceptance period starting
 	/// from the time at which the allychain perceives a code upgrade as having occurred.
-	/// Multiple entries for a single para are permitted. Ordered ascending by block number.
+	/// Multiple entries for a single ally are permitted. Ordered ascending by block number.
 	#[pallet::storage]
 	pub(super) type PastCodePruning<T: Config> =
-		StorageValue<_, Vec<(ParaId, T::BlockNumber)>, ValueQuery>;
+		StorageValue<_, Vec<(AllyId, T::BlockNumber)>, ValueQuery>;
 
 	/// The block number at which the planned code change is expected for a para.
 	/// The change will be applied after the first parablock for this ID included which executes
@@ -590,14 +590,14 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn future_code_upgrade_at)]
 	pub(super) type FutureCodeUpgrades<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, T::BlockNumber>;
+		StorageMap<_, Twox64Concat, AllyId, T::BlockNumber>;
 
 	/// The actual future code hash of a para.
 	///
 	/// Corresponding code can be retrieved with [`CodeByHash`].
 	#[pallet::storage]
 	pub(super) type FutureCodeHash<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, ValidationCodeHash>;
+		StorageMap<_, Twox64Concat, AllyId, ValidationCodeHash>;
 
 	/// This is used by the relay-chain to communicate to a allychain a go-ahead with in the upgrade procedure.
 	///
@@ -610,7 +610,7 @@ pub mod pallet {
 	/// the format will require migration of allychains.
 	#[pallet::storage]
 	pub(super) type UpgradeGoAheadSignal<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, UpgradeGoAhead>;
+		StorageMap<_, Twox64Concat, AllyId, UpgradeGoAhead>;
 
 	/// This is used by the relay-chain to communicate that there are restrictions for performing
 	/// an upgrade for this allychain.
@@ -623,36 +623,36 @@ pub mod pallet {
 	/// the format will require migration of allychains.
 	#[pallet::storage]
 	pub(super) type UpgradeRestrictionSignal<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, UpgradeRestriction>;
+		StorageMap<_, Twox64Concat, AllyId, UpgradeRestriction>;
 
 	/// The list of allychains that are awaiting for their upgrade restriction to cooldown.
 	///
 	/// Ordered ascending by block number.
 	#[pallet::storage]
 	pub(super) type UpgradeCooldowns<T: Config> =
-		StorageValue<_, Vec<(ParaId, T::BlockNumber)>, ValueQuery>;
+		StorageValue<_, Vec<(AllyId, T::BlockNumber)>, ValueQuery>;
 
-	/// The list of upcoming code upgrades. Each item is a pair of which para performs a code
+	/// The list of upcoming code upgrades. Each item is a pair of which ally performs a code
 	/// upgrade and at which relay-chain block it is expected at.
 	///
 	/// Ordered ascending by block number.
 	#[pallet::storage]
 	pub(super) type UpcomingUpgrades<T: Config> =
-		StorageValue<_, Vec<(ParaId, T::BlockNumber)>, ValueQuery>;
+		StorageValue<_, Vec<(AllyId, T::BlockNumber)>, ValueQuery>;
 
 	/// The actions to perform during the start of a specific session index.
 	#[pallet::storage]
 	#[pallet::getter(fn actions_queue)]
 	pub(super) type ActionsQueue<T: Config> =
-		StorageMap<_, Twox64Concat, SessionIndex, Vec<ParaId>, ValueQuery>;
+		StorageMap<_, Twox64Concat, SessionIndex, Vec<AllyId>, ValueQuery>;
 
 	/// Upcoming paras instantiation arguments.
 	///
-	/// NOTE that after PVF pre-checking is enabled the para genesis arg will have it's code set
+	/// NOTE that after PVF pre-checking is enabled the ally genesis arg will have it's code set
 	/// to empty. Instead, the code will be saved into the storage right away via `CodeByHash`.
 	#[pallet::storage]
 	pub(super) type UpcomingParasGenesis<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, ParaGenesisArgs>;
+		StorageMap<_, Twox64Concat, AllyId, ParaGenesisArgs>;
 
 	/// The number of reference on the validation code in [`CodeByHash`] storage.
 	#[pallet::storage]
@@ -670,7 +670,7 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig {
-		pub paras: Vec<(ParaId, ParaGenesisArgs)>,
+		pub paras: Vec<(AllyId, ParaGenesisArgs)>,
 	}
 
 	#[cfg(feature = "std")]
@@ -716,7 +716,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_current_code(new_code.0.len() as u32))]
 		pub fn force_set_current_code(
 			origin: OriginFor<T>,
-			para: ParaId,
+			para: AllyId,
 			new_code: ValidationCode,
 		) -> DispatchResult {
 			ensure_root(origin)?;
@@ -743,7 +743,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::force_set_current_head(new_head.0.len() as u32))]
 		pub fn force_set_current_head(
 			origin: OriginFor<T>,
-			para: ParaId,
+			para: AllyId,
 			new_head: HeadData,
 		) -> DispatchResult {
 			ensure_root(origin)?;
@@ -756,7 +756,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::force_schedule_code_upgrade(new_code.0.len() as u32))]
 		pub fn force_schedule_code_upgrade(
 			origin: OriginFor<T>,
-			para: ParaId,
+			para: AllyId,
 			new_code: ValidationCode,
 			relay_parent_number: T::BlockNumber,
 		) -> DispatchResult {
@@ -767,11 +767,11 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Note a new block head for para within the context of the current block.
+		/// Note a new block head for ally within the context of the current block.
 		#[pallet::weight(<T as Config>::WeightInfo::force_note_new_head(new_head.0.len() as u32))]
 		pub fn force_note_new_head(
 			origin: OriginFor<T>,
-			para: ParaId,
+			para: AllyId,
 			new_head: HeadData,
 		) -> DispatchResult {
 			ensure_root(origin)?;
@@ -785,7 +785,7 @@ pub mod pallet {
 		/// We can't queue it any sooner than this without going into the
 		/// initializer...
 		#[pallet::weight(<T as Config>::WeightInfo::force_queue_action())]
-		pub fn force_queue_action(origin: OriginFor<T>, para: ParaId) -> DispatchResult {
+		pub fn force_queue_action(origin: OriginFor<T>, para: AllyId) -> DispatchResult {
 			ensure_root(origin)?;
 			let next_session = shared::Pallet::<T>::session_index().saturating_add(One::one());
 			ActionsQueue::<T>::mutate(next_session, |v| {
@@ -1051,15 +1051,15 @@ impl<T: Config> Pallet<T> {
 	/// Returns the list of outgoing paras from the actions queue.
 	pub(crate) fn initializer_on_new_session(
 		notification: &SessionChangeNotification<T::BlockNumber>,
-	) -> Vec<ParaId> {
+	) -> Vec<AllyId> {
 		let outgoing_paras = Self::apply_actions_queue(notification.session_index);
 		Self::groom_ongoing_pvf_votes(&notification.new_config, notification.validators.len());
 		outgoing_paras
 	}
 
 	/// The validation code of live para.
-	pub(crate) fn current_code(para_id: &ParaId) -> Option<ValidationCode> {
-		Self::current_code_hash(para_id).and_then(|code_hash| {
+	pub(crate) fn current_code(ally_id: &AllyId) -> Option<ValidationCode> {
+		Self::current_code_hash(ally_id).and_then(|code_hash| {
 			let code = CodeByHash::<T>::get(&code_hash);
 			if code.is_none() {
 				log::error!(
@@ -1072,21 +1072,21 @@ impl<T: Config> Pallet<T> {
 		})
 	}
 
-	// Apply all para actions queued for the given session index.
+	// Apply all ally actions queued for the given session index.
 	//
 	// The actions to take are based on the lifecycle of of the paras.
 	//
-	// The final state of any para after the actions queue should be as a
+	// The final state of any ally after the actions queue should be as a
 	// allychain, allythread, or not registered. (stable states)
 	//
 	// Returns the list of outgoing paras from the actions queue.
-	fn apply_actions_queue(session: SessionIndex) -> Vec<ParaId> {
+	fn apply_actions_queue(session: SessionIndex) -> Vec<AllyId> {
 		let actions = ActionsQueue::<T>::take(session);
 		let mut allychains = <Self as Store>::Allychains::get();
 		let now = <frame_system::Pallet<T>>::block_number();
 		let mut outgoing = Vec::new();
 
-		for para in actions {
+		for ally in actions {
 			let lifecycle = ParaLifecycles::<T>::get(&para);
 			match lifecycle {
 				None | Some(ParaLifecycle::Allythread) | Some(ParaLifecycle::Allychain) => { /* Nothing to do... */
@@ -1184,14 +1184,14 @@ impl<T: Config> Pallet<T> {
 		return outgoing
 	}
 
-	// note replacement of the code of para with given `id`, which occured in the
+	// note replacement of the code of ally with given `id`, which occured in the
 	// context of the given relay-chain block number. provide the replaced code.
 	//
 	// `at` for para-triggered replacement is the block number of the relay-chain
 	// block in whose context the parablock was executed
 	// (i.e. number of `relay_parent` in the receipt)
 	fn note_past_code(
-		id: ParaId,
+		id: AllyId,
 		at: T::BlockNumber,
 		now: T::BlockNumber,
 		old_code_hash: ValidationCodeHash,
@@ -1235,11 +1235,11 @@ impl<T: Config> Pallet<T> {
 					(up_to_idx, pruning_tasks.drain(..up_to_idx))
 				};
 
-				for (para_id, _) in pruning_tasks_to_do {
-					let full_deactivate = <Self as Store>::PastCodeMeta::mutate(&para_id, |meta| {
+				for (ally_id, _) in pruning_tasks_to_do {
+					let full_deactivate = <Self as Store>::PastCodeMeta::mutate(&ally_id, |meta| {
 						for pruned_repl_at in meta.prune_up_to(pruning_height) {
 							let removed_code_hash =
-								<Self as Store>::PastCodeHash::take(&(para_id, pruned_repl_at));
+								<Self as Store>::PastCodeHash::take(&(ally_id, pruned_repl_at));
 
 							if let Some(removed_code_hash) = removed_code_hash {
 								Self::decrease_code_ref(&removed_code_hash);
@@ -1252,13 +1252,13 @@ impl<T: Config> Pallet<T> {
 							}
 						}
 
-						meta.is_empty() && Self::para_head(&para_id).is_none()
+						meta.is_empty() && Self::para_head(&ally_id).is_none()
 					});
 
 					// This allychain has been removed and now the vestigial code
 					// has been removed from the state. clean up meta as well.
 					if full_deactivate {
-						<Self as Store>::PastCodeMeta::remove(&para_id);
+						<Self as Store>::PastCodeMeta::remove(&ally_id);
 					}
 				}
 
@@ -1280,7 +1280,7 @@ impl<T: Config> Pallet<T> {
 		// account weight for `UpcomingUpgrades::mutate`.
 		let mut weight = T::DbWeight::get().reads_writes(1, 1);
 		let upgrades_signaled = <Self as Store>::UpcomingUpgrades::mutate(
-			|upcoming_upgrades: &mut Vec<(ParaId, T::BlockNumber)>| {
+			|upcoming_upgrades: &mut Vec<(AllyId, T::BlockNumber)>| {
 				let num = upcoming_upgrades.iter().take_while(|&(_, at)| at <= &now).count();
 				for (para, _) in upcoming_upgrades.drain(..num) {
 					<Self as Store>::UpgradeGoAheadSignal::insert(&para, UpgradeGoAhead::GoAhead);
@@ -1311,7 +1311,7 @@ impl<T: Config> Pallet<T> {
 	/// See `process_scheduled_upgrade_changes` for more details.
 	fn process_scheduled_upgrade_cooldowns(now: T::BlockNumber) {
 		<Self as Store>::UpgradeCooldowns::mutate(
-			|upgrade_cooldowns: &mut Vec<(ParaId, T::BlockNumber)>| {
+			|upgrade_cooldowns: &mut Vec<(AllyId, T::BlockNumber)>| {
 				for &(para, _) in upgrade_cooldowns.iter().take_while(|&(_, at)| at <= &now) {
 					<Self as Store>::UpgradeRestrictionSignal::remove(&para);
 				}
@@ -1381,7 +1381,7 @@ impl<T: Config> Pallet<T> {
 		let mut weight = 0;
 		for cause in causes {
 			weight += T::DbWeight::get().reads_writes(3, 2);
-			Self::deposit_event(Event::PvfCheckAccepted(*code_hash, cause.para_id()));
+			Self::deposit_event(Event::PvfCheckAccepted(*code_hash, cause.ally_id()));
 
 			match cause {
 				PvfCheckCause::Onboarding(id) => {
@@ -1396,7 +1396,7 @@ impl<T: Config> Pallet<T> {
 		weight
 	}
 
-	fn proceed_with_onboarding(id: ParaId, sessions_observed: SessionIndex) -> Weight {
+	fn proceed_with_onboarding(id: AllyId, sessions_observed: SessionIndex) -> Weight {
 		let weight = T::DbWeight::get().reads_writes(2, 1);
 
 		// we should onboard only after `SESSION_DELAY` sessions but we should take
@@ -1417,7 +1417,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn proceed_with_upgrade(
-		id: ParaId,
+		id: AllyId,
 		code_hash: &ValidationCodeHash,
 		now: T::BlockNumber,
 		relay_parent_number: T::BlockNumber,
@@ -1471,7 +1471,7 @@ impl<T: Config> Pallet<T> {
 			weight += Self::decrease_code_ref(code_hash);
 
 			weight += T::DbWeight::get().reads_writes(3, 2);
-			Self::deposit_event(Event::PvfCheckRejected(*code_hash, cause.para_id()));
+			Self::deposit_event(Event::PvfCheckRejected(*code_hash, cause.ally_id()));
 
 			match cause {
 				PvfCheckCause::Onboarding(id) => {
@@ -1497,23 +1497,23 @@ impl<T: Config> Pallet<T> {
 
 	/// Verify that `schedule_para_initialize` can be called successfully.
 	///
-	/// Returns false if para is already registered in the system.
-	pub fn can_schedule_para_initialize(id: &ParaId) -> bool {
+	/// Returns false if ally is already registered in the system.
+	pub fn can_schedule_para_initialize(id: &AllyId) -> bool {
 		ParaLifecycles::<T>::get(id).is_none()
 	}
 
-	/// Schedule a para to be initialized. If the validation code is not already stored in the
+	/// Schedule a ally to be initialized. If the validation code is not already stored in the
 	/// code storage, then a PVF pre-checking process will be initiated.
 	///
-	/// Only after the PVF pre-checking succeeds can the para be onboarded. Note, that calling this
+	/// Only after the PVF pre-checking succeeds can the ally be onboarded. Note, that calling this
 	/// does not guarantee that the allychain will eventually be onboarded. This can happen in case
 	/// the PVF does not pass PVF pre-checking.
 	///
-	/// The Para ID should be not activated in this pallet. The validation code supplied in
-	/// `genesis_data` should not be empty. If those conditions are not met, then the para cannot
+	/// The Ally ID should be not activated in this pallet. The validation code supplied in
+	/// `genesis_data` should not be empty. If those conditions are not met, then the ally cannot
 	/// be onboarded.
 	pub(crate) fn schedule_para_initialize(
-		id: ParaId,
+		id: AllyId,
 		mut genesis_data: ParaGenesisArgs,
 	) -> DispatchResult {
 		// Make sure allychain isn't already in our system and that the onboarding parameters are
@@ -1572,29 +1572,29 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	/// Schedule a para to be cleaned up at the start of the next session.
+	/// Schedule a ally to be cleaned up at the start of the next session.
 	///
 	/// Will return error if either is true:
 	///
-	/// - para is not a stable allychain or allythread (i.e. [`ParaLifecycle::is_stable`] is `false`)
-	/// - para has a pending upgrade.
+	/// - ally is not a stable allychain or allythread (i.e. [`ParaLifecycle::is_stable`] is `false`)
+	/// - ally has a pending upgrade.
 	///
-	/// No-op if para is not registered at all.
-	pub(crate) fn schedule_para_cleanup(id: ParaId) -> DispatchResult {
+	/// No-op if ally is not registered at all.
+	pub(crate) fn schedule_para_cleanup(id: AllyId) -> DispatchResult {
 		// Disallow offboarding in case there is an upcoming upgrade.
 		//
 		// This is not a fundamential limitation but rather simplification: it allows us to get
 		// away without introducing additional logic for pruning and, more importantly, enacting
 		// ongoing PVF pre-checking votes. It also removes some nasty edge cases.
 		//
-		// This implicitly assumes that the given para exists, i.e. it's lifecycle != None.
+		// This implicitly assumes that the given ally exists, i.e. it's lifecycle != None.
 		if FutureCodeHash::<T>::contains_key(&id) {
 			return Err(Error::<T>::CannotOffboard.into())
 		}
 
 		let lifecycle = ParaLifecycles::<T>::get(&id);
 		match lifecycle {
-			// If para is not registered, nothing to do!
+			// If ally is not registered, nothing to do!
 			None => return Ok(()),
 			Some(ParaLifecycle::Allythread) => {
 				ParaLifecycles::<T>::insert(&id, ParaLifecycle::OffboardingAllythread);
@@ -1618,7 +1618,7 @@ impl<T: Config> Pallet<T> {
 	/// Schedule a allythread to be upgraded to a allychain.
 	///
 	/// Will return error if `ParaLifecycle` is not `Allythread`.
-	pub(crate) fn schedule_allythread_upgrade(id: ParaId) -> DispatchResult {
+	pub(crate) fn schedule_allythread_upgrade(id: AllyId) -> DispatchResult {
 		let scheduled_session = Self::scheduled_session();
 		let lifecycle = ParaLifecycles::<T>::get(&id).ok_or(Error::<T>::NotRegistered)?;
 
@@ -1637,7 +1637,7 @@ impl<T: Config> Pallet<T> {
 	/// Schedule a allychain to be downgraded to a allythread.
 	///
 	/// Noop if `ParaLifecycle` is not `Allychain`.
-	pub(crate) fn schedule_allychain_downgrade(id: ParaId) -> DispatchResult {
+	pub(crate) fn schedule_allychain_downgrade(id: AllyId) -> DispatchResult {
 		let scheduled_session = Self::scheduled_session();
 		let lifecycle = ParaLifecycles::<T>::get(&id).ok_or(Error::<T>::NotRegistered)?;
 
@@ -1669,7 +1669,7 @@ impl<T: Config> Pallet<T> {
 	/// The new code should not be equal to the current one, otherwise the upgrade will be aborted.
 	/// If there is already a scheduled code upgrade for the para, this is a no-op.
 	pub(crate) fn schedule_code_upgrade(
-		id: ParaId,
+		id: AllyId,
 		new_code: ValidationCode,
 		relay_parent_number: T::BlockNumber,
 		cfg: &configuration::HostConfiguration<T::BlockNumber>,
@@ -1692,7 +1692,7 @@ impl<T: Config> Pallet<T> {
 
 		let code_hash = new_code.hash();
 
-		// para signals an update to the same code? This does not make a lot of sense, so abort the
+		// ally signals an update to the same code? This does not make a lot of sense, so abort the
 		// process right away.
 		//
 		// We do not want to allow this since it will mess with the code reference counting.
@@ -1755,7 +1755,7 @@ impl<T: Config> Pallet<T> {
 		let mut weight = 0;
 
 		weight += T::DbWeight::get().reads_writes(3, 2);
-		Self::deposit_event(Event::PvfCheckStarted(code_hash, cause.para_id()));
+		Self::deposit_event(Event::PvfCheckStarted(code_hash, cause.ally_id()));
 
 		weight += T::DbWeight::get().reads(1);
 		match PvfActiveVoteMap::<T>::get(&code_hash) {
@@ -1816,11 +1816,11 @@ impl<T: Config> Pallet<T> {
 		weight
 	}
 
-	/// Note that a para has progressed to a new head, where the new head was executed in the context
+	/// Note that a ally has progressed to a new head, where the new head was executed in the context
 	/// of a relay-chain block with given number. This will apply pending code upgrades based
 	/// on the relay-parent block number provided.
 	pub(crate) fn note_new_head(
-		id: ParaId,
+		id: AllyId,
 		new_head: HeadData,
 		execution_context: T::BlockNumber,
 	) -> Weight {
@@ -1850,7 +1850,7 @@ impl<T: Config> Pallet<T> {
 				let weight = if let Some(prior_code_hash) = maybe_prior_code_hash {
 					Self::note_past_code(id, expected_at, now, prior_code_hash)
 				} else {
-					log::error!(target: LOG_TARGET, "Missing prior code hash for para {:?}", &id);
+					log::error!(target: LOG_TARGET, "Missing prior code hash for ally {:?}", &id);
 					0 as Weight
 				};
 
@@ -1895,14 +1895,14 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Returns the current lifecycle state of the para.
-	pub fn lifecycle(id: ParaId) -> Option<ParaLifecycle> {
+	pub fn lifecycle(id: AllyId) -> Option<ParaLifecycle> {
 		ParaLifecycles::<T>::get(&id)
 	}
 
 	/// Returns whether the given ID refers to a valid para.
 	///
 	/// Paras that are onboarding or offboarding are not included.
-	pub fn is_valid_para(id: ParaId) -> bool {
+	pub fn is_valid_para(id: AllyId) -> bool {
 		if let Some(state) = ParaLifecycles::<T>::get(&id) {
 			!state.is_onboarding() && !state.is_offboarding()
 		} else {
@@ -1910,10 +1910,10 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Whether a para ID corresponds to any live allychain.
+	/// Whether a ally ID corresponds to any live allychain.
 	///
 	/// Includes allychains which will downgrade to a allythread in the future.
-	pub fn is_allychain(id: ParaId) -> bool {
+	pub fn is_allychain(id: AllyId) -> bool {
 		if let Some(state) = ParaLifecycles::<T>::get(&id) {
 			state.is_allychain()
 		} else {
@@ -1921,10 +1921,10 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Whether a para ID corresponds to any live allythread.
+	/// Whether a ally ID corresponds to any live allythread.
 	///
 	/// Includes allythreads which will upgrade to allychains in the future.
-	pub fn is_allythread(id: ParaId) -> bool {
+	pub fn is_allythread(id: AllyId) -> bool {
 		if let Some(state) = ParaLifecycles::<T>::get(&id) {
 			state.is_allythread()
 		} else {
@@ -1934,7 +1934,7 @@ impl<T: Config> Pallet<T> {
 
 	/// If a candidate from the specified allychain were submitted at the current block, this
 	/// function returns if that candidate passes the acceptance criteria.
-	pub(crate) fn can_upgrade_validation_code(id: ParaId) -> bool {
+	pub(crate) fn can_upgrade_validation_code(id: AllyId) -> bool {
 		FutureCodeHash::<T>::get(&id).is_none() && UpgradeRestrictionSignal::<T>::get(&id).is_none()
 	}
 
@@ -1990,13 +1990,13 @@ impl<T: Config> Pallet<T> {
 	}
 
 	#[cfg(any(feature = "runtime-benchmarks", test))]
-	pub fn heads_insert(para_id: &ParaId, head_data: HeadData) {
-		Heads::<T>::insert(para_id, head_data);
+	pub fn heads_insert(ally_id: &AllyId, head_data: HeadData) {
+		Heads::<T>::insert(ally_id, head_data);
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	pub(crate) fn initialize_para_now(id: ParaId, genesis: ParaGenesisArgs) -> DispatchResult {
-		// first queue this para actions..
+	pub(crate) fn initialize_para_now(id: AllyId, genesis: ParaGenesisArgs) -> DispatchResult {
+		// first queue this ally actions..
 		let _ = Self::schedule_para_initialize(id, genesis)?;
 
 		// .. and immediately apply them.

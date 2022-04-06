@@ -25,7 +25,7 @@ use primitives::v1::{
 	collator_signature_payload, AvailabilityBitfield, BackedCandidate, CandidateCommitments,
 	CandidateDescriptor, CandidateHash, CollatorId, CollatorSignature, CommittedCandidateReceipt,
 	CompactStatement, CoreIndex, CoreOccupied, DisputeStatement, DisputeStatementSet, GroupIndex,
-	HeadData, Id as ParaId, InherentData as AllychainsInherentData, InvalidDisputeStatementKind,
+	HeadData, Id as AllyId, InherentData as AllychainsInherentData, InvalidDisputeStatementKind,
 	PersistedValidationData, SessionIndex, SigningContext, UncheckedSigned,
 	ValidDisputeStatementKind, ValidationCode, ValidatorId, ValidatorIndex, ValidityAttestation,
 };
@@ -189,7 +189,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 		configuration::Pallet::<T>::config().max_validators_per_core.unwrap_or(5)
 	}
 
-	/// Specify a mapping of core index/ para id to the number of dispute statements for the
+	/// Specify a mapping of core index/ ally id to the number of dispute statements for the
 	/// corresponding dispute statement set. Note that if the number of disputes is not specified
 	/// it fallbacks to having a dispute per every validator. Additionally, an entry is not
 	/// guaranteed to have a dispute - it must line up with the cores marked as disputed as defined
@@ -223,14 +223,14 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 		(Self::fallback_max_validators() / 2) + 1
 	}
 
-	/// Create para id, core index, and grab the associated group index from the scheduler pallet.
-	fn create_indexes(&self, seed: u32) -> (ParaId, CoreIndex, GroupIndex) {
-		let para_id = ParaId::from(seed);
+	/// Create ally id, core index, and grab the associated group index from the scheduler pallet.
+	fn create_indexes(&self, seed: u32) -> (AllyId, CoreIndex, GroupIndex) {
+		let ally_id = AllyId::from(seed);
 		let core_idx = CoreIndex(seed);
 		let group_idx =
 			scheduler::Pallet::<T>::group_assigned_to_core(core_idx, self.block_number).unwrap();
 
-		(para_id, core_idx, group_idx)
+		(ally_id, core_idx, group_idx)
 	}
 
 	fn mock_head_data() -> HeadData {
@@ -240,7 +240,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 
 	fn candidate_descriptor_mock() -> CandidateDescriptor<T::Hash> {
 		CandidateDescriptor::<T::Hash> {
-			para_id: 0.into(),
+			ally_id: 0.into(),
 			relay_parent: Default::default(),
 			collator: CollatorId::from(sr25519::Public::from_raw([42u8; 32])),
 			persisted_validation_data_hash: Default::default(),
@@ -277,7 +277,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 	/// heavy code paths in `enact_candidate`. But enact_candidates does return a weight which will
 	/// get taken into account.
 	fn add_availability(
-		para_id: ParaId,
+		ally_id: AllyId,
 		core_idx: CoreIndex,
 		group_idx: GroupIndex,
 		availability_votes: BitVec<BitOrderLsb0, u8>,
@@ -297,8 +297,8 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 			processed_downward_messages: 0,
 			hrmp_watermark: 0u32.into(),
 		};
-		inclusion::PendingAvailability::<T>::insert(para_id, candidate_availability);
-		inclusion::PendingAvailabilityCommitments::<T>::insert(&para_id, commitments);
+		inclusion::PendingAvailability::<T>::insert(ally_id, candidate_availability);
+		inclusion::PendingAvailabilityCommitments::<T>::insert(&ally_id, commitments);
 	}
 
 	/// Create an `AvailabilityBitfield` where `concluding` is a map where each key is a core index
@@ -334,13 +334,13 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 	///
 	/// Note that this must be called at least 2 sessions before the target session as there is a
 	/// n+2 session delay for the scheduled actions to take effect.
-	fn setup_para_ids(cores: u32) {
+	fn setup_ally_ids(cores: u32) {
 		// make sure allychains exist prior to session change.
 		for i in 0..cores {
-			let para_id = ParaId::from(i as u32);
+			let ally_id = AllyId::from(i as u32);
 
 			paras::Pallet::<T>::schedule_para_initialize(
-				para_id,
+				ally_id,
 				paras::ParaGenesisArgs {
 					genesis_head: Self::mock_head_data(),
 					validation_code: mock_validation_code(),
@@ -454,9 +454,9 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 
 		for (seed, _) in concluding_cores.iter() {
 			// make sure the candidates that will be concluding are marked as pending availability.
-			let (para_id, core_idx, group_idx) = self.create_indexes(seed.clone());
+			let (ally_id, core_idx, group_idx) = self.create_indexes(seed.clone());
 			Self::add_availability(
-				para_id,
+				ally_id,
 				core_idx,
 				group_idx,
 				Self::validator_availability_votes_yes(validators.len()),
@@ -470,7 +470,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 	/// Create backed candidates for `cores_with_backed_candidates`. You need these cores to be
 	/// scheduled _within_ paras inherent, which requires marking the available bitfields as fully
 	/// available.
-	/// - `cores_with_backed_candidates` Mapping of `para_id`/`core_idx`/`group_idx` seed to number of
+	/// - `cores_with_backed_candidates` Mapping of `ally_id`/`core_idx`/`group_idx` seed to number of
 	/// validity votes.
 	fn create_backed_candidates(
 		&self,
@@ -485,7 +485,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 			.iter()
 			.map(|(seed, num_votes)| {
 				assert!(*num_votes <= validators.len() as u32);
-				let (para_id, _core_idx, group_idx) = self.create_indexes(seed.clone());
+				let (ally_id, _core_idx, group_idx) = self.create_indexes(seed.clone());
 
 				// This generates a pair and adds it to the keystore, returning just the public.
 				let collator_public = CollatorId::generate_pair(None);
@@ -504,7 +504,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 				let validation_code_hash = mock_validation_code().hash();
 				let payload = collator_signature_payload(
 					&relay_parent,
-					&para_id,
+					&ally_id,
 					&persisted_validation_data_hash,
 					&pov_hash,
 					&validation_code_hash,
@@ -513,7 +513,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 
 				// Set the head data so it can be used while validating the signatures on the
 				// candidate receipt.
-				paras::Pallet::<T>::heads_insert(&para_id, head_data.clone());
+				paras::Pallet::<T>::heads_insert(&ally_id, head_data.clone());
 
 				let mut past_code_meta = paras::ParaPastCodeMeta::<T::BlockNumber>::default();
 				past_code_meta.note_replacement(0u32.into(), 0u32.into());
@@ -522,7 +522,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 
 				let candidate = CommittedCandidateReceipt::<T::Hash> {
 					descriptor: CandidateDescriptor::<T::Hash> {
-						para_id,
+						ally_id,
 						relay_parent,
 						collator: collator_public,
 						persisted_validation_data_hash,
@@ -591,11 +591,11 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 					.cloned()
 					.unwrap_or(self.target_session);
 
-				let (para_id, core_idx, group_idx) = self.create_indexes(seed);
+				let (ally_id, core_idx, group_idx) = self.create_indexes(seed);
 				let candidate_hash = CandidateHash(H256::from(byte32_slice_from(seed)));
 
 				Self::add_availability(
-					para_id,
+					ally_id,
 					core_idx,
 					group_idx,
 					Self::validator_availability_votes_yes(validators.len()),
@@ -649,7 +649,7 @@ impl<T: paras_inherent::Config> BenchBuilder<T> {
 
 		// NOTE: there is an n+2 session delay for these actions to take effect.
 		// We are currently in Session 0, so these changes will take effect in Session 2.
-		Self::setup_para_ids(used_cores);
+		Self::setup_ally_ids(used_cores);
 
 		let validator_ids = Self::generate_validator_pairs(self.max_validators());
 		let target_session = SessionIndex::from(self.target_session);

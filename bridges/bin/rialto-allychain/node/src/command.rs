@@ -21,7 +21,7 @@ use crate::{
 };
 use codec::Encode;
 use cumulus_client_service::genesis::generate_genesis_block;
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use log::info;
 use axia_allychain::primitives::AccountIdConversion;
 use rialto_allychain_runtime::{Block, RuntimeApi};
@@ -36,11 +36,11 @@ use std::{io::Write, net::SocketAddr};
 
 fn load_spec(
 	id: &str,
-	para_id: ParaId,
+	ally_id: AllyId,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		"dev" => Box::new(chain_spec::development_config(para_id)),
-		"" | "local" => Box::new(chain_spec::local_testnet_config(para_id)),
+		"dev" => Box::new(chain_spec::development_config(ally_id)),
+		"" | "local" => Box::new(chain_spec::local_testnet_config(ally_id)),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -213,7 +213,7 @@ pub fn run() -> Result<()> {
 
 			let block: Block = generate_genesis_block(&load_spec(
 				&params.chain.clone().unwrap_or_default(),
-				params.allychain_id.expect("Missing ParaId").into(),
+				params.allychain_id.expect("Missing AllyId").into(),
 			)?)?;
 			let raw_header = block.header().encode();
 			let output_buf = if params.raw {
@@ -265,15 +265,15 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&cli.run.normalize())?;
 
 			runner.run_node_until_exit(|config| async move {
-				let para_id =
-					chain_spec::Extensions::try_get(&*config.chain_spec).map(|e| e.para_id);
+				let ally_id =
+					chain_spec::Extensions::try_get(&*config.chain_spec).map(|e| e.ally_id);
 
 				let axia_cli = RelayChainCli::new(
 					&config,
 					[RelayChainCli::executable_name()].iter().chain(cli.relaychain_args.iter()),
 				);
 
-				let id = ParaId::from(cli.allychain_id.or(para_id).expect("Missing ParaId"));
+				let id = AllyId::from(cli.allychain_id.or(ally_id).expect("Missing AllyId"));
 
 				let allychain_account =
 					AccountIdConversion::<axia_primitives::v0::AccountId>::into_account(&id);

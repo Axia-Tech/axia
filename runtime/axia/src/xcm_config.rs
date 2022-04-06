@@ -17,7 +17,7 @@
 //! XCM configuration for Axia.
 
 use super::{
-	allychains_origin, AccountId, Balances, Call, CouncilCollective, Event, Origin, ParaId,
+	allychains_origin, AccountId, Balances, Call, CouncilCollective, Event, Origin, AllyId,
 	Runtime, WeightToFee, XcmPallet,
 };
 use frame_support::{
@@ -53,7 +53,7 @@ parameter_types! {
 /// the sovereign account controlled by a location.
 pub type SovereignAccountOf = (
 	// We can convert a child allychain using the standard `AccountId` conversion.
-	ChildAllychainConvertsVia<ParaId, AccountId>,
+	ChildAllychainConvertsVia<AllyId, AccountId>,
 	// We can directly alias an `AccountId32` into a local account.
 	AccountId32Aliases<AxiaNetwork, AccountId>,
 );

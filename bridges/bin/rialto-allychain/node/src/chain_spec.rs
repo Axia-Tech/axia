@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Axia Bridges Common.  If not, see <http://www.gnu.org/licenses/>.
 
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use rialto_allychain_runtime::{AccountId, AuraId, Signature};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
@@ -40,7 +40,7 @@ pub struct Extensions {
 	/// The relay chain of the Allychain.
 	pub relay_chain: String,
 	/// The id of the Allychain.
-	pub para_id: u32,
+	pub ally_id: u32,
 }
 
 impl Extensions {
@@ -60,7 +60,7 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-pub fn development_config(id: ParaId) -> ChainSpec {
+pub fn development_config(id: AllyId) -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "UNIT".into());
@@ -91,12 +91,12 @@ pub fn development_config(id: ParaId) -> ChainSpec {
 		None,
 		Extensions {
 			relay_chain: "betanet-local".into(), // You MUST set this to the correct network!
-			para_id: id.into(),
+			ally_id: id.into(),
 		},
 	)
 }
 
-pub fn local_testnet_config(id: ParaId) -> ChainSpec {
+pub fn local_testnet_config(id: AllyId) -> ChainSpec {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "UNIT".into());
@@ -135,7 +135,7 @@ pub fn local_testnet_config(id: ParaId) -> ChainSpec {
 		None,
 		Extensions {
 			relay_chain: "betanet-local".into(), // You MUST set this to the correct network!
-			para_id: id.into(),
+			ally_id: id.into(),
 		},
 	)
 }
@@ -144,7 +144,7 @@ fn testnet_genesis(
 	root_key: AccountId,
 	initial_authorities: Vec<AuraId>,
 	endowed_accounts: Vec<AccountId>,
-	id: ParaId,
+	id: AllyId,
 ) -> rialto_allychain_runtime::GenesisConfig {
 	rialto_allychain_runtime::GenesisConfig {
 		system: rialto_allychain_runtime::SystemConfig {

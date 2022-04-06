@@ -30,7 +30,7 @@ use parity_scale_codec::{Decode, Encode};
 use primitives::v1::{
 	AvailabilityBitfield, BackedCandidate, CandidateCommitments, CandidateDescriptor,
 	CandidateHash, CandidateReceipt, CommittedCandidateReceipt, CoreIndex, GroupIndex, Hash,
-	HeadData, Id as ParaId, SigningContext, UncheckedSignedAvailabilityBitfields, ValidatorId,
+	HeadData, Id as AllyId, SigningContext, UncheckedSignedAvailabilityBitfields, ValidatorId,
 	ValidatorIndex, ValidityAttestation,
 };
 use scale_info::TypeInfo;
@@ -231,7 +231,7 @@ pub mod pallet {
 		ValidatorIndexOutOfBounds,
 		/// Invalid signature
 		InvalidBitfieldSignature,
-		/// Candidate submitted but para not scheduled.
+		/// Candidate submitted but ally not scheduled.
 		UnscheduledCandidate,
 		/// Candidate scheduled despite pending candidate already existing for the para.
 		CandidateScheduledBeforeParaFree,
@@ -267,7 +267,7 @@ pub mod pallet {
 		InvalidOutboundHrmp,
 		/// The validation code hash of the candidate is not valid.
 		InvalidValidationCodeHash,
-		/// The `para_head` hash in the candidate descriptor doesn't match the hash of the actual para head in the
+		/// The `para_head` hash in the candidate descriptor doesn't match the hash of the actual ally head in the
 		/// commitments.
 		ParaHeadMismatch,
 		/// A bitfield that references a freed core,
@@ -281,15 +281,15 @@ pub mod pallet {
 	pub(crate) type AvailabilityBitfields<T: Config> =
 		StorageMap<_, Twox64Concat, ValidatorIndex, AvailabilityBitfieldRecord<T::BlockNumber>>;
 
-	/// Candidates pending availability by `ParaId`.
+	/// Candidates pending availability by `AllyId`.
 	#[pallet::storage]
 	pub(crate) type PendingAvailability<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, CandidatePendingAvailability<T::Hash, T::BlockNumber>>;
+		StorageMap<_, Twox64Concat, AllyId, CandidatePendingAvailability<T::Hash, T::BlockNumber>>;
 
-	/// The commitments of candidates pending availability, by `ParaId`.
+	/// The commitments of candidates pending availability, by `AllyId`.
 	#[pallet::storage]
 	pub(crate) type PendingAvailabilityCommitments<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, CandidateCommitments>;
+		StorageMap<_, Twox64Concat, AllyId, CandidateCommitments>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
@@ -328,12 +328,12 @@ impl<T: Config> Pallet<T> {
 		enact_candidate: bool,
 	) -> Vec<(CoreIndex, CandidateHash)>
 	where
-		F: Fn(CoreIndex) -> Option<ParaId>,
+		F: Fn(CoreIndex) -> Option<AllyId>,
 	{
 		let mut assigned_paras_record = (0..expected_bits)
 			.map(|bit_index| core_lookup(CoreIndex::from(bit_index as u32)))
-			.map(|opt_para_id| {
-				opt_para_id.map(|para_id| (para_id, PendingAvailability::<T>::get(&para_id)))
+			.map(|opt_ally_id| {
+				opt_ally_id.map(|ally_id| (ally_id, PendingAvailability::<T>::get(&ally_id)))
 			})
 			.collect::<Vec<_>>();
 
@@ -378,14 +378,14 @@ impl<T: Config> Pallet<T> {
 		let threshold = availability_threshold(validators.len());
 
 		let mut freed_cores = Vec::with_capacity(expected_bits);
-		for (para_id, pending_availability) in assigned_paras_record
+		for (ally_id, pending_availability) in assigned_paras_record
 			.into_iter()
 			.filter_map(|x| x)
 			.filter_map(|(id, p)| p.map(|p| (id, p)))
 		{
 			if pending_availability.availability_votes.count_ones() >= threshold {
-				<PendingAvailability<T>>::remove(&para_id);
-				let commitments = match PendingAvailabilityCommitments::<T>::take(&para_id) {
+				<PendingAvailability<T>>::remove(&ally_id);
+				let commitments = match PendingAvailabilityCommitments::<T>::take(&ally_id) {
 					Some(commitments) => commitments,
 					None => {
 						log::warn!(
@@ -414,7 +414,7 @@ impl<T: Config> Pallet<T> {
 
 				freed_cores.push((pending_availability.core, pending_availability.hash));
 			} else {
-				<PendingAvailability<T>>::insert(&para_id, &pending_availability);
+				<PendingAvailability<T>>::insert(&ally_id, &pending_availability);
 			}
 		}
 
@@ -429,7 +429,7 @@ impl<T: Config> Pallet<T> {
 		expected_bits: usize,
 		signed_bitfields: UncheckedSignedAvailabilityBitfields,
 		disputed_bitfield: DisputedBitfield,
-		core_lookup: impl Fn(CoreIndex) -> Option<ParaId>,
+		core_lookup: impl Fn(CoreIndex) -> Option<AllyId>,
 		full_check: FullCheck,
 	) -> Result<Vec<(CoreIndex, CandidateHash)>, crate::inclusion::Error<T>> {
 		let validators = shared::Pallet::<T>::active_validator_keys();
@@ -543,13 +543,13 @@ impl<T: Config> Pallet<T> {
 					Ok(rpn) => rpn,
 				}
 
-				let para_id = backed_candidate.descriptor().para_id;
+				let ally_id = backed_candidate.descriptor().ally_id;
 				let mut backers = bitvec::bitvec![BitOrderLsb0, u8; 0; validators.len()];
 
 				for (i, assignment) in scheduled[skip..].iter().enumerate() {
 					check_assignment_in_order(assignment)?;
 
-					if para_id == assignment.para_id {
+					if ally_id == assignment.ally_id {
 						if let Some(required_collator) = assignment.required_collator() {
 							ensure!(
 								required_collator == &backed_candidate.descriptor().collator,
@@ -558,8 +558,8 @@ impl<T: Config> Pallet<T> {
 						}
 
 						ensure!(
-							<PendingAvailability<T>>::get(&para_id).is_none() &&
-								<PendingAvailabilityCommitments<T>>::get(&para_id).is_none(),
+							<PendingAvailability<T>>::get(&ally_id).is_none() &&
+								<PendingAvailabilityCommitments<T>>::get(&ally_id).is_none(),
 							Error::<T>::CandidateScheduledBeforeParaFree,
 						);
 
@@ -646,7 +646,7 @@ impl<T: Config> Pallet<T> {
 		for (candidate, (core, backers, group)) in
 			candidates.into_iter().zip(core_indices_and_backers)
 		{
-			let para_id = candidate.descriptor().para_id;
+			let ally_id = candidate.descriptor().ally_id;
 
 			// initialize all availability votes to 0.
 			let availability_votes: BitVec<BitOrderLsb0, u8> =
@@ -665,7 +665,7 @@ impl<T: Config> Pallet<T> {
 				(candidate.candidate.descriptor, candidate.candidate.commitments);
 
 			<PendingAvailability<T>>::insert(
-				&para_id,
+				&ally_id,
 				CandidatePendingAvailability {
 					core,
 					hash: candidate_hash,
@@ -677,7 +677,7 @@ impl<T: Config> Pallet<T> {
 					backing_group: group,
 				},
 			);
-			<PendingAvailabilityCommitments<T>>::insert(&para_id, commitments);
+			<PendingAvailabilityCommitments<T>>::insert(&ally_id, commitments);
 		}
 
 		Ok(ProcessedCandidates::<T::Hash> {
@@ -688,7 +688,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Run the acceptance criteria checks on the given candidate commitments.
 	pub(crate) fn check_validation_outputs_for_runtime_api(
-		para_id: ParaId,
+		ally_id: AllyId,
 		validation_outputs: primitives::v1::CandidateCommitments,
 	) -> bool {
 		// This function is meant to be called from the runtime APIs against the relay-parent, hence
@@ -698,7 +698,7 @@ impl<T: Config> Pallet<T> {
 		let check_ctx = CandidateCheckContext::<T>::new(now, relay_parent_number);
 
 		if let Err(err) = check_ctx.check_validation_outputs(
-			para_id,
+			ally_id,
 			&validation_outputs.head_data,
 			&validation_outputs.new_validation_code,
 			validation_outputs.processed_downward_messages,
@@ -709,7 +709,7 @@ impl<T: Config> Pallet<T> {
 			log::debug!(
 				target: LOG_TARGET,
 				"Validation outputs checking for allychain `{}` failed: {:?}",
-				u32::from(para_id),
+				u32::from(ally_id),
 				err,
 			);
 			false
@@ -750,7 +750,7 @@ impl<T: Config> Pallet<T> {
 		let mut weight = T::DbWeight::get().reads_writes(1, 0);
 		if let Some(new_code) = commitments.new_validation_code {
 			weight += <paras::Pallet<T>>::schedule_code_upgrade(
-				receipt.descriptor.para_id,
+				receipt.descriptor.ally_id,
 				new_code,
 				relay_parent_number,
 				&config,
@@ -759,19 +759,19 @@ impl<T: Config> Pallet<T> {
 
 		// enact the messaging facet of the candidate.
 		weight += <dmp::Pallet<T>>::prune_dmq(
-			receipt.descriptor.para_id,
+			receipt.descriptor.ally_id,
 			commitments.processed_downward_messages,
 		);
 		weight += <ump::Pallet<T>>::receive_upward_messages(
-			receipt.descriptor.para_id,
+			receipt.descriptor.ally_id,
 			commitments.upward_messages,
 		);
 		weight += <hrmp::Pallet<T>>::prune_hrmp(
-			receipt.descriptor.para_id,
+			receipt.descriptor.ally_id,
 			T::BlockNumber::from(commitments.hrmp_watermark),
 		);
 		weight += <hrmp::Pallet<T>>::queue_outbound_hrmp(
-			receipt.descriptor.para_id,
+			receipt.descriptor.ally_id,
 			commitments.horizontal_messages,
 		);
 
@@ -784,7 +784,7 @@ impl<T: Config> Pallet<T> {
 
 		weight +
 			<paras::Pallet<T>>::note_new_head(
-				receipt.descriptor.para_id,
+				receipt.descriptor.ally_id,
 				commitments.head_data,
 				relay_parent_number,
 			)
@@ -802,16 +802,16 @@ impl<T: Config> Pallet<T> {
 		let mut cleaned_up_ids = Vec::new();
 		let mut cleaned_up_cores = Vec::new();
 
-		for (para_id, pending_record) in <PendingAvailability<T>>::iter() {
+		for (ally_id, pending_record) in <PendingAvailability<T>>::iter() {
 			if pred(pending_record.core, pending_record.backed_in_number) {
-				cleaned_up_ids.push(para_id);
+				cleaned_up_ids.push(ally_id);
 				cleaned_up_cores.push(pending_record.core);
 			}
 		}
 
-		for para_id in cleaned_up_ids {
-			let pending = <PendingAvailability<T>>::take(&para_id);
-			let commitments = <PendingAvailabilityCommitments<T>>::take(&para_id);
+		for ally_id in cleaned_up_ids {
+			let pending = <PendingAvailability<T>>::take(&ally_id);
+			let commitments = <PendingAvailabilityCommitments<T>>::take(&ally_id);
 
 			if let (Some(pending), Some(commitments)) = (pending, commitments) {
 				// defensive: this should always be true.
@@ -838,16 +838,16 @@ impl<T: Config> Pallet<T> {
 		let mut cleaned_up_ids = Vec::new();
 		let mut cleaned_up_cores = Vec::new();
 
-		for (para_id, pending_record) in <PendingAvailability<T>>::iter() {
+		for (ally_id, pending_record) in <PendingAvailability<T>>::iter() {
 			if disputed.contains(&pending_record.hash) {
-				cleaned_up_ids.push(para_id);
+				cleaned_up_ids.push(ally_id);
 				cleaned_up_cores.push(pending_record.core);
 			}
 		}
 
-		for para_id in cleaned_up_ids {
-			let _ = <PendingAvailability<T>>::take(&para_id);
-			let _ = <PendingAvailabilityCommitments<T>>::take(&para_id);
+		for ally_id in cleaned_up_ids {
+			let _ = <PendingAvailability<T>>::take(&ally_id);
+			let _ = <PendingAvailabilityCommitments<T>>::take(&ally_id);
 		}
 
 		cleaned_up_cores
@@ -859,7 +859,7 @@ impl<T: Config> Pallet<T> {
 	/// Is a no-op if there is no candidate pending availability for this para-id.
 	/// This should generally not be used but it is useful during execution of Runtime APIs,
 	/// where the changes to the state are expected to be discarded directly after.
-	pub(crate) fn force_enact(para: ParaId) {
+	pub(crate) fn force_enact(para: AllyId) {
 		let pending = <PendingAvailability<T>>::take(&para);
 		let commitments = <PendingAvailabilityCommitments<T>>::take(&para);
 
@@ -878,9 +878,9 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Returns the `CommittedCandidateReceipt` pending availability for the para provided, if any.
+	/// Returns the `CommittedCandidateReceipt` pending availability for the ally provided, if any.
 	pub(crate) fn candidate_pending_availability(
-		para: ParaId,
+		para: AllyId,
 	) -> Option<CommittedCandidateReceipt<T::Hash>> {
 		<PendingAvailability<T>>::get(&para)
 			.map(|p| p.descriptor)
@@ -889,9 +889,9 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Returns the metadata around the candidate pending availability for the
-	/// para provided, if any.
+	/// ally provided, if any.
 	pub(crate) fn pending_availability(
-		para: ParaId,
+		para: AllyId,
 	) -> Option<CandidatePendingAvailability<T::Hash, T::BlockNumber>> {
 		<PendingAvailability<T>>::get(&para)
 	}
@@ -953,7 +953,7 @@ impl<T: Config> CandidateCheckContext<T> {
 	///  * correct expected relay parent reference
 	///  * collator signature check passes
 	///  * code hash of commitments matches current code hash
-	///  * para head in the descriptor and commitments match
+	///  * ally head in the descriptor and commitments match
 	pub(crate) fn verify_backed_candidate(
 		&self,
 		parent_hash: <T as frame_system::Config>::Hash,
@@ -961,14 +961,14 @@ impl<T: Config> CandidateCheckContext<T> {
 		candidate_idx: usize,
 		backed_candidate: &BackedCandidate<<T as frame_system::Config>::Hash>,
 	) -> Result<Result<(), FailedToCreatePVD>, Error<T>> {
-		let para_id = backed_candidate.descriptor().para_id;
+		let ally_id = backed_candidate.descriptor().ally_id;
 		let now = <frame_system::Pallet<T>>::block_number();
 		let relay_parent_number = now - One::one();
 
 		{
-			// this should never fail because the para is registered
+			// this should never fail because the ally is registered
 			let persisted_validation_data = match crate::util::make_persisted_validation_data::<T>(
-				para_id,
+				ally_id,
 				relay_parent_number,
 				parent_storage_root,
 			) {
@@ -994,7 +994,7 @@ impl<T: Config> CandidateCheckContext<T> {
 			Error::<T>::NotCollatorSigned,
 		);
 
-		let validation_code_hash = <paras::Pallet<T>>::current_code_hash(para_id)
+		let validation_code_hash = <paras::Pallet<T>>::current_code_hash(ally_id)
 			// A candidate for a allychain without current validation code is not scheduled.
 			.ok_or_else(|| Error::<T>::UnscheduledCandidate)?;
 		ensure!(
@@ -1009,7 +1009,7 @@ impl<T: Config> CandidateCheckContext<T> {
 		);
 
 		if let Err(err) = self.check_validation_outputs(
-			para_id,
+			ally_id,
 			&backed_candidate.candidate.commitments.head_data,
 			&backed_candidate.candidate.commitments.new_validation_code,
 			backed_candidate.candidate.commitments.processed_downward_messages,
@@ -1021,7 +1021,7 @@ impl<T: Config> CandidateCheckContext<T> {
 				target: LOG_TARGET,
 				"Validation outputs checking during inclusion of a candidate {} for allychain `{}` failed: {:?}",
 				candidate_idx,
-				u32::from(para_id),
+				u32::from(ally_id),
 				err,
 			);
 			Err(err.strip_into_dispatch_err::<T>())?;
@@ -1033,13 +1033,13 @@ impl<T: Config> CandidateCheckContext<T> {
 	/// criteria.
 	fn check_validation_outputs(
 		&self,
-		para_id: ParaId,
+		ally_id: AllyId,
 		head_data: &HeadData,
 		new_validation_code: &Option<primitives::v1::ValidationCode>,
 		processed_downward_messages: u32,
 		upward_messages: &[primitives::v1::UpwardMessage],
 		hrmp_watermark: T::BlockNumber,
-		horizontal_messages: &[primitives::v1::OutboundHrmpMessage<ParaId>],
+		horizontal_messages: &[primitives::v1::OutboundHrmpMessage<AllyId>],
 	) -> Result<(), AcceptanceCheckErr<T::BlockNumber>> {
 		ensure!(
 			head_data.0.len() <= self.config.max_head_data_size as _,
@@ -1049,7 +1049,7 @@ impl<T: Config> CandidateCheckContext<T> {
 		// if any, the code upgrade attempt is allowed.
 		if let Some(new_validation_code) = new_validation_code {
 			ensure!(
-				<paras::Pallet<T>>::can_upgrade_validation_code(para_id),
+				<paras::Pallet<T>>::can_upgrade_validation_code(ally_id),
 				AcceptanceCheckErr::PrematureCodeUpgrade,
 			);
 			ensure!(
@@ -1059,10 +1059,10 @@ impl<T: Config> CandidateCheckContext<T> {
 		}
 
 		// check if the candidate passes the messaging acceptance criteria
-		<dmp::Pallet<T>>::check_processed_downward_messages(para_id, processed_downward_messages)?;
-		<ump::Pallet<T>>::check_upward_messages(&self.config, para_id, upward_messages)?;
-		<hrmp::Pallet<T>>::check_hrmp_watermark(para_id, self.relay_parent_number, hrmp_watermark)?;
-		<hrmp::Pallet<T>>::check_outbound_hrmp(&self.config, para_id, horizontal_messages)?;
+		<dmp::Pallet<T>>::check_processed_downward_messages(ally_id, processed_downward_messages)?;
+		<ump::Pallet<T>>::check_upward_messages(&self.config, ally_id, upward_messages)?;
+		<hrmp::Pallet<T>>::check_hrmp_watermark(ally_id, self.relay_parent_number, hrmp_watermark)?;
+		<hrmp::Pallet<T>>::check_outbound_hrmp(&self.config, ally_id, horizontal_messages)?;
 
 		Ok(())
 	}

@@ -63,20 +63,20 @@ impl<AccountId: Decode + Eq + Clone> Convert<MultiLocation, AccountId>
 	}
 }
 
-pub struct ChildAllychainConvertsVia<ParaId, AccountId>(PhantomData<(ParaId, AccountId)>);
-impl<ParaId: From<u32> + Into<u32> + AccountIdConversion<AccountId>, AccountId: Clone>
-	Convert<MultiLocation, AccountId> for ChildAllychainConvertsVia<ParaId, AccountId>
+pub struct ChildAllychainConvertsVia<AllyId, AccountId>(PhantomData<(AllyId, AccountId)>);
+impl<AllyId: From<u32> + Into<u32> + AccountIdConversion<AccountId>, AccountId: Clone>
+	Convert<MultiLocation, AccountId> for ChildAllychainConvertsVia<AllyId, AccountId>
 {
 	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
 		match location.borrow() {
 			MultiLocation { parents: 0, interior: X1(Allychain(id)) } =>
-				Ok(ParaId::from(*id).into_account()),
+				Ok(AllyId::from(*id).into_account()),
 			_ => Err(()),
 		}
 	}
 
 	fn reverse_ref(who: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
-		if let Some(id) = ParaId::try_from_account(who.borrow()) {
+		if let Some(id) = AllyId::try_from_account(who.borrow()) {
 			Ok(Allychain(id.into()).into())
 		} else {
 			Err(())
@@ -84,20 +84,20 @@ impl<ParaId: From<u32> + Into<u32> + AccountIdConversion<AccountId>, AccountId: 
 	}
 }
 
-pub struct SiblingAllychainConvertsVia<ParaId, AccountId>(PhantomData<(ParaId, AccountId)>);
-impl<ParaId: From<u32> + Into<u32> + AccountIdConversion<AccountId>, AccountId: Clone>
-	Convert<MultiLocation, AccountId> for SiblingAllychainConvertsVia<ParaId, AccountId>
+pub struct SiblingAllychainConvertsVia<AllyId, AccountId>(PhantomData<(AllyId, AccountId)>);
+impl<AllyId: From<u32> + Into<u32> + AccountIdConversion<AccountId>, AccountId: Clone>
+	Convert<MultiLocation, AccountId> for SiblingAllychainConvertsVia<AllyId, AccountId>
 {
 	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
 		match location.borrow() {
 			MultiLocation { parents: 1, interior: X1(Allychain(id)) } =>
-				Ok(ParaId::from(*id).into_account()),
+				Ok(AllyId::from(*id).into_account()),
 			_ => Err(()),
 		}
 	}
 
 	fn reverse_ref(who: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
-		if let Some(id) = ParaId::try_from_account(who.borrow()) {
+		if let Some(id) = AllyId::try_from_account(who.borrow()) {
 			Ok(MultiLocation::new(1, X1(Allychain(id.into()))))
 		} else {
 			Err(())
@@ -160,8 +160,8 @@ impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone
 /// ## Network Topology
 /// ```txt
 ///                    v Source
-/// Relay -> Para 1 -> Account20
-///       -> Para 2 -> Account32
+/// Relay -> Ally 1 -> Account20
+///       -> Ally 2 -> Account32
 ///                    ^ Target
 /// ```
 /// ```rust
@@ -220,8 +220,8 @@ mod tests {
 
 	// Network Topology
 	//                                     v Source
-	// Relay -> Para 1 -> SmartContract -> Account
-	//       -> Para 2 -> Account
+	// Relay -> Ally 1 -> SmartContract -> Account
+	//       -> Ally 2 -> Account
 	//                    ^ Target
 	//
 	// Inputs and outputs written as file paths:
@@ -243,7 +243,7 @@ mod tests {
 
 	// Network Topology
 	//                                     v Source
-	// Relay -> Para 1 -> SmartContract -> Account
+	// Relay -> Ally 1 -> SmartContract -> Account
 	//          ^ Target
 	#[test]
 	fn inverter_uses_ancestry_as_inverted_location() {
@@ -258,7 +258,7 @@ mod tests {
 
 	// Network Topology
 	//                                        v Source
-	// Relay -> Para 1 -> CollectivePallet -> Plurality
+	// Relay -> Ally 1 -> CollectivePallet -> Plurality
 	//          ^ Target
 	#[test]
 	fn inverter_uses_only_child_on_missing_ancestry() {

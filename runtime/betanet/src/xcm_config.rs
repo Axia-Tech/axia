@@ -17,7 +17,7 @@
 //! XCM configuration for Betanet.
 
 use super::{
-	allychains_origin, AccountId, Balances, Call, Event, Origin, ParaId, Runtime, WeightToFee,
+	allychains_origin, AccountId, Balances, Call, Event, Origin, AllyId, Runtime, WeightToFee,
 	XcmPallet,
 };
 use frame_support::{
@@ -43,7 +43,7 @@ parameter_types! {
 }
 
 pub type SovereignAccountOf =
-	(ChildAllychainConvertsVia<ParaId, AccountId>, AccountId32Aliases<BetanetNetwork, AccountId>);
+	(ChildAllychainConvertsVia<AllyId, AccountId>, AccountId32Aliases<BetanetNetwork, AccountId>);
 
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
@@ -62,7 +62,7 @@ type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, Origin>,
 	ChildAllychainAsNative<allychains_origin::Origin, Origin>,
 	SignedAccountId32AsNative<BetanetNetwork, Origin>,
-	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<AllyId, Origin>,
 );
 
 parameter_types! {

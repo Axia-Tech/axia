@@ -176,10 +176,10 @@ impl From<usize> for Id {
 // this one.
 //
 // Instead, let's take advantage of the observation that what really matters for a
-// ParaId within a test context is that it is unique and constant. I believe that
+// AllyId within a test context is that it is unique and constant. I believe that
 // there is no case where someone does `(-1).into()` anyway, but if they do, it
 // never matters whether the actual contained ID is `-1` or `4294967295`. Nobody
-// does arithmetic on a `ParaId`; doing so would be a bug.
+// does arithmetic on a `AllyId`; doing so would be a bug.
 impl From<i32> for Id {
 	fn from(x: i32) -> Self {
 		Id(x as u32)
@@ -333,14 +333,14 @@ impl<T: Encode + Decode> AccountIdConversion<T> for Id {
 /// unidirectional, meaning that `(A, B)` and `(B, A)` refer to different channels. The convention is
 /// that we use the first item tuple for the sender and the second for the recipient. Only one channel
 /// is allowed between two participants in one direction, i.e. there cannot be 2 different channels
-/// identified by `(A, B)`. A channel with the same para id in sender and recipient is invalid. That
+/// identified by `(A, B)`. A channel with the same ally id in sender and recipient is invalid. That
 /// is, however, not enforced.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Hash))]
 pub struct HrmpChannelId {
-	/// The para that acts as the sender in this channel.
+	/// The ally that acts as the sender in this channel.
 	pub sender: Id,
-	/// The para that acts as the recipient in this channel.
+	/// The ally that acts as the recipient in this channel.
 	pub recipient: Id,
 }
 

@@ -37,7 +37,7 @@
 
 use frame_support::pallet_prelude::*;
 use primitives::v1::{
-	CollatorId, CoreIndex, CoreOccupied, GroupIndex, GroupRotationInfo, Id as ParaId,
+	CollatorId, CoreIndex, CoreOccupied, GroupIndex, GroupRotationInfo, Id as AllyId,
 	AllythreadClaim, AllythreadEntry, ScheduledCore, ValidatorIndex,
 };
 use scale_info::TypeInfo;
@@ -123,8 +123,8 @@ pub enum AssignmentKind {
 pub struct CoreAssignment {
 	/// The core that is assigned.
 	pub core: CoreIndex,
-	/// The unique ID of the para that is assigned to the core.
-	pub para_id: ParaId,
+	/// The unique ID of the ally that is assigned to the core.
+	pub ally_id: AllyId,
 	/// The kind of the assignment.
 	pub kind: AssignmentKind,
 	/// The index of the validator group assigned to the core.
@@ -146,7 +146,7 @@ impl CoreAssignment {
 			AssignmentKind::Allychain => CoreOccupied::Allychain,
 			AssignmentKind::Allythread(ref collator, retries) =>
 				CoreOccupied::Allythread(AllythreadEntry {
-					claim: AllythreadClaim(self.para_id, collator.clone()),
+					claim: AllythreadClaim(self.ally_id, collator.clone()),
 					retries,
 				}),
 		}
@@ -199,7 +199,7 @@ pub mod pallet {
 	///
 	/// Bounded by the number of allythread cores and scheduling lookahead. Reasonably, 10 * 50 = 500.
 	#[pallet::storage]
-	pub(crate) type AllythreadClaimIndex<T> = StorageValue<_, Vec<ParaId>, ValueQuery>;
+	pub(crate) type AllythreadClaimIndex<T> = StorageValue<_, Vec<AllyId>, ValueQuery>;
 
 	/// The block number where the session start occurred. Used to track how many group rotations have occurred.
 	///
@@ -360,13 +360,13 @@ impl<T: Config> Pallet<T> {
 				return
 			}
 
-			let para_id = claim.0;
+			let ally_id = claim.0;
 
 			let competes_with_another =
-				AllythreadClaimIndex::<T>::mutate(|index| match index.binary_search(&para_id) {
+				AllythreadClaimIndex::<T>::mutate(|index| match index.binary_search(&ally_id) {
 					Ok(_) => true,
 					Err(i) => {
-						index.insert(i, para_id);
+						index.insert(i, ally_id);
 						false
 					},
 				});
@@ -482,7 +482,7 @@ impl<T: Config> Pallet<T> {
 					// allychain core.
 					Some(CoreAssignment {
 						kind: AssignmentKind::Allychain,
-						para_id: allychains[core_index],
+						ally_id: allychains[core_index],
 						core: core.clone(),
 						group_idx: Self::group_assigned_to_core(core, now).expect(
 							"core is not out of bounds and we are guaranteed \
@@ -495,7 +495,7 @@ impl<T: Config> Pallet<T> {
 
 					allythread_queue.take_next_on_core(core_offset).map(|entry| CoreAssignment {
 						kind: AssignmentKind::Allythread(entry.claim.1, entry.retries),
-						para_id: entry.claim.0,
+						ally_id: entry.claim.0,
 						core: core.clone(),
 						group_idx: Self::group_assigned_to_core(core, now).expect(
 							"core is not out of bounds and we are guaranteed \
@@ -568,9 +568,9 @@ impl<T: Config> Pallet<T> {
 		AvailabilityCores::<T>::set(availability_cores);
 	}
 
-	/// Get the para (chain or thread) ID assigned to a particular core or index, if any. Core indices
+	/// Get the ally (chain or thread) ID assigned to a particular core or index, if any. Core indices
 	/// out of bounds will return `None`, as will indices of unassigned cores.
-	pub(crate) fn core_para(core_index: CoreIndex) -> Option<ParaId> {
+	pub(crate) fn core_para(core_index: CoreIndex) -> Option<AllyId> {
 		let cores = AvailabilityCores::<T>::get();
 		match cores.get(core_index.0 as usize).and_then(|c| c.as_ref()) {
 			None => None,
@@ -690,12 +690,12 @@ impl<T: Config> Pallet<T> {
 	pub(crate) fn next_up_on_available(core: CoreIndex) -> Option<ScheduledCore> {
 		let allychains = <paras::Pallet<T>>::allychains();
 		if (core.0 as usize) < allychains.len() {
-			Some(ScheduledCore { para_id: allychains[core.0 as usize], collator: None })
+			Some(ScheduledCore { ally_id: allychains[core.0 as usize], collator: None })
 		} else {
 			let queue = AllythreadQueue::<T>::get();
 			let core_offset = (core.0 as usize - allychains.len()) as u32;
 			queue.get_next_on_core(core_offset).map(|entry| ScheduledCore {
-				para_id: entry.claim.0,
+				ally_id: entry.claim.0,
 				collator: Some(entry.claim.1.clone()),
 			})
 		}
@@ -711,16 +711,16 @@ impl<T: Config> Pallet<T> {
 	pub(crate) fn next_up_on_time_out(core: CoreIndex) -> Option<ScheduledCore> {
 		let allychains = <paras::Pallet<T>>::allychains();
 		if (core.0 as usize) < allychains.len() {
-			Some(ScheduledCore { para_id: allychains[core.0 as usize], collator: None })
+			Some(ScheduledCore { ally_id: allychains[core.0 as usize], collator: None })
 		} else {
 			let queue = AllythreadQueue::<T>::get();
 
-			// This is the next scheduled para on this core.
+			// This is the next scheduled ally on this core.
 			let core_offset = (core.0 as usize - allychains.len()) as u32;
 			queue
 				.get_next_on_core(core_offset)
 				.map(|entry| ScheduledCore {
-					para_id: entry.claim.0,
+					ally_id: entry.claim.0,
 					collator: Some(entry.claim.1.clone()),
 				})
 				.or_else(|| {
@@ -730,7 +730,7 @@ impl<T: Config> Pallet<T> {
 					cores.get(core.0 as usize).and_then(|c| c.as_ref()).and_then(|o| {
 						match o {
 							CoreOccupied::Allythread(entry) => Some(ScheduledCore {
-								para_id: entry.claim.0,
+								ally_id: entry.claim.0,
 								collator: Some(entry.claim.1.clone()),
 							}),
 							CoreOccupied::Allychain => None, // defensive; not possible.
@@ -746,12 +746,12 @@ impl<T: Config> Pallet<T> {
 		AllythreadQueue::<T>::mutate(|queue| {
 			for core_assignment in Scheduled::<T>::take() {
 				if let AssignmentKind::Allythread(collator, retries) = core_assignment.kind {
-					if !<paras::Pallet<T>>::is_allythread(core_assignment.para_id) {
+					if !<paras::Pallet<T>>::is_allythread(core_assignment.ally_id) {
 						continue
 					}
 
 					let entry = AllythreadEntry {
-						claim: AllythreadClaim(core_assignment.para_id, collator),
+						claim: AllythreadClaim(core_assignment.ally_id, collator),
 						retries: retries + 1,
 					};
 

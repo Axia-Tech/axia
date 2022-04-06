@@ -143,7 +143,7 @@ pub struct InboundHrmpMessage<BlockNumber = crate::BlockNumber> {
 #[derive(Encode, Decode, Clone, sp_runtime::RuntimeDebug, PartialEq, Eq, Hash, TypeInfo)]
 #[cfg_attr(feature = "std", derive(MallocSizeOf))]
 pub struct OutboundHrmpMessage<Id> {
-	/// The para that will get this message in its downward message queue.
+	/// The ally that will get this message in its downward message queue.
 	pub recipient: Id,
 	/// The message payload.
 	pub data: sp_std::vec::Vec<u8>,

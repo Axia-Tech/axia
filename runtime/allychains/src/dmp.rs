@@ -19,7 +19,7 @@ use crate::{
 	initializer,
 };
 use frame_support::pallet_prelude::*;
-use primitives::v1::{DownwardMessage, Hash, Id as ParaId, InboundDownwardMessage};
+use primitives::v1::{DownwardMessage, Hash, Id as AllyId, InboundDownwardMessage};
 use sp_runtime::traits::{BlakeTwo256, Hash as HashT, SaturatedConversion};
 use sp_std::{fmt, prelude::*};
 use xcm::latest::SendError;
@@ -85,7 +85,7 @@ pub mod pallet {
 	pub(crate) type DownwardMessageQueues<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
-		ParaId,
+		AllyId,
 		Vec<InboundDownwardMessage<T::BlockNumber>>,
 		ValueQuery,
 	>;
@@ -99,7 +99,7 @@ pub mod pallet {
 	/// - `H(M)`: is the hash of the message being appended.
 	#[pallet::storage]
 	pub(crate) type DownwardMessageQueueHeads<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, Hash, ValueQuery>;
+		StorageMap<_, Twox64Concat, AllyId, Hash, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
@@ -118,21 +118,21 @@ impl<T: Config> Pallet<T> {
 	/// Called by the initializer to note that a new session has started.
 	pub(crate) fn initializer_on_new_session(
 		_notification: &initializer::SessionChangeNotification<T::BlockNumber>,
-		outgoing_paras: &[ParaId],
+		outgoing_paras: &[AllyId],
 	) {
 		Self::perform_outgoing_para_cleanup(outgoing_paras);
 	}
 
 	/// Iterate over all paras that were noted for offboarding and remove all the data
 	/// associated with them.
-	fn perform_outgoing_para_cleanup(outgoing: &[ParaId]) {
+	fn perform_outgoing_para_cleanup(outgoing: &[AllyId]) {
 		for outgoing_para in outgoing {
 			Self::clean_dmp_after_outgoing(outgoing_para);
 		}
 	}
 
 	/// Remove all relevant storage items for an outgoing allychain.
-	fn clean_dmp_after_outgoing(outgoing_para: &ParaId) {
+	fn clean_dmp_after_outgoing(outgoing_para: &AllyId) {
 		<Self as Store>::DownwardMessageQueues::remove(outgoing_para);
 		<Self as Store>::DownwardMessageQueueHeads::remove(outgoing_para);
 	}
@@ -147,7 +147,7 @@ impl<T: Config> Pallet<T> {
 	/// then the caller should perform a runtime check.
 	pub fn queue_downward_message(
 		config: &HostConfiguration<T::BlockNumber>,
-		para: ParaId,
+		para: AllyId,
 		msg: DownwardMessage,
 	) -> Result<(), QueueDownwardMessageError> {
 		let serialized_len = msg.len() as u32;
@@ -174,7 +174,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Checks if the number of processed downward messages is valid.
 	pub(crate) fn check_processed_downward_messages(
-		para: ParaId,
+		para: AllyId,
 		processed_downward_messages: u32,
 	) -> Result<(), ProcessedDownwardMessagesAcceptanceErr> {
 		let dmq_length = Self::dmq_length(para);
@@ -193,7 +193,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Prunes the specified number of messages from the downward message queue of the given para.
-	pub(crate) fn prune_dmq(para: ParaId, processed_downward_messages: u32) -> Weight {
+	pub(crate) fn prune_dmq(para: AllyId, processed_downward_messages: u32) -> Weight {
 		<Self as Store>::DownwardMessageQueues::mutate(para, |q| {
 			let processed_downward_messages = processed_downward_messages as usize;
 			if processed_downward_messages > q.len() {
@@ -207,17 +207,17 @@ impl<T: Config> Pallet<T> {
 		T::DbWeight::get().reads_writes(1, 1)
 	}
 
-	/// Returns the Head of Message Queue Chain for the given para or `None` if there is none
+	/// Returns the Head of Message Queue Chain for the given ally or `None` if there is none
 	/// associated with it.
 	#[cfg(test)]
-	fn dmq_mqc_head(para: ParaId) -> Hash {
+	fn dmq_mqc_head(para: AllyId) -> Hash {
 		<Self as Store>::DownwardMessageQueueHeads::get(&para)
 	}
 
 	/// Returns the number of pending downward messages addressed to the given para.
 	///
-	/// Returns 0 if the para doesn't have an associated downward message queue.
-	pub(crate) fn dmq_length(para: ParaId) -> u32 {
+	/// Returns 0 if the ally doesn't have an associated downward message queue.
+	pub(crate) fn dmq_length(para: AllyId) -> u32 {
 		<Self as Store>::DownwardMessageQueues::decode_len(&para)
 			.unwrap_or(0)
 			.saturated_into::<u32>()
@@ -226,7 +226,7 @@ impl<T: Config> Pallet<T> {
 	/// Returns the downward message queue contents for the given para.
 	///
 	/// The most recent messages are the latest in the vector.
-	pub(crate) fn dmq_contents(recipient: ParaId) -> Vec<InboundDownwardMessage<T::BlockNumber>> {
+	pub(crate) fn dmq_contents(recipient: AllyId) -> Vec<InboundDownwardMessage<T::BlockNumber>> {
 		<Self as Store>::DownwardMessageQueues::get(&recipient)
 	}
 }

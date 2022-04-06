@@ -119,42 +119,42 @@ where
 				self.requests_cache.cache_validator_groups(relay_parent, groups),
 			AvailabilityCores(relay_parent, cores) =>
 				self.requests_cache.cache_availability_cores(relay_parent, cores),
-			PersistedValidationData(relay_parent, para_id, assumption, data) => self
+			PersistedValidationData(relay_parent, ally_id, assumption, data) => self
 				.requests_cache
-				.cache_persisted_validation_data((relay_parent, para_id, assumption), data),
+				.cache_persisted_validation_data((relay_parent, ally_id, assumption), data),
 			AssumedValidationData(
 				_relay_parent,
-				para_id,
+				ally_id,
 				expected_persisted_validation_data_hash,
 				data,
 			) => self.requests_cache.cache_assumed_validation_data(
-				(para_id, expected_persisted_validation_data_hash),
+				(ally_id, expected_persisted_validation_data_hash),
 				data,
 			),
-			CheckValidationOutputs(relay_parent, para_id, commitments, b) => self
+			CheckValidationOutputs(relay_parent, ally_id, commitments, b) => self
 				.requests_cache
-				.cache_check_validation_outputs((relay_parent, para_id, commitments), b),
+				.cache_check_validation_outputs((relay_parent, ally_id, commitments), b),
 			SessionIndexForChild(relay_parent, session_index) =>
 				self.requests_cache.cache_session_index_for_child(relay_parent, session_index),
-			ValidationCode(relay_parent, para_id, assumption, code) => self
+			ValidationCode(relay_parent, ally_id, assumption, code) => self
 				.requests_cache
-				.cache_validation_code((relay_parent, para_id, assumption), code),
+				.cache_validation_code((relay_parent, ally_id, assumption), code),
 			ValidationCodeByHash(_relay_parent, validation_code_hash, code) =>
 				self.requests_cache.cache_validation_code_by_hash(validation_code_hash, code),
-			CandidatePendingAvailability(relay_parent, para_id, candidate) => self
+			CandidatePendingAvailability(relay_parent, ally_id, candidate) => self
 				.requests_cache
-				.cache_candidate_pending_availability((relay_parent, para_id), candidate),
+				.cache_candidate_pending_availability((relay_parent, ally_id), candidate),
 			CandidateEvents(relay_parent, events) =>
 				self.requests_cache.cache_candidate_events(relay_parent, events),
 			SessionInfo(_relay_parent, session_index, info) =>
 				if let Some(info) = info {
 					self.requests_cache.cache_session_info(session_index, info);
 				},
-			DmqContents(relay_parent, para_id, messages) =>
-				self.requests_cache.cache_dmq_contents((relay_parent, para_id), messages),
-			InboundHrmpChannelsContents(relay_parent, para_id, contents) => self
+			DmqContents(relay_parent, ally_id, messages) =>
+				self.requests_cache.cache_dmq_contents((relay_parent, ally_id), messages),
+			InboundHrmpChannelsContents(relay_parent, ally_id, contents) => self
 				.requests_cache
-				.cache_inbound_hrmp_channel_contents((relay_parent, para_id), contents),
+				.cache_inbound_hrmp_channel_contents((relay_parent, ally_id), contents),
 			CurrentBabeEpoch(relay_parent, epoch) =>
 				self.requests_cache.cache_current_babe_epoch(relay_parent, epoch),
 			FetchOnChainVotes(relay_parent, scraped) =>
@@ -162,9 +162,9 @@ where
 			PvfsRequirePrecheck(relay_parent, pvfs) =>
 				self.requests_cache.cache_pvfs_require_precheck(relay_parent, pvfs),
 			SubmitPvfCheckStatement(_, _, _, ()) => {},
-			ValidationCodeHash(relay_parent, para_id, assumption, hash) => self
+			ValidationCodeHash(relay_parent, ally_id, assumption, hash) => self
 				.requests_cache
-				.cache_validation_code_hash((relay_parent, para_id, assumption), hash),
+				.cache_validation_code_hash((relay_parent, ally_id, assumption), hash),
 		}
 	}
 

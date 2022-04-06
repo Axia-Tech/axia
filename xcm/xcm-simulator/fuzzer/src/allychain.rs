@@ -33,7 +33,7 @@ use sp_std::{convert::TryFrom, prelude::*};
 use pallet_xcm::XcmPassthrough;
 use axia_core_primitives::BlockNumber as RelayBlockNumber;
 use axia_allychain::primitives::{
-	DmpMessageHandler, Id as ParaId, Sibling, XcmpMessageFormat, XcmpMessageHandler,
+	DmpMessageHandler, Id as AllyId, Sibling, XcmpMessageFormat, XcmpMessageHandler,
 };
 use xcm::{latest::prelude::*, VersionedXcm};
 use xcm_builder::{
@@ -170,15 +170,15 @@ pub mod mock_msg_queue {
 
 	#[pallet::storage]
 	#[pallet::getter(fn allychain_id)]
-	pub(super) type AllychainId<T: Config> = StorageValue<_, ParaId, ValueQuery>;
+	pub(super) type AllychainId<T: Config> = StorageValue<_, AllyId, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn received_dmp)]
 	/// A queue of received DMP messages
 	pub(super) type ReceivedDmp<T: Config> = StorageValue<_, Vec<Xcm<T::Call>>, ValueQuery>;
 
-	impl<T: Config> Get<ParaId> for Pallet<T> {
-		fn get() -> ParaId {
+	impl<T: Config> Get<AllyId> for Pallet<T> {
+		fn get() -> AllyId {
 			Self::allychain_id()
 		}
 	}
@@ -208,12 +208,12 @@ pub mod mock_msg_queue {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn set_para_id(para_id: ParaId) {
-			AllychainId::<T>::put(para_id);
+		pub fn set_ally_id(ally_id: AllyId) {
+			AllychainId::<T>::put(ally_id);
 		}
 
 		fn handle_xcmp_message(
-			sender: ParaId,
+			sender: AllyId,
 			_sent_at: RelayBlockNumber,
 			xcm: VersionedXcm<T::Call>,
 			max_weight: Weight,
@@ -238,7 +238,7 @@ pub mod mock_msg_queue {
 	}
 
 	impl<T: Config> XcmpMessageHandler for Pallet<T> {
-		fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		fn handle_xcmp_messages<'a, I: Iterator<Item = (AllyId, RelayBlockNumber, &'a [u8])>>(
 			iter: I,
 			max_weight: Weight,
 		) -> Weight {

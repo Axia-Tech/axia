@@ -57,7 +57,7 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use primitives::{
 	v1::{
 		AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CommittedCandidateReceipt,
-		CoreState, GroupRotationInfo, Hash, Id as ParaId, InboundDownwardMessage,
+		CoreState, GroupRotationInfo, Hash, Id as AllyId, InboundDownwardMessage,
 		InboundHrmpMessage, Moment, Nonce, OccupiedCoreAssumption, PersistedValidationData,
 		ScrapedOnChainVotes, Signature, ValidationCode, ValidationCodeHash, ValidatorId,
 		ValidatorIndex,
@@ -1238,7 +1238,7 @@ impl allychains_initializer::Config for Runtime {
 
 parameter_types! {
 	// Mostly arbitrary deposit price, but should provide an adequate incentive not to spam reserve
-	// `ParaId`s.
+	// `AllyId`s.
 	pub const ParaDeposit: Balance = 100 * DOLLARS;
 	pub const ParaDataByteDeposit: Balance = deposit(0, 1);
 }
@@ -1835,39 +1835,39 @@ sp_api::impl_runtime_apis! {
 			allychains_runtime_api_impl::availability_cores::<Runtime>()
 		}
 
-		fn persisted_validation_data(para_id: ParaId, assumption: OccupiedCoreAssumption)
+		fn persisted_validation_data(ally_id: AllyId, assumption: OccupiedCoreAssumption)
 			-> Option<PersistedValidationData<Hash, BlockNumber>> {
-			allychains_runtime_api_impl::persisted_validation_data::<Runtime>(para_id, assumption)
+			allychains_runtime_api_impl::persisted_validation_data::<Runtime>(ally_id, assumption)
 		}
 
 		fn assumed_validation_data(
-			para_id: ParaId,
+			ally_id: AllyId,
 			expected_persisted_validation_data_hash: Hash,
 		) -> Option<(PersistedValidationData<Hash, BlockNumber>, ValidationCodeHash)> {
 			allychains_runtime_api_impl::assumed_validation_data::<Runtime>(
-				para_id,
+				ally_id,
 				expected_persisted_validation_data_hash,
 			)
 		}
 
 		fn check_validation_outputs(
-			para_id: ParaId,
+			ally_id: AllyId,
 			outputs: primitives::v1::CandidateCommitments,
 		) -> bool {
-			allychains_runtime_api_impl::check_validation_outputs::<Runtime>(para_id, outputs)
+			allychains_runtime_api_impl::check_validation_outputs::<Runtime>(ally_id, outputs)
 		}
 
 		fn session_index_for_child() -> SessionIndex {
 			allychains_runtime_api_impl::session_index_for_child::<Runtime>()
 		}
 
-		fn validation_code(para_id: ParaId, assumption: OccupiedCoreAssumption)
+		fn validation_code(ally_id: AllyId, assumption: OccupiedCoreAssumption)
 			-> Option<ValidationCode> {
-			allychains_runtime_api_impl::validation_code::<Runtime>(para_id, assumption)
+			allychains_runtime_api_impl::validation_code::<Runtime>(ally_id, assumption)
 		}
 
-		fn candidate_pending_availability(para_id: ParaId) -> Option<CommittedCandidateReceipt<Hash>> {
-			allychains_runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
+		fn candidate_pending_availability(ally_id: AllyId) -> Option<CommittedCandidateReceipt<Hash>> {
+			allychains_runtime_api_impl::candidate_pending_availability::<Runtime>(ally_id)
 		}
 
 		fn candidate_events() -> Vec<CandidateEvent<Hash>> {
@@ -1885,13 +1885,13 @@ sp_api::impl_runtime_apis! {
 			allychains_runtime_api_impl::session_info::<Runtime>(index)
 		}
 
-		fn dmq_contents(recipient: ParaId) -> Vec<InboundDownwardMessage<BlockNumber>> {
+		fn dmq_contents(recipient: AllyId) -> Vec<InboundDownwardMessage<BlockNumber>> {
 			allychains_runtime_api_impl::dmq_contents::<Runtime>(recipient)
 		}
 
 		fn inbound_hrmp_channels_contents(
-			recipient: ParaId
-		) -> BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>> {
+			recipient: AllyId
+		) -> BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>> {
 			allychains_runtime_api_impl::inbound_hrmp_channels_contents::<Runtime>(recipient)
 		}
 
@@ -1914,10 +1914,10 @@ sp_api::impl_runtime_apis! {
 			allychains_runtime_api_impl::pvfs_require_precheck::<Runtime>()
 		}
 
-		fn validation_code_hash(para_id: ParaId, assumption: OccupiedCoreAssumption)
+		fn validation_code_hash(ally_id: AllyId, assumption: OccupiedCoreAssumption)
 			-> Option<ValidationCodeHash>
 		{
-			allychains_runtime_api_impl::validation_code_hash::<Runtime>(para_id, assumption)
+			allychains_runtime_api_impl::validation_code_hash::<Runtime>(ally_id, assumption)
 		}
 	}
 

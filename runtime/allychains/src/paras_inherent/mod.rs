@@ -15,7 +15,7 @@
 // along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Provides glue code over the scheduler and inclusion modules, and accepting
-//! one inherent per block that can include new para candidates and bitfields.
+//! one inherent per block that can include new ally candidates and bitfields.
 //!
 //! Unlike other modules in this crate, it does not need to be initialized by the initializer,
 //! as it has no initialization logic and its finalization logic depends only on the details of
@@ -29,7 +29,7 @@ use crate::{
 	initializer,
 	metrics::METRICS,
 	scheduler::{self, CoreAssignment, FreedReason},
-	shared, ump, ParaId,
+	shared, ump, AllyId,
 };
 use bitvec::prelude::BitVec;
 use frame_support::{
@@ -375,7 +375,7 @@ impl<T: Config> Pallet<T> {
 				.saturating_add(disputes_weight) >
 				max_block_weight
 			{
-				log::warn!("Overweight para inherent data reached the runtime {:?}", parent_hash);
+				log::warn!("Overweight ally inherent data reached the runtime {:?}", parent_hash);
 				backed_candidates.clear();
 				candidates_weight = 0;
 				signed_bitfields.clear();
@@ -1120,17 +1120,17 @@ fn sanitize_backed_candidates<
 
 	let scheduled_paras_to_core_idx = scheduled
 		.into_iter()
-		.map(|core_assignment| (core_assignment.para_id, core_assignment.core))
-		.collect::<BTreeMap<ParaId, CoreIndex>>();
+		.map(|core_assignment| (core_assignment.ally_id, core_assignment.core))
+		.collect::<BTreeMap<AllyId, CoreIndex>>();
 
-	// Assure the backed candidate's `ParaId`'s core is free.
+	// Assure the backed candidate's `AllyId`'s core is free.
 	// This holds under the assumption that `Scheduler::schedule` is called _before_.
 	// Also checks the candidate references the correct relay parent.
 
 	backed_candidates.retain(|backed_candidate| {
 		let desc = backed_candidate.descriptor();
 		desc.relay_parent == relay_parent &&
-			scheduled_paras_to_core_idx.get(&desc.para_id).is_some()
+			scheduled_paras_to_core_idx.get(&desc.ally_id).is_some()
 	});
 
 	// Sort the `Vec` last, once there is a guarantee that these
@@ -1140,8 +1140,8 @@ fn sanitize_backed_candidates<
 	// but also allows this to be done in place.
 	backed_candidates.sort_by(|x, y| {
 		// Never panics, since we filtered all panic arguments out in the previous `fn retain`.
-		scheduled_paras_to_core_idx[&x.descriptor().para_id]
-			.cmp(&scheduled_paras_to_core_idx[&y.descriptor().para_id])
+		scheduled_paras_to_core_idx[&x.descriptor().ally_id]
+			.cmp(&scheduled_paras_to_core_idx[&y.descriptor().ally_id])
 	});
 
 	backed_candidates
@@ -1163,7 +1163,7 @@ pub(crate) fn assure_sanity_backed_candidates<
 		if candidate_has_concluded_invalid_dispute_or_is_invalid(idx, backed_candidate) {
 			return Err(Error::<T>::UnsortedOrDuplicateBackedCandidates)
 		}
-		// Assure the backed candidate's `ParaId`'s core is free.
+		// Assure the backed candidate's `AllyId`'s core is free.
 		// This holds under the assumption that `Scheduler::schedule` is called _before_.
 		// Also checks the candidate references the correct relay parent.
 		let desc = backed_candidate.descriptor();
@@ -1174,13 +1174,13 @@ pub(crate) fn assure_sanity_backed_candidates<
 
 	let scheduled_paras_to_core_idx = scheduled
 		.into_iter()
-		.map(|core_assignment| (core_assignment.para_id, core_assignment.core))
-		.collect::<BTreeMap<ParaId, CoreIndex>>();
+		.map(|core_assignment| (core_assignment.ally_id, core_assignment.core))
+		.collect::<BTreeMap<AllyId, CoreIndex>>();
 
 	if !IsSortedBy::is_sorted_by(backed_candidates, |x, y| {
 		// Never panics, since we would have early returned on those in the above loop.
-		scheduled_paras_to_core_idx[&x.descriptor().para_id]
-			.cmp(&scheduled_paras_to_core_idx[&y.descriptor().para_id])
+		scheduled_paras_to_core_idx[&x.descriptor().ally_id]
+			.cmp(&scheduled_paras_to_core_idx[&y.descriptor().ally_id])
 	}) {
 		return Err(Error::<T>::UnsortedOrDuplicateBackedCandidates)
 	}

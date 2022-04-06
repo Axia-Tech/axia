@@ -16,7 +16,7 @@ digraph {
     CandidateDescriptor [label = <
         <table>
             <tr><td border="0" colspan="2" port="name">CandidateDescriptor&lt;H = Hash&gt;</td></tr>
-            <tr><td>para_id</td><td port="para_id">Id</td></tr>
+            <tr><td>ally_id</td><td port="ally_id">Id</td></tr>
             <tr><td>relay_parent</td><td port="relay_parent">H</td></tr>
             <tr><td>collator</td><td port="collator">CollatorId</td></tr>
             <tr><td>persisted_validation_data_hash</td><td port="persisted_validation_data_hash">Hash</td></tr>
@@ -26,7 +26,7 @@ digraph {
         </table>
     >]
 
-    CandidateDescriptor:para_id -> Id:w
+    CandidateDescriptor:ally_id -> Id:w
     CandidateDescriptor:pov_hash -> PoVHash
     CandidateDescriptor:collator -> CollatorId:w
     CandidateDescriptor:persisted_validation_data_hash -> PersistedValidationDataHash
@@ -250,12 +250,12 @@ digraph {
     ScheduledCore [label = <
         <table>
             <tr><td border="0" colspan="2" port="name">ScheduledCore</td></tr>
-            <tr><td>para_id</td><td port="para_id">Id</td></tr>
+            <tr><td>ally_id</td><td port="ally_id">Id</td></tr>
             <tr><td>collator</td><td port="collator">Option&lt;CollatorId&gt;</td></tr>
         </table>
     >]
 
-    ScheduledCore:para_id -> Id:w
+    ScheduledCore:ally_id -> Id:w
     ScheduledCore:collator -> CollatorId:w
 
     CoreState [label = <

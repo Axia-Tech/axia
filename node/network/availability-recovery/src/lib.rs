@@ -142,7 +142,7 @@ struct RecoveryParams {
 	/// A hash of the relevant candidate.
 	candidate_hash: CandidateHash,
 
-	/// The root of the erasure encoding of the para block.
+	/// The root of the erasure encoding of the ally block.
 	erasure_root: Hash,
 
 	/// Metrics to report

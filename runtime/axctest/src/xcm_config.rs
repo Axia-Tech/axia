@@ -17,7 +17,7 @@
 //! XCM configurations for the AxiaTest runtime.
 
 use super::{
-	allychains_origin, AccountId, Balances, Call, CouncilCollective, Event, Origin, ParaId,
+	allychains_origin, AccountId, Balances, Call, CouncilCollective, Event, Origin, AllyId,
 	Runtime, WeightToFee, XcmPallet,
 };
 use frame_support::{
@@ -54,7 +54,7 @@ parameter_types! {
 /// the sovereign account controlled by a location.
 pub type SovereignAccountOf = (
 	// We can convert a child allychain using the standard `AccountId` conversion.
-	ChildAllychainConvertsVia<ParaId, AccountId>,
+	ChildAllychainConvertsVia<AllyId, AccountId>,
 	// We can directly alias an `AccountId32` into a local account.
 	AccountId32Aliases<AxiaTestNetwork, AccountId>,
 );
@@ -85,7 +85,7 @@ type LocalOriginConverter = (
 	// The AccountId32 location type can be expressed natively as a `Signed` origin.
 	SignedAccountId32AsNative<AxiaTestNetwork, Origin>,
 	// A system child allychain, expressed as a Superuser, converts to the `Root` origin.
-	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<AllyId, Origin>,
 );
 
 parameter_types! {
@@ -124,7 +124,7 @@ pub type Barrier = (
 	// If the message is one that immediately attemps to pay for execution, then allow it.
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Messages coming from system allychains need not pay for execution.
-	AllowUnpaidExecutionFrom<IsChildSystemAllychain<ParaId>>,
+	AllowUnpaidExecutionFrom<IsChildSystemAllychain<AllyId>>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
 	// Subscriptions for version tracking are OK.

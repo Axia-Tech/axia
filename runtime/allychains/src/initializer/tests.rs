@@ -18,7 +18,7 @@ use super::*;
 use crate::mock::{
 	new_test_ext, Configuration, Dmp, Initializer, MockGenesisConfig, Paras, SessionInfo, System,
 };
-use primitives::v1::{HeadData, Id as ParaId};
+use primitives::v1::{HeadData, Id as AllyId};
 use test_helpers::dummy_validation_code;
 
 use frame_support::{
@@ -85,9 +85,9 @@ fn clears_flag_on_finalize() {
 
 #[test]
 fn scheduled_cleanup_performed() {
-	let a = ParaId::from(1312);
-	let b = ParaId::from(228);
-	let c = ParaId::from(123);
+	let a = AllyId::from(1312);
+	let b = AllyId::from(228);
+	let c = AllyId::from(123);
 
 	let mock_genesis = crate::paras::ParaGenesisArgs {
 		allychain: true,

@@ -283,7 +283,7 @@ impl ProvisionerJob {
 			ProvisionableData::BackedCandidate(backed_candidate) => {
 				let _span = span
 					.child("provisionable-backed")
-					.with_para_id(backed_candidate.descriptor().para_id);
+					.with_ally_id(backed_candidate.descriptor().ally_id);
 				self.backed_candidates.push(backed_candidate)
 			},
 			_ => {},
@@ -430,7 +430,7 @@ async fn select_candidates(
 
 		let validation_data = match request_persisted_validation_data(
 			relay_parent,
-			scheduled_core.para_id,
+			scheduled_core.ally_id,
 			assumption,
 			sender,
 		)
@@ -447,15 +447,15 @@ async fn select_candidates(
 		// we arbitrarily pick the first of the backed candidates which match the appropriate selection criteria
 		if let Some(candidate) = candidates.iter().find(|backed_candidate| {
 			let descriptor = &backed_candidate.descriptor;
-			descriptor.para_id == scheduled_core.para_id &&
+			descriptor.ally_id == scheduled_core.ally_id &&
 				descriptor.persisted_validation_data_hash == computed_validation_data_hash
 		}) {
 			let candidate_hash = candidate.hash();
 			tracing::trace!(
 				target: LOG_TARGET,
-				"Selecting candidate {}. para_id={} core={}",
+				"Selecting candidate {}. ally_id={} core={}",
 				candidate_hash,
-				candidate.descriptor.para_id,
+				candidate.descriptor.ally_id,
 				core_idx,
 			);
 

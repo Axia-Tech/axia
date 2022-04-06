@@ -44,7 +44,7 @@ use axia_node_network_protocol::{
 };
 use axia_node_primitives::{PoV, SignedFullStatement};
 use axia_node_subsystem_util::metrics::{self, prometheus};
-use axia_primitives::v1::{CandidateReceipt, CollatorId, Hash, Id as ParaId};
+use axia_primitives::v1::{CandidateReceipt, CollatorId, Hash, Id as AllyId};
 use axia_subsystem::{
 	jaeger,
 	messages::{
@@ -199,7 +199,7 @@ struct PerRequest {
 #[derive(Debug)]
 struct CollatingPeerState {
 	collator_id: CollatorId,
-	para_id: ParaId,
+	ally_id: AllyId,
 	// Advertised relay parents.
 	advertisements: HashSet<Hash>,
 	last_active: Instant,
@@ -256,14 +256,14 @@ impl PeerData {
 		&mut self,
 		on_relay_parent: Hash,
 		our_view: &View,
-	) -> std::result::Result<(CollatorId, ParaId), AdvertisementError> {
+	) -> std::result::Result<(CollatorId, AllyId), AdvertisementError> {
 		match self.state {
 			PeerState::Connected(_) => Err(AdvertisementError::UndeclaredCollator),
 			_ if !our_view.contains(&on_relay_parent) => Err(AdvertisementError::OutOfOurView),
 			PeerState::Collating(ref mut state) =>
 				if state.advertisements.insert(on_relay_parent) {
 					state.last_active = Instant::now();
-					Ok((state.collator_id.clone(), state.para_id.clone()))
+					Ok((state.collator_id.clone(), state.ally_id.clone()))
 				} else {
 					Err(AdvertisementError::Duplicate)
 				},
@@ -278,14 +278,14 @@ impl PeerData {
 		}
 	}
 
-	/// Note that a peer is now collating with the given collator and para ids.
+	/// Note that a peer is now collating with the given collator and ally ids.
 	///
 	/// This will overwrite any previous call to `set_collating` and should only be called
 	/// if `is_collating` is false.
-	fn set_collating(&mut self, collator_id: CollatorId, para_id: ParaId) {
+	fn set_collating(&mut self, collator_id: CollatorId, ally_id: AllyId) {
 		self.state = PeerState::Collating(CollatingPeerState {
 			collator_id,
-			para_id,
+			ally_id,
 			advertisements: HashSet::new(),
 			last_active: Instant::now(),
 		});
@@ -298,10 +298,10 @@ impl PeerData {
 		}
 	}
 
-	fn collating_para(&self) -> Option<ParaId> {
+	fn collating_para(&self) -> Option<AllyId> {
 		match self.state {
 			PeerState::Connected(_) => None,
-			PeerState::Collating(ref state) => Some(state.para_id),
+			PeerState::Collating(ref state) => Some(state.ally_id),
 		}
 	}
 
@@ -330,13 +330,13 @@ impl Default for PeerData {
 }
 
 struct GroupAssignments {
-	current: Option<ParaId>,
+	current: Option<AllyId>,
 }
 
 #[derive(Default)]
 struct ActiveParas {
 	relay_parent_assignments: HashMap<Hash, GroupAssignments>,
-	current_assignments: HashMap<ParaId, usize>,
+	current_assignments: HashMap<AllyId, usize>,
 }
 
 impl ActiveParas {
@@ -390,7 +390,7 @@ impl ActiveParas {
 					Some(group) => {
 						let core_now = rotation_info.core_for_group(group, cores.len());
 
-						cores.get(core_now.0 as usize).and_then(|c| c.para_id())
+						cores.get(core_now.0 as usize).and_then(|c| c.ally_id())
 					},
 					None => {
 						tracing::trace!(target: LOG_TARGET, ?relay_parent, "Not a validator");
@@ -414,7 +414,7 @@ impl ActiveParas {
 					tracing::debug!(
 						target: LOG_TARGET,
 						?relay_parent,
-						para_id = ?para_now,
+						ally_id = ?para_now,
 						"Assigned to a allychain",
 					);
 				}
@@ -437,7 +437,7 @@ impl ActiveParas {
 							occupied.remove_entry();
 							tracing::debug!(
 								target: LOG_TARGET,
-								para_id = ?cur,
+								ally_id = ?cur,
 								"Unassigned from a allychain",
 							);
 						}
@@ -447,7 +447,7 @@ impl ActiveParas {
 		}
 	}
 
-	fn is_current(&self, id: &ParaId) -> bool {
+	fn is_current(&self, id: &AllyId) -> bool {
 		self.current_assignments.contains_key(id)
 	}
 }
@@ -455,16 +455,16 @@ impl ActiveParas {
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 struct PendingCollation {
 	relay_parent: Hash,
-	para_id: ParaId,
+	ally_id: AllyId,
 	peer_id: PeerId,
 	commitments_hash: Option<Hash>,
 }
 
 impl PendingCollation {
-	fn new(relay_parent: Hash, para_id: &ParaId, peer_id: &PeerId) -> Self {
+	fn new(relay_parent: Hash, ally_id: &AllyId, peer_id: &PeerId) -> Self {
 		Self {
 			relay_parent,
-			para_id: para_id.clone(),
+			ally_id: ally_id.clone(),
 			peer_id: peer_id.clone(),
 			commitments_hash: None,
 		}
@@ -569,9 +569,9 @@ struct State {
 	/// Track all active collators and their data.
 	peer_data: HashMap<PeerId, PeerData>,
 
-	/// The collations we have requested by relay parent and para id.
+	/// The collations we have requested by relay parent and ally id.
 	///
-	/// For each relay parent and para id we may be connected to a number
+	/// For each relay parent and ally id we may be connected to a number
 	/// of collators each of those may have advertised a different collation.
 	/// So we group such cases here.
 	requested_collations: HashMap<PendingCollation, PerRequest>,
@@ -631,7 +631,7 @@ async fn fetch_collation<Context>(
 {
 	let (tx, rx) = oneshot::channel();
 
-	let PendingCollation { relay_parent, para_id, peer_id, .. } = pc;
+	let PendingCollation { relay_parent, ally_id, peer_id, .. } = pc;
 
 	let timeout = |collator_id, relay_parent| async move {
 		Delay::new(MAX_UNSHARED_DOWNLOAD_TIME).await;
@@ -642,7 +642,7 @@ async fn fetch_collation<Context>(
 		.push(timeout(id.clone(), relay_parent.clone()).boxed());
 
 	if state.peer_data.get(&peer_id).map_or(false, |d| d.has_advertised(&relay_parent)) {
-		request_collation(ctx, state, relay_parent, para_id, peer_id, tx).await;
+		request_collation(ctx, state, relay_parent, ally_id, peer_id, tx).await;
 	}
 
 	state.collation_fetches.push(rx.map(|r| ((id, pc), r)).boxed());
@@ -720,7 +720,7 @@ async fn request_collation<Context>(
 	ctx: &mut Context,
 	state: &mut State,
 	relay_parent: Hash,
-	para_id: ParaId,
+	ally_id: AllyId,
 	peer_id: PeerId,
 	result: oneshot::Sender<(CandidateReceipt, PoV)>,
 ) where
@@ -731,18 +731,18 @@ async fn request_collation<Context>(
 		tracing::debug!(
 			target: LOG_TARGET,
 			peer_id = %peer_id,
-			para_id = %para_id,
+			ally_id = %ally_id,
 			relay_parent = %relay_parent,
 			"collation is no longer in view",
 		);
 		return
 	}
-	let pending_collation = PendingCollation::new(relay_parent, &para_id, &peer_id);
+	let pending_collation = PendingCollation::new(relay_parent, &ally_id, &peer_id);
 	if state.requested_collations.contains_key(&pending_collation) {
 		tracing::warn!(
 			target: LOG_TARGET,
 			peer_id = %pending_collation.peer_id,
-			%pending_collation.para_id,
+			%pending_collation.ally_id,
 			?pending_collation.relay_parent,
 			"collation has already been requested",
 		);
@@ -751,7 +751,7 @@ async fn request_collation<Context>(
 
 	let (full_request, response_recv) = OutgoingRequest::new(
 		Recipient::Peer(peer_id),
-		CollationFetchingRequest { relay_parent, para_id },
+		CollationFetchingRequest { relay_parent, ally_id },
 	);
 	let requests = Requests::CollationFetching(full_request);
 
@@ -761,17 +761,17 @@ async fn request_collation<Context>(
 		span: state
 			.span_per_relay_parent
 			.get(&relay_parent)
-			.map(|s| s.child("collation-request").with_para_id(para_id)),
+			.map(|s| s.child("collation-request").with_ally_id(ally_id)),
 	};
 
 	state
 		.requested_collations
-		.insert(PendingCollation::new(relay_parent, &para_id, &peer_id), per_request);
+		.insert(PendingCollation::new(relay_parent, &ally_id, &peer_id), per_request);
 
 	tracing::debug!(
 		target: LOG_TARGET,
 		peer_id = %peer_id,
-		%para_id,
+		%ally_id,
 		?relay_parent,
 		"Requesting collation",
 	);
@@ -796,7 +796,7 @@ async fn process_incoming_peer_message<Context>(
 	use protocol_v1::CollatorProtocolMessage::*;
 	use sp_runtime::traits::AppVerify;
 	match msg {
-		Declare(collator_id, para_id, signature) => {
+		Declare(collator_id, ally_id, signature) => {
 			if collator_peer_id(&state.peer_data, &collator_id).is_some() {
 				modify_reputation(ctx, origin, COST_UNEXPECTED_MESSAGE).await;
 				return
@@ -820,22 +820,22 @@ async fn process_incoming_peer_message<Context>(
 				return
 			}
 
-			if state.active_paras.is_current(&para_id) {
+			if state.active_paras.is_current(&ally_id) {
 				tracing::debug!(
 					target: LOG_TARGET,
 					peer_id = ?origin,
 					?collator_id,
-					?para_id,
+					?ally_id,
 					"Declared as collator for current para",
 				);
 
-				peer_data.set_collating(collator_id, para_id);
+				peer_data.set_collating(collator_id, ally_id);
 			} else {
 				tracing::debug!(
 					target: LOG_TARGET,
 					peer_id = ?origin,
 					?collator_id,
-					?para_id,
+					?ally_id,
 					"Declared as collator for unneeded para",
 				);
 
@@ -870,16 +870,16 @@ async fn process_incoming_peer_message<Context>(
 			};
 
 			match peer_data.insert_advertisement(relay_parent, &state.view) {
-				Ok((id, para_id)) => {
+				Ok((id, ally_id)) => {
 					tracing::debug!(
 						target: LOG_TARGET,
 						peer_id = ?origin,
-						%para_id,
+						%ally_id,
 						?relay_parent,
 						"Received advertise collation",
 					);
 
-					let pending_collation = PendingCollation::new(relay_parent, &para_id, &origin);
+					let pending_collation = PendingCollation::new(relay_parent, &ally_id, &origin);
 
 					let collations =
 						state.collations_per_relay_parent.entry(relay_parent).or_default();
@@ -974,8 +974,8 @@ where
 		//
 		// If the peer hasn't declared yet, they will be disconnected if they do not
 		// declare.
-		if let Some(para_id) = peer_data.collating_para() {
-			if !state.active_paras.is_current(&para_id) {
+		if let Some(ally_id) = peer_data.collating_para() {
+			if !state.active_paras.is_current(&ally_id) {
 				tracing::trace!(target: LOG_TARGET, "Disconnecting peer on view change");
 				disconnect_peer(ctx, peer_id.clone()).await;
 			}
@@ -1042,7 +1042,7 @@ async fn process_msg<Context>(
 		CollateOn(id) => {
 			tracing::warn!(
 				target: LOG_TARGET,
-				para_id = %id,
+				ally_id = %id,
 				"CollateOn message is not expected on the validator side of the protocol",
 			);
 		},
@@ -1263,7 +1263,7 @@ async fn handle_collation_fetched_result<Context>(
 			tracing::debug!(
 				target: LOG_TARGET,
 				relay_parent = ?collation_event.1.relay_parent,
-				para_id = ?collation_event.1.para_id,
+				ally_id = ?collation_event.1.ally_id,
 				peer_id = ?collation_event.1.peer_id,
 				collator_id = ?collation_event.0,
 				error = ?e,
@@ -1374,7 +1374,7 @@ async fn poll_collation_response(
 				tracing::warn!(
 					target: LOG_TARGET,
 					hash = ?pending_collation.relay_parent,
-					para_id = ?pending_collation.para_id,
+					ally_id = ?pending_collation.ally_id,
 					peer_id = ?pending_collation.peer_id,
 					err = ?err,
 					"Collator provided response that could not be decoded"
@@ -1385,7 +1385,7 @@ async fn poll_collation_response(
 				tracing::debug!(
 					target: LOG_TARGET,
 					hash = ?pending_collation.relay_parent,
-					para_id = ?pending_collation.para_id,
+					ally_id = ?pending_collation.ally_id,
 					peer_id = ?pending_collation.peer_id,
 					"Request timed out"
 				);
@@ -1397,7 +1397,7 @@ async fn poll_collation_response(
 				tracing::debug!(
 					target: LOG_TARGET,
 					hash = ?pending_collation.relay_parent,
-					para_id = ?pending_collation.para_id,
+					ally_id = ?pending_collation.ally_id,
 					peer_id = ?pending_collation.peer_id,
 					err = ?err,
 					"Fetching collation failed due to network error"
@@ -1412,7 +1412,7 @@ async fn poll_collation_response(
 				tracing::debug!(
 					target: LOG_TARGET,
 					hash = ?pending_collation.relay_parent,
-					para_id = ?pending_collation.para_id,
+					ally_id = ?pending_collation.ally_id,
 					peer_id = ?pending_collation.peer_id,
 					err = ?err,
 					"Canceled should be handled by `is_timed_out` above - this is a bug!"
@@ -1420,14 +1420,14 @@ async fn poll_collation_response(
 				CollationFetchResult::Error(None)
 			},
 			Ok(CollationFetchingResponse::Collation(receipt, _))
-				if receipt.descriptor().para_id != pending_collation.para_id =>
+				if receipt.descriptor().ally_id != pending_collation.ally_id =>
 			{
 				tracing::debug!(
 					target: LOG_TARGET,
-					expected_para_id = ?pending_collation.para_id,
-					got_para_id = ?receipt.descriptor().para_id,
+					expected_ally_id = ?pending_collation.ally_id,
+					got_ally_id = ?receipt.descriptor().ally_id,
 					peer_id = ?pending_collation.peer_id,
-					"Got wrong para ID for requested collation."
+					"Got wrong ally ID for requested collation."
 				);
 
 				CollationFetchResult::Error(Some(COST_WRONG_PARA))
@@ -1435,7 +1435,7 @@ async fn poll_collation_response(
 			Ok(CollationFetchingResponse::Collation(receipt, pov)) => {
 				tracing::debug!(
 					target: LOG_TARGET,
-					para_id = %pending_collation.para_id,
+					ally_id = %pending_collation.ally_id,
 					hash = ?pending_collation.relay_parent,
 					candidate_hash = ?receipt.hash(),
 					"Received collation",
@@ -1450,7 +1450,7 @@ async fn poll_collation_response(
 					tracing::warn!(
 						target: LOG_TARGET,
 						hash = ?pending_collation.relay_parent,
-						para_id = ?pending_collation.para_id,
+						ally_id = ?pending_collation.ally_id,
 						peer_id = ?pending_collation.peer_id,
 						"Sending response back to requester failed (receiving side closed)"
 					);

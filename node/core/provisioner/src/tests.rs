@@ -3,9 +3,9 @@ use ::test_helpers::{dummy_candidate_descriptor, dummy_hash};
 use bitvec::bitvec;
 use axia_primitives::v1::{OccupiedCore, ScheduledCore};
 
-pub fn occupied_core(para_id: u32) -> CoreState {
+pub fn occupied_core(ally_id: u32) -> CoreState {
 	CoreState::Occupied(OccupiedCore {
-		group_responsible: para_id.into(),
+		group_responsible: ally_id.into(),
 		next_up_on_available: None,
 		occupied_since: 100_u32,
 		time_out_at: 200_u32,
@@ -16,11 +16,11 @@ pub fn occupied_core(para_id: u32) -> CoreState {
 	})
 }
 
-pub fn build_occupied_core<Builder>(para_id: u32, builder: Builder) -> CoreState
+pub fn build_occupied_core<Builder>(ally_id: u32, builder: Builder) -> CoreState
 where
 	Builder: FnOnce(&mut OccupiedCore),
 {
-	let mut core = match occupied_core(para_id) {
+	let mut core = match occupied_core(ally_id) {
 		CoreState::Occupied(core) => core,
 		_ => unreachable!(),
 	};
@@ -35,7 +35,7 @@ pub fn default_bitvec(n_cores: usize) -> CoreAvailability {
 }
 
 pub fn scheduled_core(id: u32) -> ScheduledCore {
-	ScheduledCore { para_id: id.into(), collator: None }
+	ScheduledCore { ally_id: id.into(), collator: None }
 }
 
 mod select_availability_bitfields {
@@ -112,7 +112,7 @@ mod select_availability_bitfields {
 
 		let cores = vec![
 			CoreState::Free,
-			CoreState::Scheduled(ScheduledCore { para_id: Default::default(), collator: None }),
+			CoreState::Scheduled(ScheduledCore { ally_id: Default::default(), collator: None }),
 			occupied_core(2),
 		];
 
@@ -239,7 +239,7 @@ mod select_candidates {
 	//      8: Occupied(both next_up set, available),
 	//      9: Occupied(both next_up set, not available, no timeout),
 	//     10: Occupied(both next_up set, not available, timeout),
-	//     11: Occupied(next_up_on_available and available, but different successor para_id)
+	//     11: Occupied(next_up_on_available and available, but different successor ally_id)
 	//   ]
 	fn mock_availability_cores() -> Vec<CoreState> {
 		use std::ops::Not;
@@ -293,7 +293,7 @@ mod select_candidates {
 				core.next_up_on_time_out = Some(scheduled_core(10));
 				core.time_out_at = BLOCK_UNDER_PRODUCTION;
 			}),
-			// 11: Occupied(next_up_on_available and available, but different successor para_id)
+			// 11: Occupied(next_up_on_available and available, but different successor ally_id)
 			build_occupied_core(11, |core| {
 				core.next_up_on_available = Some(scheduled_core(12));
 				core.availability = core.availability.clone().not();
@@ -314,7 +314,7 @@ mod select_candidates {
 					tx.send(Ok(Some(BLOCK_UNDER_PRODUCTION - 1))).unwrap(),
 				AllMessages::RuntimeApi(Request(
 					_parent_hash,
-					PersistedValidationDataReq(_para_id, _assumption, tx),
+					PersistedValidationDataReq(_ally_id, _assumption, tx),
 				)) => tx.send(Ok(Some(Default::default()))).unwrap(),
 				AllMessages::RuntimeApi(Request(_parent_hash, AvailabilityCores(tx))) =>
 					tx.send(Ok(mock_availability_cores())).unwrap(),
@@ -361,7 +361,7 @@ mod select_candidates {
 			.take(mock_cores.len())
 			.enumerate()
 			.map(|(idx, mut candidate)| {
-				candidate.descriptor.para_id = idx.into();
+				candidate.descriptor.ally_id = idx.into();
 				candidate
 			})
 			.cycle()
@@ -376,8 +376,8 @@ mod select_candidates {
 					candidate.descriptor.persisted_validation_data_hash = Default::default();
 					candidate
 				} else {
-					// third go-around: right hash, wrong para_id
-					candidate.descriptor.para_id = idx.into();
+					// third go-around: right hash, wrong ally_id
+					candidate.descriptor.ally_id = idx.into();
 					candidate
 				}
 			})
@@ -433,7 +433,7 @@ mod select_candidates {
 		let committed_receipts: Vec<_> = (0..mock_cores.len())
 			.map(|i| {
 				let mut descriptor = dummy_candidate_descriptor(dummy_hash());
-				descriptor.para_id = i.into();
+				descriptor.ally_id = i.into();
 				descriptor.persisted_validation_data_hash = empty_hash;
 				CommittedCandidateReceipt {
 					descriptor,

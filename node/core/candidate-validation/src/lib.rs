@@ -347,7 +347,7 @@ where
 		let d = runtime_api_request(
 			sender,
 			descriptor.relay_parent,
-			RuntimeApiRequest::PersistedValidationData(descriptor.para_id, assumption, tx),
+			RuntimeApiRequest::PersistedValidationData(descriptor.ally_id, assumption, tx),
 			rx,
 		)
 		.await;
@@ -365,7 +365,7 @@ where
 		let validation_code = runtime_api_request(
 			sender,
 			descriptor.relay_parent,
-			RuntimeApiRequest::ValidationCode(descriptor.para_id, assumption, code_tx),
+			RuntimeApiRequest::ValidationCode(descriptor.ally_id, assumption, code_tx),
 			code_rx,
 		)
 		.await;
@@ -429,7 +429,7 @@ where
 			AssumptionCheckOutcome::Matches(validation_data, validation_code) =>
 				(validation_data, validation_code),
 			AssumptionCheckOutcome::DoesNotMatch => {
-				// If neither the assumption of the occupied core having the para included or the assumption
+				// If neither the assumption of the occupied core having the ally included or the assumption
 				// of the occupied core timing out are valid, then the persisted_validation_data_hash in the descriptor
 				// is not based on the relay parent and is thus invalid.
 				return Ok(ValidationResult::Invalid(InvalidCandidate::BadParent))
@@ -454,7 +454,7 @@ where
 		match runtime_api_request(
 			sender,
 			descriptor.relay_parent,
-			RuntimeApiRequest::CheckValidationOutputs(descriptor.para_id, outputs.clone(), tx),
+			RuntimeApiRequest::CheckValidationOutputs(descriptor.ally_id, outputs.clone(), tx),
 			rx,
 		)
 		.await
@@ -484,7 +484,7 @@ async fn validate_candidate_exhaustive(
 	tracing::debug!(
 		target: LOG_TARGET,
 		?validation_code_hash,
-		para_id = ?descriptor.para_id,
+		ally_id = ?descriptor.ally_id,
 		"About to validate a candidate.",
 	);
 

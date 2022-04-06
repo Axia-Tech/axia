@@ -25,7 +25,7 @@ use axia_node_primitives::{AvailableData, BlockData, ErasureChunk, PoV, Proof};
 use axia_primitives::{
 	v1::{
 		CandidateCommitments, CandidateDescriptor, CandidateHash, CommittedCandidateReceipt,
-		GroupIndex, Hash, HeadData, Id as ParaId, OccupiedCore, PersistedValidationData,
+		GroupIndex, Hash, HeadData, Id as AllyId, OccupiedCore, PersistedValidationData,
 		ValidatorIndex,
 	},
 	v2::SessionInfo,
@@ -75,7 +75,7 @@ pub fn make_session_info() -> SessionInfo {
 /// Takes all the values we care about and fills the rest with dummy values on `build`.
 pub struct OccupiedCoreBuilder {
 	pub group_responsible: GroupIndex,
-	pub para_id: ParaId,
+	pub ally_id: AllyId,
 	pub relay_parent: Hash,
 }
 
@@ -85,7 +85,7 @@ impl OccupiedCoreBuilder {
 		let pov_hash = pov.hash();
 		let (erasure_root, chunk) = get_valid_chunk_data(pov.clone());
 		let candidate_receipt = TestCandidateBuilder {
-			para_id: self.para_id,
+			ally_id: self.ally_id,
 			pov_hash,
 			relay_parent: self.relay_parent,
 			erasure_root,
@@ -108,7 +108,7 @@ impl OccupiedCoreBuilder {
 
 #[derive(Default)]
 pub struct TestCandidateBuilder {
-	para_id: ParaId,
+	ally_id: AllyId,
 	head_data: HeadData,
 	pov_hash: Hash,
 	relay_parent: Hash,
@@ -119,7 +119,7 @@ impl TestCandidateBuilder {
 	pub fn build(self) -> CommittedCandidateReceipt {
 		CommittedCandidateReceipt {
 			descriptor: CandidateDescriptor {
-				para_id: self.para_id,
+				ally_id: self.ally_id,
 				pov_hash: self.pov_hash,
 				relay_parent: self.relay_parent,
 				erasure_root: self.erasure_root,

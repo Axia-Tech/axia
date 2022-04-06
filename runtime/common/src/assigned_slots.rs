@@ -32,7 +32,7 @@ use frame_support::{pallet_prelude::*, traits::Currency};
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use primitives::v1::Id as ParaId;
+use primitives::v1::Id as AllyId;
 use runtime_allychains::{
 	configuration,
 	paras::{self},
@@ -122,7 +122,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn permanent_slots)]
 	pub type PermanentSlots<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, (LeasePeriodOf<T>, LeasePeriodOf<T>), OptionQuery>;
+		StorageMap<_, Twox64Concat, AllyId, (LeasePeriodOf<T>, LeasePeriodOf<T>), OptionQuery>;
 
 	/// Number of assigned (and active) permanent slots.
 	#[pallet::storage]
@@ -135,7 +135,7 @@ pub mod pallet {
 	pub type TemporarySlots<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
-		ParaId,
+		AllyId,
 		AllychainTemporarySlot<T::AccountId, LeasePeriodOf<T>>,
 		OptionQuery,
 	>;
@@ -153,10 +153,10 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// A para was assigned a permanent allychain slot
-		PermanentSlotAssigned(ParaId),
-		/// A para was assigned a temporary allychain slot
-		TemporarySlotAssigned(ParaId),
+		/// A ally was assigned a permanent allychain slot
+		PermanentSlotAssigned(AllyId),
+		/// A ally was assigned a temporary allychain slot
+		TemporarySlotAssigned(AllyId),
 	}
 
 	#[pallet::error]
@@ -201,7 +201,7 @@ pub mod pallet {
 		// TODO: Benchmark this
 		/// Assign a permanent allychain slot and immediately create a lease for it.
 		#[pallet::weight(((MAXIMUM_BLOCK_WEIGHT / 10) as Weight, DispatchClass::Operational))]
-		pub fn assign_perm_allychain_slot(origin: OriginFor<T>, id: ParaId) -> DispatchResult {
+		pub fn assign_perm_allychain_slot(origin: OriginFor<T>, id: AllyId) -> DispatchResult {
 			T::AssignSlotOrigin::ensure_origin(origin)?;
 
 			let manager = T::Registrar::manager_of(id).ok_or(Error::<T>::ParaDoesntExist)?;
@@ -261,7 +261,7 @@ pub mod pallet {
 		#[pallet::weight(((MAXIMUM_BLOCK_WEIGHT / 10) as Weight, DispatchClass::Operational))]
 		pub fn assign_temp_allychain_slot(
 			origin: OriginFor<T>,
-			id: ParaId,
+			id: AllyId,
 			lease_period_start: SlotLeasePeriodStart,
 		) -> DispatchResult {
 			T::AssignSlotOrigin::ensure_origin(origin)?;
@@ -324,7 +324,7 @@ pub mod pallet {
 						// Treat failed lease creation as warning .. slot will be allocated a lease
 						// in a subsequent lease period by the `allocate_temporary_slot_leases` function.
 						log::warn!(target: "assigned_slots",
-							"Failed to allocate a temp slot for para {:?} at period {:?}: {:?}",
+							"Failed to allocate a temp slot for ally {:?} at period {:?}: {:?}",
 							id, current_lease_period, err
 						);
 					},
@@ -342,7 +342,7 @@ pub mod pallet {
 		// TODO: Benchmark this
 		/// Unassign a permanent or temporary allychain slot
 		#[pallet::weight(((MAXIMUM_BLOCK_WEIGHT / 10) as Weight, DispatchClass::Operational))]
-		pub fn unassign_allychain_slot(origin: OriginFor<T>, id: ParaId) -> DispatchResult {
+		pub fn unassign_allychain_slot(origin: OriginFor<T>, id: AllyId) -> DispatchResult {
 			T::AssignSlotOrigin::ensure_origin(origin.clone())?;
 
 			ensure!(
@@ -350,7 +350,7 @@ pub mod pallet {
 				Error::<T>::SlotNotAssigned
 			);
 
-			// Check & cache para status before we clear the lease
+			// Check & cache ally status before we clear the lease
 			let is_allychain = Self::is_allychain(id);
 
 			// Remove perm or temp slot
@@ -395,7 +395,7 @@ impl<T: Config> Pallet<T> {
 	/// - Assigned slots that already had one (or more) turn(s): they will be considered for the
 	/// current slot lease if they weren't active in the preceding one, and will be ranked by
 	/// total number of lease (lower first), and then when they last a turn (older ones first).
-	/// If any remaining ex-aequo, we just take the para ID in ascending order as discriminator.
+	/// If any remaining ex-aequo, we just take the ally ID in ascending order as discriminator.
 	///
 	/// Assigned slots with a `period_begin` bigger than current lease period are not considered (yet).
 	///
@@ -433,7 +433,7 @@ impl<T: Config> Pallet<T> {
 			!pending_temp_slots.is_empty()
 		{
 			// Sort by lease_count, favoring slots that had no or less turns first
-			// (then by last_lease index, and then Para ID)
+			// (then by last_lease index, and then Ally ID)
 			pending_temp_slots.sort_by(|a, b| {
 				a.1.lease_count
 					.cmp(&b.1.lease_count)
@@ -480,14 +480,14 @@ impl<T: Config> Pallet<T> {
 
 	/// Clear out all slot leases for both permanent & temporary slots.
 	/// The function merely calls out to `Slots::clear_all_leases`.
-	fn clear_slot_leases(origin: OriginFor<T>, id: ParaId) -> DispatchResult {
+	fn clear_slot_leases(origin: OriginFor<T>, id: AllyId) -> DispatchResult {
 		Slots::<T>::clear_all_leases(origin, id)
 	}
 
 	/// Create a allychain slot lease based on given params.
 	/// The function merely calls out to `Leaser::lease_out`.
 	fn configure_slot_lease(
-		para: ParaId,
+		para: AllyId,
 		manager: T::AccountId,
 		lease_period: LeasePeriodOf<T>,
 		lease_duration: LeasePeriodOf<T>,
@@ -495,18 +495,18 @@ impl<T: Config> Pallet<T> {
 		T::Leaser::lease_out(para, &manager, BalanceOf::<T>::zero(), lease_period, lease_duration)
 	}
 
-	/// Returns whether a para has been assigned a permanent slot.
-	fn has_permanent_slot(id: ParaId) -> bool {
+	/// Returns whether a ally has been assigned a permanent slot.
+	fn has_permanent_slot(id: AllyId) -> bool {
 		PermanentSlots::<T>::contains_key(id)
 	}
 
-	/// Returns whether a para has been assigned temporary slot.
-	fn has_temporary_slot(id: ParaId) -> bool {
+	/// Returns whether a ally has been assigned temporary slot.
+	fn has_temporary_slot(id: AllyId) -> bool {
 		TemporarySlots::<T>::contains_key(id)
 	}
 
-	/// Returns whether a para is currently a allychain.
-	fn is_allychain(id: ParaId) -> bool {
+	/// Returns whether a ally is currently a allychain.
+	fn is_allychain(id: AllyId) -> bool {
 		T::Registrar::is_allychain(id)
 	}
 
@@ -738,7 +738,7 @@ mod tests {
 			run_to_block(1);
 
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),),
 				Error::<Test>::ParaDoesntExist
 			);
 		});
@@ -750,7 +750,7 @@ mod tests {
 			run_to_block(1);
 
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::signed(1), ParaId::from(1),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::signed(1), AllyId::from(1),),
 				BadOrigin
 			);
 		});
@@ -763,14 +763,14 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
-			assert_ok!(TestRegistrar::<Test>::make_allychain(ParaId::from(1)));
+			assert_ok!(TestRegistrar::<Test>::make_allychain(AllyId::from(1)));
 
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),),
 				Error::<Test>::NotAllythread
 			);
 		});
@@ -783,16 +783,16 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
 			// Register lease in current lease period
-			assert_ok!(Slots::lease_out(ParaId::from(1), &1, 1, 1, 1));
+			assert_ok!(Slots::lease_out(AllyId::from(1), &1, 1, 1, 1));
 			// Try to assign a perm slot in current period fails
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),),
 				Error::<Test>::OngoingLeaseExists
 			);
 
@@ -800,10 +800,10 @@ mod tests {
 			assert_ok!(Slots::clear_all_leases(Origin::root(), 1.into()));
 
 			// Register lease for next lease period
-			assert_ok!(Slots::lease_out(ParaId::from(1), &1, 1, 2, 1));
+			assert_ok!(Slots::lease_out(AllyId::from(1), &1, 1, 2, 1));
 			// Should be detected and also fail
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),),
 				Error::<Test>::OngoingLeaseExists
 			);
 		});
@@ -816,31 +816,31 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				2,
-				ParaId::from(2),
+				AllyId::from(2),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				3,
-				ParaId::from(3),
+				AllyId::from(3),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
-			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),));
-			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(2),));
+			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),));
+			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(2),));
 			assert_eq!(AssignedSlots::permanent_slot_count(), 2);
 
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(3),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(3),),
 				Error::<Test>::MaxPermanentSlotsExceeded
 			);
 		});
@@ -853,35 +853,35 @@ mod tests {
 			run_to_block(block);
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
 			assert_eq!(AssignedSlots::permanent_slot_count(), 0);
-			assert_eq!(AssignedSlots::permanent_slots(ParaId::from(1)), None);
+			assert_eq!(AssignedSlots::permanent_slots(AllyId::from(1)), None);
 
-			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),));
+			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),));
 
-			// Para is a allychain for PermanentSlotLeasePeriodLength * LeasePeriod blocks
+			// Ally is a allychain for PermanentSlotLeasePeriodLength * LeasePeriod blocks
 			while block < 9 {
 				println!("block #{}", block);
 
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
 
 				assert_eq!(AssignedSlots::permanent_slot_count(), 1);
-				assert_eq!(AssignedSlots::has_permanent_slot(ParaId::from(1)), true);
-				assert_eq!(AssignedSlots::permanent_slots(ParaId::from(1)), Some((0, 3)));
+				assert_eq!(AssignedSlots::has_permanent_slot(AllyId::from(1)), true);
+				assert_eq!(AssignedSlots::permanent_slots(AllyId::from(1)), Some((0, 3)));
 
-				assert_eq!(Slots::already_leased(ParaId::from(1), 0, 2), true);
+				assert_eq!(Slots::already_leased(AllyId::from(1), 0, 2), true);
 
 				block += 1;
 				run_to_block(block);
 			}
 
-			// Para lease ended, downgraded back to allythread
-			assert_eq!(TestRegistrar::<Test>::is_allythread(ParaId::from(1)), true);
-			assert_eq!(Slots::already_leased(ParaId::from(1), 0, 5), false);
+			// Ally lease ended, downgraded back to allythread
+			assert_eq!(TestRegistrar::<Test>::is_allythread(AllyId::from(1)), true);
+			assert_eq!(Slots::already_leased(AllyId::from(1), 0, 5), false);
 		});
 	}
 
@@ -893,7 +893,7 @@ mod tests {
 			assert_noop!(
 				AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(1),
+					AllyId::from(1),
 					SlotLeasePeriodStart::Current
 				),
 				Error::<Test>::ParaDoesntExist
@@ -909,7 +909,7 @@ mod tests {
 			assert_noop!(
 				AssignedSlots::assign_temp_allychain_slot(
 					Origin::signed(1),
-					ParaId::from(1),
+					AllyId::from(1),
 					SlotLeasePeriodStart::Current
 				),
 				BadOrigin
@@ -924,16 +924,16 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
-			assert_ok!(TestRegistrar::<Test>::make_allychain(ParaId::from(1)));
+			assert_ok!(TestRegistrar::<Test>::make_allychain(AllyId::from(1)));
 
 			assert_noop!(
 				AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(1),
+					AllyId::from(1),
 					SlotLeasePeriodStart::Current
 				),
 				Error::<Test>::NotAllythread
@@ -948,18 +948,18 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
 			// Register lease in current lease period
-			assert_ok!(Slots::lease_out(ParaId::from(1), &1, 1, 1, 1));
+			assert_ok!(Slots::lease_out(AllyId::from(1), &1, 1, 1, 1));
 			// Try to assign a perm slot in current period fails
 			assert_noop!(
 				AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(1),
+					AllyId::from(1),
 					SlotLeasePeriodStart::Current
 				),
 				Error::<Test>::OngoingLeaseExists
@@ -969,12 +969,12 @@ mod tests {
 			assert_ok!(Slots::clear_all_leases(Origin::root(), 1.into()));
 
 			// Register lease for next lease period
-			assert_ok!(Slots::lease_out(ParaId::from(1), &1, 1, 2, 1));
+			assert_ok!(Slots::lease_out(AllyId::from(1), &1, 1, 2, 1));
 			// Should be detected and also fail
 			assert_noop!(
 				AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(1),
+					AllyId::from(1),
 					SlotLeasePeriodStart::Current
 				),
 				Error::<Test>::OngoingLeaseExists
@@ -991,14 +991,14 @@ mod tests {
 			for n in 0..=5 {
 				assert_ok!(TestRegistrar::<Test>::register(
 					n,
-					ParaId::from(n as u32),
+					AllyId::from(n as u32),
 					dummy_head_data(),
 					dummy_validation_code()
 				));
 
 				assert_ok!(AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(n as u32),
+					AllyId::from(n as u32),
 					SlotLeasePeriodStart::Current
 				));
 			}
@@ -1008,14 +1008,14 @@ mod tests {
 			// Attempt to assign one more temp slot
 			assert_ok!(TestRegistrar::<Test>::register(
 				7,
-				ParaId::from(7),
+				AllyId::from(7),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 			assert_noop!(
 				AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(7),
+					AllyId::from(7),
 					SlotLeasePeriodStart::Current
 				),
 				Error::<Test>::MaxTemporarySlotsExceeded
@@ -1030,34 +1030,34 @@ mod tests {
 			run_to_block(block);
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
-			assert_eq!(AssignedSlots::temporary_slots(ParaId::from(1)), None);
+			assert_eq!(AssignedSlots::temporary_slots(AllyId::from(1)), None);
 
 			assert_ok!(AssignedSlots::assign_temp_allychain_slot(
 				Origin::root(),
-				ParaId::from(1),
+				AllyId::from(1),
 				SlotLeasePeriodStart::Current
 			));
 			assert_eq!(AssignedSlots::temporary_slot_count(), 1);
 			assert_eq!(AssignedSlots::active_temporary_slot_count(), 1);
 
 			// Block 1-5
-			// Para is a allychain for TemporarySlotLeasePeriodLength * LeasePeriod blocks
+			// Ally is a allychain for TemporarySlotLeasePeriodLength * LeasePeriod blocks
 			while block < 6 {
 				println!("block #{}", block);
 				println!("lease period #{}", AssignedSlots::current_lease_period_index());
-				println!("lease {:?}", Slots::lease(ParaId::from(1)));
+				println!("lease {:?}", Slots::lease(AllyId::from(1)));
 
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
 
-				assert_eq!(AssignedSlots::has_temporary_slot(ParaId::from(1)), true);
+				assert_eq!(AssignedSlots::has_temporary_slot(AllyId::from(1)), true);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 1);
 				assert_eq!(
-					AssignedSlots::temporary_slots(ParaId::from(1)),
+					AssignedSlots::temporary_slots(AllyId::from(1)),
 					Some(AllychainTemporarySlot {
 						manager: 1,
 						period_begin: 0,
@@ -1067,7 +1067,7 @@ mod tests {
 					})
 				);
 
-				assert_eq!(Slots::already_leased(ParaId::from(1), 0, 1), true);
+				assert_eq!(Slots::already_leased(AllyId::from(1), 0, 1), true);
 
 				block += 1;
 				run_to_block(block);
@@ -1076,22 +1076,22 @@ mod tests {
 			// Block 6
 			println!("block #{}", block);
 			println!("lease period #{}", AssignedSlots::current_lease_period_index());
-			println!("lease {:?}", Slots::lease(ParaId::from(1)));
+			println!("lease {:?}", Slots::lease(AllyId::from(1)));
 
-			// Para lease ended, downgraded back to allythread
-			assert_eq!(TestRegistrar::<Test>::is_allythread(ParaId::from(1)), true);
-			assert_eq!(Slots::already_leased(ParaId::from(1), 0, 3), false);
+			// Ally lease ended, downgraded back to allythread
+			assert_eq!(TestRegistrar::<Test>::is_allythread(AllyId::from(1)), true);
+			assert_eq!(Slots::already_leased(AllyId::from(1), 0, 3), false);
 			assert_eq!(AssignedSlots::active_temporary_slot_count(), 0);
 
 			// Block 12
-			// Para should get a turn after TemporarySlotLeasePeriodLength * LeasePeriod blocks
+			// Ally should get a turn after TemporarySlotLeasePeriodLength * LeasePeriod blocks
 			run_to_block(12);
 			println!("block #{}", block);
 			println!("lease period #{}", AssignedSlots::current_lease_period_index());
-			println!("lease {:?}", Slots::lease(ParaId::from(1)));
+			println!("lease {:?}", Slots::lease(AllyId::from(1)));
 
-			assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
-			assert_eq!(Slots::already_leased(ParaId::from(1), 4, 5), true);
+			assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
+			assert_eq!(Slots::already_leased(AllyId::from(1), 4, 5), true);
 			assert_eq!(AssignedSlots::active_temporary_slot_count(), 1);
 		});
 	}
@@ -1107,14 +1107,14 @@ mod tests {
 			for n in 0..=5 {
 				assert_ok!(TestRegistrar::<Test>::register(
 					n,
-					ParaId::from(n as u32),
+					AllyId::from(n as u32),
 					dummy_head_data(),
 					dummy_validation_code()
 				));
 
 				assert_ok!(AssignedSlots::assign_temp_allychain_slot(
 					Origin::root(),
-					ParaId::from(n as u32),
+					AllyId::from(n as u32),
 					if (n % 2).is_zero() {
 						SlotLeasePeriodStart::Current
 					} else {
@@ -1128,72 +1128,72 @@ mod tests {
 				if n > 1 {
 					run_to_block(n);
 				}
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(0)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(2)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(3)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(4)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(5)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(0)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(2)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(3)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(4)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(5)), false);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 2);
 			}
 
 			// Block 6-11, Period 2-3
 			for n in 6..=11 {
 				run_to_block(n);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(0)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(2)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(3)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(4)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(5)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(0)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(2)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(3)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(4)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(5)), false);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 2);
 			}
 
 			// Block 12-17, Period 4-5
 			for n in 12..=17 {
 				run_to_block(n);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(0)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(2)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(3)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(4)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(5)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(0)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(2)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(3)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(4)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(5)), true);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 2);
 			}
 
 			// Block 18-23, Period 6-7
 			for n in 18..=23 {
 				run_to_block(n);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(0)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(2)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(3)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(4)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(5)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(0)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(2)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(3)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(4)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(5)), false);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 2);
 			}
 
 			// Block 24-29, Period 8-9
 			for n in 24..=29 {
 				run_to_block(n);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(0)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(2)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(3)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(4)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(5)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(0)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(2)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(3)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(4)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(5)), false);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 2);
 			}
 
 			// Block 30-35, Period 10-11
 			for n in 30..=35 {
 				run_to_block(n);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(0)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(2)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(3)), false);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(4)), true);
-				assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(5)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(0)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(2)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(3)), false);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(4)), true);
+				assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(5)), true);
 				assert_eq!(AssignedSlots::active_temporary_slot_count(), 2);
 			}
 		});
@@ -1205,7 +1205,7 @@ mod tests {
 			run_to_block(1);
 
 			assert_noop!(
-				AssignedSlots::unassign_allychain_slot(Origin::root(), ParaId::from(1),),
+				AssignedSlots::unassign_allychain_slot(Origin::root(), AllyId::from(1),),
 				Error::<Test>::SlotNotAssigned
 			);
 		});
@@ -1217,7 +1217,7 @@ mod tests {
 			run_to_block(1);
 
 			assert_noop!(
-				AssignedSlots::assign_perm_allychain_slot(Origin::signed(1), ParaId::from(1),),
+				AssignedSlots::assign_perm_allychain_slot(Origin::signed(1), AllyId::from(1),),
 				BadOrigin
 			);
 		});
@@ -1230,22 +1230,22 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
-			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), ParaId::from(1),));
+			assert_ok!(AssignedSlots::assign_perm_allychain_slot(Origin::root(), AllyId::from(1),));
 
-			assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
+			assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
 
-			assert_ok!(AssignedSlots::unassign_allychain_slot(Origin::root(), ParaId::from(1),));
+			assert_ok!(AssignedSlots::unassign_allychain_slot(Origin::root(), AllyId::from(1),));
 
 			assert_eq!(AssignedSlots::permanent_slot_count(), 0);
-			assert_eq!(AssignedSlots::has_permanent_slot(ParaId::from(1)), false);
-			assert_eq!(AssignedSlots::permanent_slots(ParaId::from(1)), None);
+			assert_eq!(AssignedSlots::has_permanent_slot(AllyId::from(1)), false);
+			assert_eq!(AssignedSlots::permanent_slots(AllyId::from(1)), None);
 
-			assert_eq!(Slots::already_leased(ParaId::from(1), 0, 2), false);
+			assert_eq!(Slots::already_leased(AllyId::from(1), 0, 2), false);
 		});
 	}
 
@@ -1256,27 +1256,27 @@ mod tests {
 
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
-				ParaId::from(1),
+				AllyId::from(1),
 				dummy_head_data(),
 				dummy_validation_code(),
 			));
 
 			assert_ok!(AssignedSlots::assign_temp_allychain_slot(
 				Origin::root(),
-				ParaId::from(1),
+				AllyId::from(1),
 				SlotLeasePeriodStart::Current
 			));
 
-			assert_eq!(TestRegistrar::<Test>::is_allychain(ParaId::from(1)), true);
+			assert_eq!(TestRegistrar::<Test>::is_allychain(AllyId::from(1)), true);
 
-			assert_ok!(AssignedSlots::unassign_allychain_slot(Origin::root(), ParaId::from(1),));
+			assert_ok!(AssignedSlots::unassign_allychain_slot(Origin::root(), AllyId::from(1),));
 
 			assert_eq!(AssignedSlots::temporary_slot_count(), 0);
 			assert_eq!(AssignedSlots::active_temporary_slot_count(), 0);
-			assert_eq!(AssignedSlots::has_temporary_slot(ParaId::from(1)), false);
-			assert_eq!(AssignedSlots::temporary_slots(ParaId::from(1)), None);
+			assert_eq!(AssignedSlots::has_temporary_slot(AllyId::from(1)), false);
+			assert_eq!(AssignedSlots::temporary_slots(AllyId::from(1)), None);
 
-			assert_eq!(Slots::already_leased(ParaId::from(1), 0, 1), false);
+			assert_eq!(Slots::already_leased(AllyId::from(1), 0, 1), false);
 		});
 	}
 }

@@ -90,7 +90,7 @@ mod enter {
 			// candidates.
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (2 validators)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 2);
 			// * 1 backed candidate per core (2 cores)
@@ -258,7 +258,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (5 validators per core, 3 disputes => 3 cores, 15 validators)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 15);
 			// * 0 backed candidate per core
@@ -332,7 +332,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (6 validators per core, 3 disputes => 18 validators)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 18);
 			// * 0 backed candidate per core
@@ -402,7 +402,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (6 validators per core, 3 disputes => 18 validators)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 18);
 			// * 0 backed candidate per core
@@ -451,7 +451,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (4 validators per core, 2 backed candidates, 3 disputes => 4*5 = 20)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 20);
 			// * 2 backed candidates
@@ -532,7 +532,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (4 validators per core, 2 backed candidates, 3 disputes => 4*5 = 20)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 20);
 			// * 2 backed candidates
@@ -588,7 +588,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (5 validators per core, 2 backed candidates, 3 disputes => 4*5 = 20),
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 25);
 			// * 2 backed candidates,
@@ -676,7 +676,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (5 validators per core, 2 backed candidates, 3 disputes => 5*5 = 25)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 25);
 			// * 2 backed candidates
@@ -762,7 +762,7 @@ mod enter {
 			let expected_para_inherent_data = scenario.data.clone();
 			assert!(max_block_weight() < inherent_data_weight(&expected_para_inherent_data));
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (5 validators per core, 2 backed candidates, 3 disputes => 5*5 = 25)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 25);
 			// * 2 backed candidates
@@ -842,7 +842,7 @@ mod enter {
 
 			let expected_para_inherent_data = scenario.data.clone();
 
-			// Check the para inherent data is as expected:
+			// Check the ally inherent data is as expected:
 			// * 1 bitfield per validator (5 validators per core, 2 backed candidates, 3 disputes => 5*5 = 25)
 			assert_eq!(expected_para_inherent_data.bitfields.len(), 25);
 			// * 2 backed candidates
@@ -879,7 +879,7 @@ mod sanitizers {
 	};
 	use bitvec::order::Lsb0;
 	use primitives::v1::{
-		AvailabilityBitfield, GroupIndex, Hash, Id as ParaId, SignedAvailabilityBitfield,
+		AvailabilityBitfield, GroupIndex, Hash, Id as AllyId, SignedAvailabilityBitfield,
 		ValidatorIndex,
 	};
 	use sp_core::crypto::UncheckedFrom;
@@ -1171,7 +1171,7 @@ mod sanitizers {
 				let ca = CoreAssignment {
 					kind: scheduler::AssignmentKind::Allychain,
 					group_idx: GroupIndex::from(idx as u32),
-					para_id: ParaId::from(1_u32 + idx as u32),
+					ally_id: AllyId::from(1_u32 + idx as u32),
 					core: CoreIndex::from(idx as u32),
 				};
 				ca
@@ -1193,7 +1193,7 @@ mod sanitizers {
 			.map(|idx0| {
 				let idx1 = idx0 + 1;
 				let mut candidate = TestCandidateBuilder {
-					para_id: ParaId::from(idx1),
+					ally_id: AllyId::from(idx1),
 					relay_parent,
 					pov_hash: Hash::repeat_byte(idx1 as u8),
 					persisted_validation_data_hash: [42u8; 32].into(),
@@ -1227,7 +1227,7 @@ mod sanitizers {
 			backed_candidates
 		);
 
-		// nothing is scheduled, so no paraids match, thus all backed candidates are skipped
+		// nothing is scheduled, so no allyids match, thus all backed candidates are skipped
 		{
 			let scheduled = &[][..];
 			assert!(sanitize_backed_candidates::<Test, _>(

@@ -25,7 +25,7 @@ use futures::future::Future;
 use axia_node_primitives::{CollationGenerationConfig, CollatorFn};
 use axia_node_subsystem::messages::{CollationGenerationMessage, CollatorProtocolMessage};
 use axia_overseer::Handle;
-use axia_primitives::v1::{Balance, CollatorPair, HeadData, Id as ParaId, ValidationCode};
+use axia_primitives::v1::{Balance, CollatorPair, HeadData, Id as AllyId, ValidationCode};
 use axia_runtime_common::BlockHashCount;
 use axia_runtime_allychains::paras::ParaGenesisArgs;
 use axia_service::{
@@ -288,7 +288,7 @@ impl AxiaTestNode {
 	/// Register a allychain at this relay chain.
 	pub async fn register_allychain(
 		&self,
-		id: ParaId,
+		id: AllyId,
 		validation_code: impl Into<ValidationCode>,
 		genesis_head: impl Into<HeadData>,
 	) -> Result<(), RpcTransactionError> {
@@ -316,17 +316,17 @@ impl AxiaTestNode {
 	pub async fn register_collator(
 		&mut self,
 		collator_key: CollatorPair,
-		para_id: ParaId,
+		ally_id: AllyId,
 		collator: CollatorFn,
 	) {
-		let config = CollationGenerationConfig { key: collator_key, collator, para_id };
+		let config = CollationGenerationConfig { key: collator_key, collator, ally_id };
 
 		self.overseer_handle
 			.send_msg(CollationGenerationMessage::Initialize(config), "Collator")
 			.await;
 
 		self.overseer_handle
-			.send_msg(CollatorProtocolMessage::CollateOn(para_id), "Collator")
+			.send_msg(CollatorProtocolMessage::CollateOn(ally_id), "Collator")
 			.await;
 	}
 }

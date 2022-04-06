@@ -648,7 +648,7 @@ fn alphanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> alphanet::Gene
 		},
 		paras: Default::default(),
 		registrar: alphanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 	}
@@ -1141,7 +1141,7 @@ fn betanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> betanet_runtime
 			config: default_allychains_host_configuration(),
 		},
 		registrar: betanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 		transaction_payment: Default::default(),
@@ -1582,7 +1582,7 @@ pub fn alphanet_testnet_genesis(
 		},
 		paras: Default::default(),
 		registrar: alphanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 	}
@@ -1656,7 +1656,7 @@ pub fn betanet_testnet_genesis(
 		},
 		paras: betanet_runtime::ParasConfig { paras: vec![] },
 		registrar: betanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 		transaction_payment: Default::default(),

@@ -20,7 +20,7 @@ use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 use parity_scale_codec::Encode;
-use primitives::v1::Id as ParaId;
+use primitives::v1::Id as AllyId;
 use runtime_allychains::{
 	configuration, dmp, hrmp,
 	paras::{self, ParaGenesisArgs},
@@ -52,7 +52,7 @@ pub mod pallet {
 		/// A DMP message couldn't be sent because it exceeds the maximum size allowed for a downward
 		/// message.
 		ExceedsMaxMessageSize,
-		/// Could not schedule para cleanup.
+		/// Could not schedule ally cleanup.
 		CouldntCleanup,
 		/// Not a allythread.
 		NotAllythread,
@@ -69,11 +69,11 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Schedule a para to be initialized at the start of the next session.
+		/// Schedule a ally to be initialized at the start of the next session.
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_schedule_para_initialize(
 			origin: OriginFor<T>,
-			id: ParaId,
+			id: AllyId,
 			genesis: ParaGenesisArgs,
 		) -> DispatchResult {
 			ensure_root(origin)?;
@@ -82,9 +82,9 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Schedule a para to be cleaned up at the start of the next session.
+		/// Schedule a ally to be cleaned up at the start of the next session.
 		#[pallet::weight((1_000, DispatchClass::Operational))]
-		pub fn sudo_schedule_para_cleanup(origin: OriginFor<T>, id: ParaId) -> DispatchResult {
+		pub fn sudo_schedule_para_cleanup(origin: OriginFor<T>, id: AllyId) -> DispatchResult {
 			ensure_root(origin)?;
 			runtime_allychains::schedule_para_cleanup::<T>(id)
 				.map_err(|_| Error::<T>::CouldntCleanup)?;
@@ -95,10 +95,10 @@ pub mod pallet {
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_schedule_allythread_upgrade(
 			origin: OriginFor<T>,
-			id: ParaId,
+			id: AllyId,
 		) -> DispatchResult {
 			ensure_root(origin)?;
-			// Para backend should think this is a allythread...
+			// Ally backend should think this is a allythread...
 			ensure!(
 				paras::Pallet::<T>::lifecycle(id) == Some(ParaLifecycle::Allythread),
 				Error::<T>::NotAllythread,
@@ -112,10 +112,10 @@ pub mod pallet {
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_schedule_allychain_downgrade(
 			origin: OriginFor<T>,
-			id: ParaId,
+			id: AllyId,
 		) -> DispatchResult {
 			ensure_root(origin)?;
-			// Para backend should think this is a allychain...
+			// Ally backend should think this is a allychain...
 			ensure!(
 				paras::Pallet::<T>::lifecycle(id) == Some(ParaLifecycle::Allychain),
 				Error::<T>::NotAllychain,
@@ -132,7 +132,7 @@ pub mod pallet {
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_queue_downward_xcm(
 			origin: OriginFor<T>,
-			id: ParaId,
+			id: AllyId,
 			xcm: Box<xcm::opaque::VersionedXcm>,
 		) -> DispatchResult {
 			ensure_root(origin)?;
@@ -152,8 +152,8 @@ pub mod pallet {
 		#[pallet::weight((1_000, DispatchClass::Operational))]
 		pub fn sudo_establish_hrmp_channel(
 			origin: OriginFor<T>,
-			sender: ParaId,
-			recipient: ParaId,
+			sender: AllyId,
+			recipient: AllyId,
 			max_capacity: u32,
 			max_message_size: u32,
 		) -> DispatchResult {
