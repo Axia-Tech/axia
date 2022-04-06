@@ -149,24 +149,24 @@ sp_api::decl_runtime_apis! {
 		/// Cores are either free or occupied. Free cores can have paras assigned to them.
 		fn availability_cores() -> Vec<v1::CoreState<H, N>>;
 
-		/// Yields the persisted validation data for the given `ParaId` along with an assumption that
-		/// should be used if the para currently occupies a core.
+		/// Yields the persisted validation data for the given `AllyId` along with an assumption that
+		/// should be used if the ally currently occupies a core.
 		///
-		/// Returns `None` if either the para is not registered or the assumption is `Freed`
-		/// and the para already occupies a core.
-		fn persisted_validation_data(para_id: v1::Id, assumption: v1::OccupiedCoreAssumption)
+		/// Returns `None` if either the ally is not registered or the assumption is `Freed`
+		/// and the ally already occupies a core.
+		fn persisted_validation_data(ally_id: v1::Id, assumption: v1::OccupiedCoreAssumption)
 			-> Option<v1::PersistedValidationData<H, N>>;
 
-		/// Returns the persisted validation data for the given `ParaId` along with the corresponding
+		/// Returns the persisted validation data for the given `AllyId` along with the corresponding
 		/// validation code hash. Instead of accepting assumption about the para, matches the validation
 		/// data hash against an expected one and yields `None` if they're not equal.
 		fn assumed_validation_data(
-			para_id: v1::Id,
+			ally_id: v1::Id,
 			expected_persisted_validation_data_hash: v1::Hash,
 		) -> Option<(v1::PersistedValidationData<H, N>, v1::ValidationCodeHash)>;
 
 		/// Checks if the given validation outputs pass the acceptance criteria.
-		fn check_validation_outputs(para_id: v1::Id, outputs: v1::CandidateCommitments) -> bool;
+		fn check_validation_outputs(ally_id: v1::Id, outputs: v1::CandidateCommitments) -> bool;
 
 		/// Returns the session index expected at a child of the block.
 		///
@@ -179,14 +179,14 @@ sp_api::decl_runtime_apis! {
 
 		/// Fetch the validation code used by a para, making the given `OccupiedCoreAssumption`.
 		///
-		/// Returns `None` if either the para is not registered or the assumption is `Freed`
-		/// and the para already occupies a core.
-		fn validation_code(para_id: v1::Id, assumption: v1::OccupiedCoreAssumption)
+		/// Returns `None` if either the ally is not registered or the assumption is `Freed`
+		/// and the ally already occupies a core.
+		fn validation_code(ally_id: v1::Id, assumption: v1::OccupiedCoreAssumption)
 			-> Option<v1::ValidationCode>;
 
 		/// Get the receipt of a candidate pending availability. This returns `Some` for any paras
 		/// assigned to occupied cores in `availability_cores` and `None` otherwise.
-		fn candidate_pending_availability(para_id: v1::Id) -> Option<v1::CommittedCandidateReceipt<H>>;
+		fn candidate_pending_availability(ally_id: v1::Id) -> Option<v1::CommittedCandidateReceipt<H>>;
 
 		/// Get a vector of events concerning candidates that occurred within a block.
 		fn candidate_events() -> Vec<v1::CandidateEvent<H>>;
@@ -226,7 +226,7 @@ sp_api::decl_runtime_apis! {
 		/// Fetch the hash of the validation code used by a para, making the given `OccupiedCoreAssumption`.
 		///
 		/// NOTE: This function is only available since allychain host version 2.
-		fn validation_code_hash(para_id: v1::Id, assumption: v1::OccupiedCoreAssumption)
+		fn validation_code_hash(ally_id: v1::Id, assumption: v1::OccupiedCoreAssumption)
 			-> Option<v1::ValidationCodeHash>;
 	}
 }

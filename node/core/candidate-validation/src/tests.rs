@@ -33,10 +33,10 @@ fn correctly_checks_included_assumption() {
 
 	let persisted_validation_data_hash = validation_data.hash();
 	let relay_parent = [2; 32].into();
-	let para_id = 5.into();
+	let ally_id = 5.into();
 
 	let descriptor = make_valid_candidate_descriptor(
-		para_id,
+		ally_id,
 		relay_parent,
 		persisted_validation_data_hash,
 		dummy_hash(),
@@ -69,7 +69,7 @@ fn correctly_checks_included_assumption() {
 				),
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(Some(validation_data.clone())));
 			}
@@ -82,7 +82,7 @@ fn correctly_checks_included_assumption() {
 				RuntimeApiRequest::ValidationCode(p, OccupiedCoreAssumption::Included, tx)
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(Some(validation_code.clone())));
 			}
@@ -105,10 +105,10 @@ fn correctly_checks_timed_out_assumption() {
 
 	let persisted_validation_data_hash = validation_data.hash();
 	let relay_parent = [2; 32].into();
-	let para_id = 5.into();
+	let ally_id = 5.into();
 
 	let descriptor = make_valid_candidate_descriptor(
-		para_id,
+		ally_id,
 		relay_parent,
 		persisted_validation_data_hash,
 		dummy_hash(),
@@ -141,7 +141,7 @@ fn correctly_checks_timed_out_assumption() {
 				),
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(Some(validation_data.clone())));
 			}
@@ -154,7 +154,7 @@ fn correctly_checks_timed_out_assumption() {
 				RuntimeApiRequest::ValidationCode(p, OccupiedCoreAssumption::TimedOut, tx)
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(Some(validation_code.clone())));
 			}
@@ -175,10 +175,10 @@ fn check_is_bad_request_if_no_validation_data() {
 	let validation_data: PersistedValidationData = Default::default();
 	let persisted_validation_data_hash = validation_data.hash();
 	let relay_parent = [2; 32].into();
-	let para_id = 5.into();
+	let ally_id = 5.into();
 
 	let descriptor = make_valid_candidate_descriptor(
-		para_id,
+		ally_id,
 		relay_parent,
 		persisted_validation_data_hash,
 		dummy_hash(),
@@ -211,7 +211,7 @@ fn check_is_bad_request_if_no_validation_data() {
 				),
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(None));
 			}
@@ -229,10 +229,10 @@ fn check_is_bad_request_if_no_validation_code() {
 	let validation_data: PersistedValidationData = Default::default();
 	let persisted_validation_data_hash = validation_data.hash();
 	let relay_parent = [2; 32].into();
-	let para_id = 5.into();
+	let ally_id = 5.into();
 
 	let descriptor = make_valid_candidate_descriptor(
-		para_id,
+		ally_id,
 		relay_parent,
 		persisted_validation_data_hash,
 		dummy_hash(),
@@ -265,7 +265,7 @@ fn check_is_bad_request_if_no_validation_code() {
 				),
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(Some(validation_data.clone())));
 			}
@@ -278,7 +278,7 @@ fn check_is_bad_request_if_no_validation_code() {
 				RuntimeApiRequest::ValidationCode(p, OccupiedCoreAssumption::TimedOut, tx)
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(None));
 			}
@@ -295,10 +295,10 @@ fn check_is_bad_request_if_no_validation_code() {
 fn check_does_not_match() {
 	let validation_data: PersistedValidationData = Default::default();
 	let relay_parent = [2; 32].into();
-	let para_id = 5.into();
+	let ally_id = 5.into();
 
 	let descriptor = make_valid_candidate_descriptor(
-		para_id,
+		ally_id,
 		relay_parent,
 		Hash::from([3; 32]),
 		dummy_hash(),
@@ -331,7 +331,7 @@ fn check_does_not_match() {
 				),
 			)) => {
 				assert_eq!(rp, relay_parent);
-				assert_eq!(p, para_id);
+				assert_eq!(p, ally_id);
 
 				let _ = tx.send(Ok(Some(validation_data.clone())));
 			}

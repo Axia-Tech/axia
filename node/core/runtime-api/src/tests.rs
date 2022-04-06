@@ -23,7 +23,7 @@ use axia_node_subsystem_test_helpers::make_subsystem_context;
 use axia_primitives::{
 	v1::{
 		AuthorityDiscoveryId, CandidateEvent, CommittedCandidateReceipt, CoreState,
-		GroupRotationInfo, Id as ParaId, InboundDownwardMessage, InboundHrmpMessage,
+		GroupRotationInfo, Id as AllyId, InboundDownwardMessage, InboundHrmpMessage,
 		OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes, SessionIndex,
 		ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
 	},
@@ -42,21 +42,21 @@ struct MockRuntimeApi {
 	validator_groups: Vec<Vec<ValidatorIndex>>,
 	availability_cores: Vec<CoreState>,
 	availability_cores_wait: Arc<Mutex<()>>,
-	validation_data: HashMap<ParaId, PersistedValidationData>,
+	validation_data: HashMap<AllyId, PersistedValidationData>,
 	session_index_for_child: SessionIndex,
 	session_info: HashMap<SessionIndex, SessionInfo>,
-	validation_code: HashMap<ParaId, ValidationCode>,
+	validation_code: HashMap<AllyId, ValidationCode>,
 	validation_code_by_hash: HashMap<ValidationCodeHash, ValidationCode>,
-	validation_outputs_results: HashMap<ParaId, bool>,
-	candidate_pending_availability: HashMap<ParaId, CommittedCandidateReceipt>,
+	validation_outputs_results: HashMap<AllyId, bool>,
+	candidate_pending_availability: HashMap<AllyId, CommittedCandidateReceipt>,
 	candidate_events: Vec<CandidateEvent>,
-	dmq_contents: HashMap<ParaId, Vec<InboundDownwardMessage>>,
-	hrmp_channels: HashMap<ParaId, BTreeMap<ParaId, Vec<InboundHrmpMessage>>>,
+	dmq_contents: HashMap<AllyId, Vec<InboundDownwardMessage>>,
+	hrmp_channels: HashMap<AllyId, BTreeMap<AllyId, Vec<InboundHrmpMessage>>>,
 	babe_epoch: Option<BabeEpoch>,
 	on_chain_votes: Option<ScrapedOnChainVotes>,
 	submitted_pvf_check_statement: Arc<Mutex<Vec<(PvfCheckStatement, ValidatorSignature)>>>,
 	pvfs_require_precheck: Vec<ValidationCodeHash>,
-	validation_code_hash: HashMap<ParaId, ValidationCodeHash>,
+	validation_code_hash: HashMap<AllyId, ValidationCodeHash>,
 }
 
 impl ProvideRuntimeApi<Block> for MockRuntimeApi {
@@ -91,30 +91,30 @@ sp_api::mock_impl_runtime_apis! {
 
 		fn persisted_validation_data(
 			&self,
-			para: ParaId,
+			para: AllyId,
 			_assumption: OccupiedCoreAssumption,
 		) -> Option<PersistedValidationData> {
 			self.validation_data.get(&para).cloned()
 		}
 
 		fn assumed_validation_data(
-			para_id: ParaId,
+			ally_id: AllyId,
 			expected_persisted_validation_data_hash: Hash,
 		) -> Option<(PersistedValidationData, ValidationCodeHash)> {
 			self.validation_data
-				.get(&para_id)
+				.get(&ally_id)
 				.cloned()
 				.filter(|data| data.hash() == expected_persisted_validation_data_hash)
-				.zip(self.validation_code.get(&para_id).map(|code| code.hash()))
+				.zip(self.validation_code.get(&ally_id).map(|code| code.hash()))
 		}
 
 		fn check_validation_outputs(
 			&self,
-			para_id: ParaId,
+			ally_id: AllyId,
 			_commitments: axia_primitives::v1::CandidateCommitments,
 		) -> bool {
 			self.validation_outputs_results
-				.get(&para_id)
+				.get(&ally_id)
 				.cloned()
 				.expect(
 					"`check_validation_outputs` called but the expected result hasn't been supplied"
@@ -131,7 +131,7 @@ sp_api::mock_impl_runtime_apis! {
 
 		fn validation_code(
 			&self,
-			para: ParaId,
+			para: AllyId,
 			_assumption: OccupiedCoreAssumption,
 		) -> Option<ValidationCode> {
 			self.validation_code.get(&para).map(|c| c.clone())
@@ -139,7 +139,7 @@ sp_api::mock_impl_runtime_apis! {
 
 		fn candidate_pending_availability(
 			&self,
-			para: ParaId,
+			para: AllyId,
 		) -> Option<CommittedCandidateReceipt> {
 			self.candidate_pending_availability.get(&para).map(|c| c.clone())
 		}
@@ -150,15 +150,15 @@ sp_api::mock_impl_runtime_apis! {
 
 		fn dmq_contents(
 			&self,
-			recipient: ParaId,
+			recipient: AllyId,
 		) -> Vec<InboundDownwardMessage> {
 			self.dmq_contents.get(&recipient).map(|q| q.clone()).unwrap_or_default()
 		}
 
 		fn inbound_hrmp_channels_contents(
 			&self,
-			recipient: ParaId
-		) -> BTreeMap<ParaId, Vec<InboundHrmpMessage>> {
+			recipient: AllyId
+		) -> BTreeMap<AllyId, Vec<InboundHrmpMessage>> {
 			self.hrmp_channels.get(&recipient).map(|q| q.clone()).unwrap_or_default()
 		}
 
@@ -187,7 +187,7 @@ sp_api::mock_impl_runtime_apis! {
 
 		fn validation_code_hash(
 			&self,
-			para: ParaId,
+			para: AllyId,
 			_assumption: OccupiedCoreAssumption,
 		) -> Option<ValidationCodeHash> {
 			self.validation_code_hash.get(&para).map(|c| c.clone())

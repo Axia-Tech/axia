@@ -22,16 +22,16 @@ use frame_support::{
 	weights::Weight,
 };
 use parity_scale_codec::{Decode, Encode};
-use primitives::v1::{HeadData, Id as ParaId, ValidationCode};
+use primitives::v1::{HeadData, Id as AllyId, ValidationCode};
 use sp_runtime::{traits::SaturatedConversion, Permill};
 use std::{cell::RefCell, collections::HashMap};
 
 thread_local! {
-	static OPERATIONS: RefCell<Vec<(ParaId, u32, bool)>> = RefCell::new(Vec::new());
-	static ALLYCHAINS: RefCell<Vec<ParaId>> = RefCell::new(Vec::new());
-	static PARATHREADS: RefCell<Vec<ParaId>> = RefCell::new(Vec::new());
-	static LOCKS: RefCell<HashMap<ParaId, bool>> = RefCell::new(HashMap::new());
-	static MANAGERS: RefCell<HashMap<ParaId, Vec<u8>>> = RefCell::new(HashMap::new());
+	static OPERATIONS: RefCell<Vec<(AllyId, u32, bool)>> = RefCell::new(Vec::new());
+	static ALLYCHAINS: RefCell<Vec<AllyId>> = RefCell::new(Vec::new());
+	static PARATHREADS: RefCell<Vec<AllyId>> = RefCell::new(Vec::new());
+	static LOCKS: RefCell<HashMap<AllyId, bool>> = RefCell::new(HashMap::new());
+	static MANAGERS: RefCell<HashMap<AllyId, Vec<u8>>> = RefCell::new(HashMap::new());
 }
 
 pub struct TestRegistrar<T>(sp_std::marker::PhantomData<T>);
@@ -39,29 +39,29 @@ pub struct TestRegistrar<T>(sp_std::marker::PhantomData<T>);
 impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 	type AccountId = T::AccountId;
 
-	fn manager_of(id: ParaId) -> Option<Self::AccountId> {
+	fn manager_of(id: AllyId) -> Option<Self::AccountId> {
 		MANAGERS.with(|x| x.borrow().get(&id).and_then(|v| T::AccountId::decode(&mut &v[..]).ok()))
 	}
 
-	fn allychains() -> Vec<ParaId> {
+	fn allychains() -> Vec<AllyId> {
 		ALLYCHAINS.with(|x| x.borrow().clone())
 	}
 
-	fn is_allythread(id: ParaId) -> bool {
+	fn is_allythread(id: AllyId) -> bool {
 		PARATHREADS.with(|x| x.borrow().binary_search(&id).is_ok())
 	}
 
-	fn apply_lock(id: ParaId) {
+	fn apply_lock(id: AllyId) {
 		LOCKS.with(|x| x.borrow_mut().insert(id, true));
 	}
 
-	fn remove_lock(id: ParaId) {
+	fn remove_lock(id: AllyId) {
 		LOCKS.with(|x| x.borrow_mut().insert(id, false));
 	}
 
 	fn register(
 		manager: Self::AccountId,
-		id: ParaId,
+		id: AllyId,
 		_genesis_head: HeadData,
 		_validation_code: ValidationCode,
 	) -> DispatchResult {
@@ -88,7 +88,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		Ok(())
 	}
 
-	fn deregister(id: ParaId) -> DispatchResult {
+	fn deregister(id: AllyId) -> DispatchResult {
 		// Should not be allychain.
 		ALLYCHAINS.with(|x| {
 			let allychains = x.borrow_mut();
@@ -112,7 +112,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		Ok(())
 	}
 
-	fn make_allychain(id: ParaId) -> DispatchResult {
+	fn make_allychain(id: AllyId) -> DispatchResult {
 		PARATHREADS.with(|x| {
 			let mut allythreads = x.borrow_mut();
 			match allythreads.binary_search(&id) {
@@ -142,7 +142,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 		});
 		Ok(())
 	}
-	fn make_allythread(id: ParaId) -> DispatchResult {
+	fn make_allythread(id: AllyId) -> DispatchResult {
 		ALLYCHAINS.with(|x| {
 			let mut allychains = x.borrow_mut();
 			match allychains.binary_search(&id) {
@@ -190,18 +190,18 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 }
 
 impl<T: frame_system::Config> TestRegistrar<T> {
-	pub fn operations() -> Vec<(ParaId, T::BlockNumber, bool)> {
+	pub fn operations() -> Vec<(AllyId, T::BlockNumber, bool)> {
 		OPERATIONS
 			.with(|x| x.borrow().iter().map(|(p, b, c)| (*p, (*b).into(), *c)).collect::<Vec<_>>())
 	}
 
 	#[allow(dead_code)]
-	pub fn allychains() -> Vec<ParaId> {
+	pub fn allychains() -> Vec<AllyId> {
 		ALLYCHAINS.with(|x| x.borrow().clone())
 	}
 
 	#[allow(dead_code)]
-	pub fn allythreads() -> Vec<ParaId> {
+	pub fn allythreads() -> Vec<AllyId> {
 		PARATHREADS.with(|x| x.borrow().clone())
 	}
 

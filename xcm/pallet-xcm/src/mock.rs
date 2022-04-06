@@ -15,7 +15,7 @@
 // along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
-use axia_allychain::primitives::Id as ParaId;
+use axia_allychain::primitives::Id as AllyId;
 use axia_runtime_allychains::origin;
 use sp_core::H256;
 use sp_runtime::{testing::Header, traits::IdentityLookup, AccountId32};
@@ -223,7 +223,7 @@ parameter_types! {
 }
 
 pub type SovereignAccountOf =
-	(ChildAllychainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AnyNetwork, AccountId>);
+	(ChildAllychainConvertsVia<AllyId, AccountId>, AccountId32Aliases<AnyNetwork, AccountId>);
 
 pub type LocalAssetTransactor =
 	XcmCurrencyAdapter<Balances, IsConcrete<RelayLocation>, SovereignAccountOf, AccountId, ()>;
@@ -232,7 +232,7 @@ type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, Origin>,
 	ChildAllychainAsNative<origin::Origin, Origin>,
 	SignedAccountId32AsNative<AnyNetwork, Origin>,
-	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<AllyId, Origin>,
 );
 
 parameter_types! {

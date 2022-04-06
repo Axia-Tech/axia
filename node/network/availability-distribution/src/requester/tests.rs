@@ -118,21 +118,21 @@ fn spawn_virtual_overseer(
 									.expect("Receiver should be alive.");
 							},
 							RuntimeApiRequest::AvailabilityCores(tx) => {
-								let para_id = Id::from(1);
+								let ally_id = Id::from(1);
 								let maybe_block_position =
 									test_state.relay_chain.iter().position(|h| *h == hash);
 								let cores = match maybe_block_position {
 									Some(block_num) => {
 										let core = if block_num == 0 {
 											CoreState::Scheduled(ScheduledCore {
-												para_id,
+												ally_id,
 												collator: None,
 											})
 										} else {
 											CoreState::Occupied(
 												OccupiedCoreBuilder {
 													group_responsible: GroupIndex(1),
-													para_id,
+													ally_id,
 													relay_parent: hash,
 												}
 												.build()

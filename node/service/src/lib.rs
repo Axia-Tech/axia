@@ -94,7 +94,7 @@ pub use axia_client::{
 	AbstractClient, Client, ClientHandle, ExecuteWithClient, FullBackend, FullClient,
 	RuntimeApiCollection,
 };
-pub use axia_primitives::v1::{Block, BlockId, CollatorPair, Hash, Id as ParaId};
+pub use axia_primitives::v1::{Block, BlockId, CollatorPair, Hash, Id as AllyId};
 pub use sc_client_api::{Backend, CallExecutor, ExecutionStrategy};
 pub use sc_consensus::{BlockImport, LongestChain};
 use sc_executor::NativeElseWasmExecutor;

@@ -20,7 +20,7 @@ use crate::{
 };
 use frame_support::{pallet_prelude::*, traits::EnsureOrigin};
 use frame_system::pallet_prelude::*;
-use primitives::v1::{Id as ParaId, UpwardMessage};
+use primitives::v1::{Id as AllyId, UpwardMessage};
 use sp_std::{
 	collections::btree_map::BTreeMap, convert::TryFrom, fmt, marker::PhantomData, mem, prelude::*,
 };
@@ -52,7 +52,7 @@ pub trait UmpSink {
 	///
 	/// See the trait docs for more details.
 	fn process_upward_message(
-		origin: ParaId,
+		origin: AllyId,
 		msg: &[u8],
 		max_weight: Weight,
 	) -> Result<Weight, (MessageId, Weight)>;
@@ -62,7 +62,7 @@ pub trait UmpSink {
 /// `Some(0)` indicating that no messages existed for it to process.
 impl UmpSink for () {
 	fn process_upward_message(
-		_: ParaId,
+		_: AllyId,
 		_: &[u8],
 		_: Weight,
 	) -> Result<Weight, (MessageId, Weight)> {
@@ -88,7 +88,7 @@ fn upward_message_id(data: &[u8]) -> MessageId {
 
 impl<XcmExecutor: xcm::latest::ExecuteXcm<C::Call>, C: Config> UmpSink for XcmSink<XcmExecutor, C> {
 	fn process_upward_message(
-		origin: ParaId,
+		origin: AllyId,
 		data: &[u8],
 		max_weight: Weight,
 	) -> Result<Weight, (MessageId, Weight)> {
@@ -211,14 +211,14 @@ pub mod pallet {
 		WeightExhausted(MessageId, Weight, Weight),
 		/// Some upward messages have been received and will be processed.
 		/// \[ para, count, size \]
-		UpwardMessagesReceived(ParaId, u32, u32),
+		UpwardMessagesReceived(AllyId, u32, u32),
 		/// The weight budget was exceeded for an individual upward message.
 		///
 		/// This message can be later dispatched manually using `service_overweight` dispatchable
 		/// using the assigned `overweight_index`.
 		///
 		/// \[ para, id, overweight_index, required \]
-		OverweightEnqueued(ParaId, MessageId, OverweightIndex, Weight),
+		OverweightEnqueued(AllyId, MessageId, OverweightIndex, Weight),
 		/// Upward message from the overweight queue was executed with the given actual weight
 		/// used.
 		///
@@ -242,7 +242,7 @@ pub mod pallet {
 	/// The messages are processed in FIFO order.
 	#[pallet::storage]
 	pub type RelayDispatchQueues<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, Vec<UpwardMessage>, ValueQuery>;
+		StorageMap<_, Twox64Concat, AllyId, Vec<UpwardMessage>, ValueQuery>;
 
 	/// Size of the dispatch queues. Caches sizes of the queues in `RelayDispatchQueue`.
 	///
@@ -259,30 +259,30 @@ pub mod pallet {
 	// the format will require migration of allychains.
 	#[pallet::storage]
 	pub type RelayDispatchQueueSize<T: Config> =
-		StorageMap<_, Twox64Concat, ParaId, (u32, u32), ValueQuery>;
+		StorageMap<_, Twox64Concat, AllyId, (u32, u32), ValueQuery>;
 
-	/// The ordered list of `ParaId`s that have a `RelayDispatchQueue` entry.
+	/// The ordered list of `AllyId`s that have a `RelayDispatchQueue` entry.
 	///
 	/// Invariant:
 	/// - The set of items from this vector should be exactly the set of the keys in
 	///   `RelayDispatchQueues` and `RelayDispatchQueueSize`.
 	#[pallet::storage]
-	pub type NeedsDispatch<T: Config> = StorageValue<_, Vec<ParaId>, ValueQuery>;
+	pub type NeedsDispatch<T: Config> = StorageValue<_, Vec<AllyId>, ValueQuery>;
 
-	/// This is the para that gets will get dispatched first during the next upward dispatchable queue
+	/// This is the ally that gets will get dispatched first during the next upward dispatchable queue
 	/// execution round.
 	///
 	/// Invariant:
 	/// - If `Some(para)`, then `para` must be present in `NeedsDispatch`.
 	#[pallet::storage]
-	pub type NextDispatchRoundStartWith<T: Config> = StorageValue<_, ParaId>;
+	pub type NextDispatchRoundStartWith<T: Config> = StorageValue<_, AllyId>;
 
 	/// The messages that exceeded max individual message weight budget.
 	///
 	/// These messages stay there until manually dispatched.
 	#[pallet::storage]
 	pub type Overweight<T: Config> =
-		StorageMap<_, Twox64Concat, OverweightIndex, (ParaId, Vec<u8>), OptionQuery>;
+		StorageMap<_, Twox64Concat, OverweightIndex, (AllyId, Vec<u8>), OptionQuery>;
 
 	/// The number of overweight messages ever recorded in `Overweight` (and thus the lowest free
 	/// index).
@@ -335,25 +335,25 @@ impl<T: Config> Pallet<T> {
 	/// Called by the initializer to note that a new session has started.
 	pub(crate) fn initializer_on_new_session(
 		_notification: &initializer::SessionChangeNotification<T::BlockNumber>,
-		outgoing_paras: &[ParaId],
+		outgoing_paras: &[AllyId],
 	) {
 		Self::perform_outgoing_para_cleanup(outgoing_paras);
 	}
 
 	/// Iterate over all paras that were noted for offboarding and remove all the data
 	/// associated with them.
-	fn perform_outgoing_para_cleanup(outgoing: &[ParaId]) {
+	fn perform_outgoing_para_cleanup(outgoing: &[AllyId]) {
 		for outgoing_para in outgoing {
 			Self::clean_ump_after_outgoing(outgoing_para);
 		}
 	}
 
 	/// Remove all relevant storage items for an outgoing allychain.
-	fn clean_ump_after_outgoing(outgoing_para: &ParaId) {
+	fn clean_ump_after_outgoing(outgoing_para: &AllyId) {
 		<Self as Store>::RelayDispatchQueueSize::remove(outgoing_para);
 		<Self as Store>::RelayDispatchQueues::remove(outgoing_para);
 
-		// Remove the outgoing para from the `NeedsDispatch` list and from
+		// Remove the outgoing ally from the `NeedsDispatch` list and from
 		// `NextDispatchRoundStartWith`.
 		//
 		// That's needed for maintaining invariant that `NextDispatchRoundStartWith` points to an
@@ -372,7 +372,7 @@ impl<T: Config> Pallet<T> {
 	/// false, if any of the messages doesn't pass.
 	pub(crate) fn check_upward_messages(
 		config: &HostConfiguration<T::BlockNumber>,
-		para: ParaId,
+		para: AllyId,
 		upward_messages: &[UpwardMessage],
 	) -> Result<(), AcceptanceCheckErr> {
 		if upward_messages.len() as u32 > config.max_upward_message_num_per_candidate {
@@ -418,7 +418,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Enqueues `upward_messages` from a `para`'s accepted candidate block.
 	pub(crate) fn receive_upward_messages(
-		para: ParaId,
+		para: AllyId,
 		upward_messages: Vec<UpwardMessage>,
 	) -> Weight {
 		let mut weight = 0;
@@ -512,7 +512,7 @@ impl<T: Config> Pallet<T> {
 			}
 
 			if queue_cache.is_empty::<T>(dispatchee) {
-				// the queue is empty now - this para doesn't need attention anymore.
+				// the queue is empty now - this ally doesn't need attention anymore.
 				cursor.remove();
 			} else {
 				cursor.advance();
@@ -527,7 +527,7 @@ impl<T: Config> Pallet<T> {
 
 	/// Puts a given upward message into the list of overweight messages allowing it to be executed
 	/// later.
-	fn stash_overweight(sender: ParaId, upward_message: Vec<u8>) -> OverweightIndex {
+	fn stash_overweight(sender: AllyId, upward_message: Vec<u8>) -> OverweightIndex {
 		let index = <Self as Store>::OverweightCount::mutate(|count| {
 			let index = *count;
 			*count += 1;
@@ -557,7 +557,7 @@ impl<T: Config> Pallet<T> {
 /// cycle to traverse the queues is already sub-optimal and better be avoided.
 ///
 /// This struct is not supposed to be dropped but rather to be consumed by [`flush`].
-struct QueueCache(BTreeMap<ParaId, QueueCacheEntry>);
+struct QueueCache(BTreeMap<AllyId, QueueCacheEntry>);
 
 struct QueueCacheEntry {
 	queue: Vec<UpwardMessage>,
@@ -571,7 +571,7 @@ impl QueueCache {
 		Self(BTreeMap::new())
 	}
 
-	fn ensure_cached<T: Config>(&mut self, para: ParaId) -> &mut QueueCacheEntry {
+	fn ensure_cached<T: Config>(&mut self, para: AllyId) -> &mut QueueCacheEntry {
 		self.0.entry(para).or_insert_with(|| {
 			let queue = RelayDispatchQueues::<T>::get(&para);
 			let (_, total_size) = RelayDispatchQueueSize::<T>::get(&para);
@@ -582,14 +582,14 @@ impl QueueCache {
 	/// Returns the message at the front of `para`'s queue, or `None` if the queue is empty.
 	///
 	/// Does not mutate the queue.
-	fn peek_front<T: Config>(&mut self, para: ParaId) -> Option<&UpwardMessage> {
+	fn peek_front<T: Config>(&mut self, para: AllyId) -> Option<&UpwardMessage> {
 		let entry = self.ensure_cached::<T>(para);
 		entry.queue.get(entry.consumed_count)
 	}
 
 	/// Attempts to remove one message from the front of `para`'s queue. If the queue is empty, then
 	/// does nothing.
-	fn consume_front<T: Config>(&mut self, para: ParaId) -> Option<UpwardMessage> {
+	fn consume_front<T: Config>(&mut self, para: AllyId) -> Option<UpwardMessage> {
 		let cache_entry = self.ensure_cached::<T>(para);
 
 		match cache_entry.queue.get_mut(cache_entry.consumed_count) {
@@ -603,12 +603,12 @@ impl QueueCache {
 		}
 	}
 
-	/// Returns if the queue for the given para is empty.
+	/// Returns if the queue for the given ally is empty.
 	///
 	/// That is, if this returns `true` then the next call to [`peek_front`] will return `None`.
 	///
 	/// Does not mutate the queue.
-	fn is_empty<T: Config>(&mut self, para: ParaId) -> bool {
+	fn is_empty<T: Config>(&mut self, para: AllyId) -> bool {
 		let cache_entry = self.ensure_cached::<T>(para);
 		cache_entry.consumed_count >= cache_entry.queue.len()
 	}
@@ -635,7 +635,7 @@ impl QueueCache {
 
 /// A cursor that iterates over all entries in `NeedsDispatch`.
 ///
-/// This cursor will start with the para indicated by `NextDispatchRoundStartWith` storage entry.
+/// This cursor will start with the ally indicated by `NextDispatchRoundStartWith` storage entry.
 /// This cursor is cyclic meaning that after reaching the end it will jump to the beginning. Unlike
 /// an iterator, this cursor allows removing items during the iteration.
 ///
@@ -644,13 +644,13 @@ impl QueueCache {
 /// This struct is not supposed to be dropped but rather to be consumed by [`flush`].
 #[derive(Debug)]
 struct NeedsDispatchCursor {
-	needs_dispatch: Vec<ParaId>,
+	needs_dispatch: Vec<AllyId>,
 	index: usize,
 }
 
 impl NeedsDispatchCursor {
 	fn new<T: Config>() -> Self {
-		let needs_dispatch: Vec<ParaId> = <Pallet<T> as Store>::NeedsDispatch::get();
+		let needs_dispatch: Vec<AllyId> = <Pallet<T> as Store>::NeedsDispatch::get();
 		let start_with = <Pallet<T> as Store>::NextDispatchRoundStartWith::get();
 
 		let initial_index = match start_with {
@@ -673,7 +673,7 @@ impl NeedsDispatchCursor {
 	}
 
 	/// Returns the item the cursor points to.
-	fn peek(&self) -> Option<ParaId> {
+	fn peek(&self) -> Option<AllyId> {
 		self.needs_dispatch.get(self.index).cloned()
 	}
 

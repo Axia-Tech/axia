@@ -71,7 +71,7 @@ fn default_genesis_config() -> MockGenesisConfig {
 	}
 }
 
-fn queue_upward_msg(para: ParaId, msg: UpwardMessage) {
+fn queue_upward_msg(para: AllyId, msg: UpwardMessage) {
 	let msgs = vec![msg];
 	assert!(Ump::check_upward_messages(&Configuration::config(), para, &msgs).is_ok());
 	let _ = Ump::receive_upward_messages(para, msgs);
@@ -98,16 +98,16 @@ fn assert_storage_consistency_exhaustive() {
 	// need dispatch set should all be equal.
 	let queue_contents_set = <Ump as Store>::RelayDispatchQueues::iter()
 		.map(|(k, _)| k)
-		.collect::<HashSet<ParaId>>();
+		.collect::<HashSet<AllyId>>();
 	let queue_sizes_set = <Ump as Store>::RelayDispatchQueueSize::iter()
 		.map(|(k, _)| k)
-		.collect::<HashSet<ParaId>>();
+		.collect::<HashSet<AllyId>>();
 	let needs_dispatch_set =
-		<Ump as Store>::NeedsDispatch::get().into_iter().collect::<HashSet<ParaId>>();
+		<Ump as Store>::NeedsDispatch::get().into_iter().collect::<HashSet<AllyId>>();
 	assert_eq!(queue_contents_set, queue_sizes_set);
 	assert_eq!(queue_contents_set, needs_dispatch_set);
 
-	// `NextDispatchRoundStartWith` should point into a para that is tracked.
+	// `NextDispatchRoundStartWith` should point into a ally that is tracked.
 	if let Some(para) = <Ump as Store>::NextDispatchRoundStartWith::get() {
 		assert!(queue_contents_set.contains(&para));
 	}
@@ -130,7 +130,7 @@ fn dispatch_empty() {
 
 #[test]
 fn dispatch_single_message() {
-	let a = ParaId::from(228);
+	let a = AllyId::from(228);
 	let msg = 1000u32.encode();
 
 	new_test_ext(GenesisConfigBuilder::default().build()).execute_with(|| {
@@ -144,9 +144,9 @@ fn dispatch_single_message() {
 
 #[test]
 fn dispatch_resume_after_exceeding_dispatch_stage_weight() {
-	let a = ParaId::from(128);
-	let c = ParaId::from(228);
-	let q = ParaId::from(911);
+	let a = AllyId::from(128);
+	let c = AllyId::from(228);
+	let q = AllyId::from(911);
 
 	let a_msg_1 = (200u32, "a_msg_1").encode();
 	let a_msg_2 = (100u32, "a_msg_2").encode();
@@ -192,7 +192,7 @@ fn dispatch_resume_after_exceeding_dispatch_stage_weight() {
 
 #[test]
 fn dispatch_keeps_message_after_weight_exhausted() {
-	let a = ParaId::from(128);
+	let a = AllyId::from(128);
 
 	let a_msg_1 = (300u32, "a_msg_1").encode();
 	let a_msg_2 = (300u32, "a_msg_2").encode();
@@ -230,8 +230,8 @@ fn dispatch_keeps_message_after_weight_exhausted() {
 
 #[test]
 fn dispatch_correctly_handle_remove_of_latest() {
-	let a = ParaId::from(1991);
-	let b = ParaId::from(1999);
+	let a = AllyId::from(1991);
+	let b = AllyId::from(1999);
 
 	let a_msg_1 = (300u32, "a_msg_1").encode();
 	let a_msg_2 = (300u32, "a_msg_2").encode();
@@ -242,7 +242,7 @@ fn dispatch_correctly_handle_remove_of_latest() {
 	)
 	.execute_with(|| {
 		// We want to test here an edge case, where we remove the queue with the highest
-		// para id (i.e. last in the `needs_dispatch` order).
+		// ally id (i.e. last in the `needs_dispatch` order).
 		//
 		// If the last entry was removed we should proceed execution, assuming we still have
 		// weight available.
@@ -263,7 +263,7 @@ fn verify_relay_dispatch_queue_size_is_externally_accessible() {
 	use parity_scale_codec::Decode as _;
 	use primitives::v1::well_known_keys;
 
-	let a = ParaId::from(228);
+	let a = AllyId::from(228);
 	let msg = vec![1, 2, 3];
 
 	new_test_ext(GenesisConfigBuilder::default().build()).execute_with(|| {
@@ -296,7 +296,7 @@ fn service_overweight_unknown() {
 
 #[test]
 fn overweight_queue_works() {
-	let para_a = ParaId::from(2021);
+	let para_a = AllyId::from(2021);
 
 	let a_msg_1 = (301u32, "a_msg_1").encode();
 	let a_msg_2 = (500u32, "a_msg_2").encode();

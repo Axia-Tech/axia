@@ -19,13 +19,13 @@
 use axia_cli::{Error, Result};
 use axia_node_primitives::CollationGenerationConfig;
 use axia_node_subsystem::messages::{CollationGenerationMessage, CollatorProtocolMessage};
-use axia_primitives::v1::Id as ParaId;
+use axia_primitives::v1::Id as AllyId;
 use sc_cli::{Error as SubstrateCliError, Role, SubstrateCli};
 use sp_core::hexdisplay::HexDisplay;
 use test_allychain_adder_collator::Collator;
 
 /// The allychain ID to collate for in case it wasn't set explicitly through CLI.
-const DEFAULT_PARA_ID: ParaId = ParaId::new(100);
+const DEFAULT_ALLY_ID: AllyId = AllyId::new(100);
 
 mod cli;
 use cli::Cli;
@@ -81,10 +81,10 @@ fn main() -> Result<()> {
 						let validation_code_hex =
 							format!("0x{:?}", HexDisplay::from(&collator.validation_code()));
 
-						let para_id =
-							cli.run.allychain_id.map(ParaId::from).unwrap_or(DEFAULT_PARA_ID);
+						let ally_id =
+							cli.run.allychain_id.map(AllyId::from).unwrap_or(DEFAULT_ALLY_ID);
 
-						log::info!("Running adder collator for allychain id: {}", para_id);
+						log::info!("Running adder collator for allychain id: {}", ally_id);
 						log::info!("Genesis state: {}", genesis_head_hex);
 						log::info!("Validation code: {}", validation_code_hex);
 
@@ -92,14 +92,14 @@ fn main() -> Result<()> {
 							key: collator.collator_key(),
 							collator: collator
 								.create_collation_function(full_node.task_manager.spawn_handle()),
-							para_id,
+							ally_id,
 						};
 						overseer_handle
 							.send_msg(CollationGenerationMessage::Initialize(config), "Collator")
 							.await;
 
 						overseer_handle
-							.send_msg(CollatorProtocolMessage::CollateOn(para_id), "Collator")
+							.send_msg(CollatorProtocolMessage::CollateOn(ally_id), "Collator")
 							.await;
 
 						Ok(full_node.task_manager)

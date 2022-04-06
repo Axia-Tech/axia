@@ -29,7 +29,7 @@ use crate::{
 	paras::ParaGenesisArgs,
 };
 
-fn schedule_blank_para(id: ParaId, is_chain: bool) {
+fn schedule_blank_para(id: AllyId, is_chain: bool) {
 	assert_ok!(Paras::schedule_para_initialize(
 		id,
 		ParaGenesisArgs {
@@ -118,7 +118,7 @@ fn add_allythread_claim_works() {
 		..Default::default()
 	};
 
-	let thread_id = ParaId::from(10);
+	let thread_id = AllyId::from(10);
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
@@ -168,7 +168,7 @@ fn add_allythread_claim_works() {
 
 		// claims on non-live allythreads have no effect.
 		{
-			let thread_id2 = ParaId::from(11);
+			let thread_id2 = AllyId::from(11);
 			Scheduler::add_allythread_claim(AllythreadClaim(thread_id2, collator.clone()));
 			let queue = AllythreadQueue::<Test>::get();
 			assert_eq!(queue.next_core_offset, 1);
@@ -199,7 +199,7 @@ fn cannot_add_claim_when_no_allythread_cores() {
 		..Default::default()
 	};
 
-	let thread_id = ParaId::from(10);
+	let thread_id = AllyId::from(10);
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
@@ -227,10 +227,10 @@ fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_allythread
 	};
 	let max_allythread_retries = default_config().allythread_retries;
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
-	let thread_c = ParaId::from(3);
-	let thread_d = ParaId::from(4);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
+	let thread_c = AllyId::from(3);
+	let thread_d = AllyId::from(4);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -330,8 +330,8 @@ fn session_change_shuffles_validators() {
 
 	assert_eq!(default_config().allythread_cores, 3);
 	new_test_ext(genesis_config).execute_with(|| {
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
 
 		// ensure that we have 5 groups by registering 2 allychains.
 		schedule_blank_para(chain_a, true);
@@ -387,9 +387,9 @@ fn session_change_takes_only_max_per_core() {
 	};
 
 	new_test_ext(genesis_config).execute_with(|| {
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
-		let chain_c = ParaId::from(3);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
+		let chain_c = AllyId::from(3);
 
 		// ensure that we have 5 groups by registering 2 allychains.
 		schedule_blank_para(chain_a, true);
@@ -434,12 +434,12 @@ fn schedule_schedules() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
 
-	let thread_a = ParaId::from(3);
-	let thread_b = ParaId::from(4);
-	let thread_c = ParaId::from(5);
+	let thread_a = AllyId::from(3);
+	let thread_b = AllyId::from(4);
+	let thread_c = AllyId::from(5);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -479,7 +479,7 @@ fn schedule_schedules() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -489,7 +489,7 @@ fn schedule_schedules() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(1),
-					para_id: chain_b,
+					ally_id: chain_b,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(1),
 				}
@@ -510,7 +510,7 @@ fn schedule_schedules() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -520,7 +520,7 @@ fn schedule_schedules() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(1),
-					para_id: chain_b,
+					ally_id: chain_b,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(1),
 				}
@@ -530,7 +530,7 @@ fn schedule_schedules() {
 				scheduled[2],
 				CoreAssignment {
 					core: CoreIndex(2),
-					para_id: thread_a,
+					ally_id: thread_a,
 					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(2),
 				}
@@ -540,7 +540,7 @@ fn schedule_schedules() {
 				scheduled[3],
 				CoreAssignment {
 					core: CoreIndex(3),
-					para_id: thread_c,
+					ally_id: thread_c,
 					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(3),
 				}
@@ -559,14 +559,14 @@ fn schedule_schedules_including_just_freed() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
 
-	let thread_a = ParaId::from(3);
-	let thread_b = ParaId::from(4);
-	let thread_c = ParaId::from(5);
-	let thread_d = ParaId::from(6);
-	let thread_e = ParaId::from(7);
+	let thread_a = AllyId::from(3);
+	let thread_b = AllyId::from(4);
+	let thread_c = AllyId::from(5);
+	let thread_d = AllyId::from(6);
+	let thread_e = AllyId::from(7);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -642,7 +642,7 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(4),
-					para_id: thread_b,
+					ally_id: thread_b,
 					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(4),
 				}
@@ -668,7 +668,7 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -677,7 +677,7 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(2),
-					para_id: thread_d,
+					ally_id: thread_d,
 					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(2),
 				}
@@ -686,7 +686,7 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[2],
 				CoreAssignment {
 					core: CoreIndex(3),
-					para_id: thread_e,
+					ally_id: thread_e,
 					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(3),
 				}
@@ -695,7 +695,7 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[3],
 				CoreAssignment {
 					core: CoreIndex(4),
-					para_id: thread_b,
+					ally_id: thread_b,
 					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(4),
 				}
@@ -735,9 +735,9 @@ fn schedule_clears_availability_cores() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let chain_c = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let chain_c = AllyId::from(3);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		assert_eq!(default_config().allythread_cores, 3);
@@ -796,7 +796,7 @@ fn schedule_clears_availability_cores() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -805,7 +805,7 @@ fn schedule_clears_availability_cores() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(2),
-					para_id: chain_c,
+					ally_id: chain_c,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(2),
 				}
@@ -841,8 +841,8 @@ fn schedule_rotates_groups() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -913,8 +913,8 @@ fn allythread_claims_are_pruned_after_retries() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -974,8 +974,8 @@ fn availability_predicate_works() {
 			thread_availability_period < group_rotation_frequency
 	);
 
-	let chain_a = ParaId::from(1);
-	let thread_a = ParaId::from(2);
+	let chain_a = AllyId::from(1);
+	let thread_a = AllyId::from(2);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(chain_a, true);
@@ -1069,8 +1069,8 @@ fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -1122,7 +1122,7 @@ fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: thread_b, collator: Some(collator.clone()) }
+				ScheduledCore { ally_id: thread_b, collator: Some(collator.clone()) }
 			);
 		}
 	});
@@ -1141,8 +1141,8 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -1186,7 +1186,7 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 			assert!(queue.get_next_on_core(0).is_none());
 			assert_eq!(
 				Scheduler::next_up_on_time_out(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: thread_a, collator: Some(collator.clone()) }
+				ScheduledCore { ally_id: thread_a, collator: Some(collator.clone()) }
 			);
 
 			Scheduler::add_allythread_claim(thread_claim_b);
@@ -1200,7 +1200,7 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 			// Now that there is an earlier next-up, we use that.
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: thread_b, collator: Some(collator.clone()) }
+				ScheduledCore { ally_id: thread_b, collator: Some(collator.clone()) }
 			);
 		}
 	});
@@ -1219,7 +1219,7 @@ fn next_up_on_available_is_allychain_always() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
+	let chain_a = AllyId::from(1);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(chain_a, true);
@@ -1254,7 +1254,7 @@ fn next_up_on_available_is_allychain_always() {
 			// Now that there is an earlier next-up, we use that.
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: chain_a, collator: None }
+				ScheduledCore { ally_id: chain_a, collator: None }
 			);
 		}
 	});
@@ -1273,7 +1273,7 @@ fn next_up_on_time_out_is_allychain_always() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
+	let chain_a = AllyId::from(1);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(chain_a, true);
@@ -1308,7 +1308,7 @@ fn next_up_on_time_out_is_allychain_always() {
 			// Now that there is an earlier next-up, we use that.
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: chain_a, collator: None }
+				ScheduledCore { ally_id: chain_a, collator: None }
 			);
 		}
 	});
@@ -1326,8 +1326,8 @@ fn session_change_requires_reschedule_dropping_removed_paras() {
 
 	assert_eq!(default_config().allythread_cores, 3);
 	new_test_ext(genesis_config).execute_with(|| {
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
 
 		// ensure that we have 5 groups by registering 2 allychains.
 		schedule_blank_para(chain_a, true);
@@ -1383,7 +1383,7 @@ fn session_change_requires_reschedule_dropping_removed_paras() {
 			Scheduler::scheduled(),
 			vec![CoreAssignment {
 				core: CoreIndex(0),
-				para_id: chain_a,
+				ally_id: chain_a,
 				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex(0),
 			}],
@@ -1401,8 +1401,8 @@ fn allythread_claims_are_pruned_after_deregistration() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 

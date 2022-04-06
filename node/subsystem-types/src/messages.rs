@@ -42,7 +42,7 @@ use axia_primitives::{
 	v1::{
 		AuthorityDiscoveryId, BackedCandidate, BlockNumber, CandidateDescriptor, CandidateEvent,
 		CandidateHash, CandidateIndex, CandidateReceipt, CollatorId, CommittedCandidateReceipt,
-		CoreState, GroupIndex, GroupRotationInfo, Hash, Header as BlockHeader, Id as ParaId,
+		CoreState, GroupIndex, GroupRotationInfo, Hash, Header as BlockHeader, Id as AllyId,
 		InboundDownwardMessage, InboundHrmpMessage, MultiDisputeStatementSet,
 		OccupiedCoreAssumption, PersistedValidationData, SessionIndex, SignedAvailabilityBitfield,
 		SignedAvailabilityBitfields, ValidationCode, ValidationCodeHash, ValidatorId,
@@ -134,7 +134,7 @@ pub enum CandidateValidationMessage {
 	/// This will also perform checking of validation outputs against the acceptance criteria.
 	///
 	/// If there is no state available which can provide this data or the core for
-	/// the para is not free at the relay-parent, an error is returned.
+	/// the ally is not free at the relay-parent, an error is returned.
 	ValidateFromChainState(
 		CandidateDescriptor,
 		Arc<PoV>,
@@ -193,7 +193,7 @@ pub enum CollatorProtocolMessage {
 	/// the previous signal.
 	///
 	/// This should be sent before any `DistributeCollation` message.
-	CollateOn(ParaId),
+	CollateOn(AllyId),
 	/// Provide a collation to distribute to validators with an optional result sender.
 	///
 	/// The result sender should be informed when at least one allychain validator seconded the collation. It is also
@@ -625,48 +625,48 @@ pub enum RuntimeApiRequest {
 	AvailabilityCores(RuntimeApiSender<Vec<CoreState>>),
 	/// Get the persisted validation data for a particular para, taking the given
 	/// `OccupiedCoreAssumption`, which will inform on how the validation data should be computed
-	/// if the para currently occupies a core.
+	/// if the ally currently occupies a core.
 	PersistedValidationData(
-		ParaId,
+		AllyId,
 		OccupiedCoreAssumption,
 		RuntimeApiSender<Option<PersistedValidationData>>,
 	),
-	/// Get the persisted validation data for a particular para along with the current validation code
+	/// Get the persisted validation data for a particular ally along with the current validation code
 	/// hash, matching the data hash against an expected one.
 	AssumedValidationData(
-		ParaId,
+		AllyId,
 		Hash,
 		RuntimeApiSender<Option<(PersistedValidationData, ValidationCodeHash)>>,
 	),
 	/// Sends back `true` if the validation outputs pass all acceptance criteria checks.
 	CheckValidationOutputs(
-		ParaId,
+		AllyId,
 		axia_primitives::v1::CandidateCommitments,
 		RuntimeApiSender<bool>,
 	),
 	/// Get the session index that a child of the block will have.
 	SessionIndexForChild(RuntimeApiSender<SessionIndex>),
 	/// Get the validation code for a para, taking the given `OccupiedCoreAssumption`, which
-	/// will inform on how the validation data should be computed if the para currently
+	/// will inform on how the validation data should be computed if the ally currently
 	/// occupies a core.
-	ValidationCode(ParaId, OccupiedCoreAssumption, RuntimeApiSender<Option<ValidationCode>>),
+	ValidationCode(AllyId, OccupiedCoreAssumption, RuntimeApiSender<Option<ValidationCode>>),
 	/// Get validation code by its hash, either past, current or future code can be returned, as long as state is still
 	/// available.
 	ValidationCodeByHash(ValidationCodeHash, RuntimeApiSender<Option<ValidationCode>>),
 	/// Get a the candidate pending availability for a particular allychain by allychain / core index
-	CandidatePendingAvailability(ParaId, RuntimeApiSender<Option<CommittedCandidateReceipt>>),
+	CandidatePendingAvailability(AllyId, RuntimeApiSender<Option<CommittedCandidateReceipt>>),
 	/// Get all events concerning candidates (backing, inclusion, time-out) in the parent of
 	/// the block in whose state this request is executed.
 	CandidateEvents(RuntimeApiSender<Vec<CandidateEvent>>),
 	/// Get the session info for the given session, if stored.
 	SessionInfo(SessionIndex, RuntimeApiSender<Option<SessionInfo>>),
 	/// Get all the pending inbound messages in the downward message queue for a para.
-	DmqContents(ParaId, RuntimeApiSender<Vec<InboundDownwardMessage<BlockNumber>>>),
+	DmqContents(AllyId, RuntimeApiSender<Vec<InboundDownwardMessage<BlockNumber>>>),
 	/// Get the contents of all channels addressed to the given recipient. Channels that have no
 	/// messages in them are also included.
 	InboundHrmpChannelsContents(
-		ParaId,
-		RuntimeApiSender<BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>>>,
+		AllyId,
+		RuntimeApiSender<BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>>>,
 	),
 	/// Get information about the BABE epoch the block was included in.
 	CurrentBabeEpoch(RuntimeApiSender<BabeEpoch>),
@@ -677,9 +677,9 @@ pub enum RuntimeApiRequest {
 	/// Returns code hashes of PVFs that require pre-checking by validators in the active set.
 	PvfsRequirePrecheck(RuntimeApiSender<Vec<ValidationCodeHash>>),
 	/// Get the validation code used by the specified para, taking the given `OccupiedCoreAssumption`, which
-	/// will inform on how the validation data should be computed if the para currently occupies a core.
+	/// will inform on how the validation data should be computed if the ally currently occupies a core.
 	ValidationCodeHash(
-		ParaId,
+		AllyId,
 		OccupiedCoreAssumption,
 		RuntimeApiSender<Option<ValidationCodeHash>>,
 	),

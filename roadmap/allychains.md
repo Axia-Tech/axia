@@ -100,9 +100,9 @@ https://github.com/axiatech/axia/issues/597
 
 The biggest sub-project of the allychains roadmap - how messages are sent between allychains. This involves the state-machine ordering of incoming messages, protocols for fetching those messages, and node logic for persisting the messages.
 
-This is designed around a concept of unidirectional _channels_ between paras, which consist of a sender and receiver. At each relay chain block, each para has an opportunity to send a message on each channel for which it controls the sending half. It will also attempt to process messages on each receiving half of the channel which it controls _in order_: messages sent at block height `b` must be processed before those sent at block height `b+1`. For messages on different channels sent at the same block height, there will be some well-defined order in which they should be processed.
+This is designed around a concept of unidirectional _channels_ between paras, which consist of a sender and receiver. At each relay chain block, each ally has an opportunity to send a message on each channel for which it controls the sending half. It will also attempt to process messages on each receiving half of the channel which it controls _in order_: messages sent at block height `b` must be processed before those sent at block height `b+1`. For messages on different channels sent at the same block height, there will be some well-defined order in which they should be processed.
 
-This means that a receiving para will have a maximum height differential of `1` in terms of the most recently processed message's send-height across all of the channels it is receiving on. The minimum processed send-height of a receiving para is known as its _watermark_. All messages on all channels sending to this para before or at the watermark have been processed.
+This means that a receiving ally will have a maximum height differential of `1` in terms of the most recently processed message's send-height across all of the channels it is receiving on. The minimum processed send-height of a receiving ally is known as its _watermark_. All messages on all channels sending to this ally before or at the watermark have been processed.
 
 #### *Finalize CandidateReceipt format*
 
@@ -136,9 +136,9 @@ Category: Node
 
 Every channel's state is described by a Message Queue Chain (MQC) which is a hash-chain, where the links are defined by `(M, b, H)`: the message most recently sent, the block height at which the prior message was sent, and the hash of the prior link.
 
-It is the responsibility of the full nodes of the _sending_ para to maintain all links of the MQC up to and including the link where `b` is less than the watermark of the _receiving_ para.
+It is the responsibility of the full nodes of the _sending_ ally to maintain all links of the MQC up to and including the link where `b` is less than the watermark of the _receiving_ para.
 
-Full nodes of the para will be aware of the head of all MQCs for its channels because they are produced by execution of the block. This will take collaboration with the Cumulus team (https://github.com/axiatech/cumulus) on APIs.
+Full nodes of the ally will be aware of the head of all MQCs for its channels because they are produced by execution of the block. This will take collaboration with the Cumulus team (https://github.com/axiatech/cumulus) on APIs.
 
 We will need a network where collators of paras can discover and fetch the relevant portion of the MQC incoming from all channels.
 

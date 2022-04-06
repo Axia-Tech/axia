@@ -15,7 +15,7 @@
 // along with Axia.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use crate::{inclusion, ParaId};
+use crate::{inclusion, AllyId};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::collections::btree_map::BTreeMap;
@@ -134,9 +134,9 @@ benchmarks! {
 		// Ensure that there are an expected number of candidates
 		let header = BenchBuilder::<T>::header(scenario._block_number.clone());
 		// Traverse candidates and assert descriptors are as expected
-		for (para_id, backing_validators) in vote.backing_validators_per_candidate.iter().enumerate() {
+		for (ally_id, backing_validators) in vote.backing_validators_per_candidate.iter().enumerate() {
 			let descriptor = backing_validators.0.descriptor();
-			assert_eq!(ParaId::from(para_id), descriptor.para_id);
+			assert_eq!(AllyId::from(ally_id), descriptor.ally_id);
 			assert_eq!(header.hash(), descriptor.relay_parent);
 			assert_eq!(backing_validators.1.len(), v as usize);
 		}
@@ -191,10 +191,10 @@ benchmarks! {
 		// Ensure that there are an expected number of candidates
 		let header = BenchBuilder::<T>::header(scenario._block_number.clone());
 		// Traverse candidates and assert descriptors are as expected
-		for (para_id, backing_validators)
+		for (ally_id, backing_validators)
 			in vote.backing_validators_per_candidate.iter().enumerate() {
 				let descriptor = backing_validators.0.descriptor();
-				assert_eq!(ParaId::from(para_id), descriptor.para_id);
+				assert_eq!(AllyId::from(ally_id), descriptor.ally_id);
 				assert_eq!(header.hash(), descriptor.relay_parent);
 				assert_eq!(
 					backing_validators.1.len() as u32,

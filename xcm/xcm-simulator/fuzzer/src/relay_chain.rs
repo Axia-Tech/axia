@@ -24,7 +24,7 @@ use frame_support::{
 use sp_core::H256;
 use sp_runtime::{testing::Header, traits::IdentityLookup, AccountId32};
 
-use axia_allychain::primitives::Id as ParaId;
+use axia_allychain::primitives::Id as AllyId;
 use axia_runtime_allychains::{configuration, origin, shared, ump};
 use xcm::latest::prelude::*;
 use xcm_builder::{
@@ -102,7 +102,7 @@ parameter_types! {
 }
 
 pub type SovereignAccountOf =
-	(ChildAllychainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AxiaTestNetwork, AccountId>);
+	(ChildAllychainConvertsVia<AllyId, AccountId>, AccountId32Aliases<AxiaTestNetwork, AccountId>);
 
 pub type LocalAssetTransactor =
 	XcmCurrencyAdapter<Balances, IsConcrete<KsmLocation>, SovereignAccountOf, AccountId, ()>;
@@ -111,7 +111,7 @@ type LocalOriginConverter = (
 	SovereignSignedViaLocation<SovereignAccountOf, Origin>,
 	ChildAllychainAsNative<origin::Origin, Origin>,
 	SignedAccountId32AsNative<AxiaTestNetwork, Origin>,
-	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<AllyId, Origin>,
 );
 
 parameter_types! {

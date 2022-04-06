@@ -42,7 +42,7 @@ use axia_node_subsystem_util::{
 };
 use axia_primitives::v1::{
 	AuthorityDiscoveryId, CandidateHash, CandidateReceipt, CollatorPair, CoreIndex, CoreState,
-	Hash, Id as ParaId,
+	Hash, Id as AllyId,
 };
 use axia_subsystem::{
 	jaeger,
@@ -244,9 +244,9 @@ struct State {
 	/// Our collator pair.
 	collator_pair: CollatorPair,
 
-	/// The para this collator is collating on.
+	/// The ally this collator is collating on.
 	/// Starts as `None` and is updated with every `CollateOn` message.
-	collating_on: Option<ParaId>,
+	collating_on: Option<AllyId>,
 
 	/// Track all active peers and their views
 	/// to determine what is relevant to them.
@@ -321,9 +321,9 @@ impl State {
 
 /// Distribute a collation.
 ///
-/// Figure out the core our para is assigned to and the relevant validators.
+/// Figure out the core our ally is assigned to and the relevant validators.
 /// Issue a connection request to these validators.
-/// If the para is not scheduled or next up on any core, at the relay-parent,
+/// If the ally is not scheduled or next up on any core, at the relay-parent,
 /// or the relay-parent isn't in the active-leaves set, we ignore the message
 /// as it must be invalid in that case - although this indicates a logic error
 /// elsewhere in the node.
@@ -331,7 +331,7 @@ async fn distribute_collation<Context>(
 	ctx: &mut Context,
 	runtime: &mut RuntimeInfo,
 	state: &mut State,
-	id: ParaId,
+	id: AllyId,
 	receipt: CandidateReceipt,
 	pov: PoV,
 	result_sender: Option<oneshot::Sender<CollationSecondedSignal>>,
@@ -358,14 +358,14 @@ where
 		return Ok(())
 	}
 
-	// Determine which core the para collated-on is assigned to.
+	// Determine which core the ally collated-on is assigned to.
 	// If it is not scheduled then ignore the message.
 	let (our_core, num_cores) = match determine_core(ctx, id, relay_parent).await? {
 		Some(core) => core,
 		None => {
 			tracing::warn!(
 				target: LOG_TARGET,
-				para_id = %id,
+				ally_id = %id,
 				?relay_parent,
 				"looks like no core is assigned to {} at {}", id, relay_parent,
 			);
@@ -390,7 +390,7 @@ where
 
 	tracing::debug!(
 		target: LOG_TARGET,
-		para_id = %id,
+		ally_id = %id,
 		relay_parent = %relay_parent,
 		candidate_hash = ?receipt.hash(),
 		pov_hash = ?pov.hash(),
@@ -421,11 +421,11 @@ where
 	Ok(())
 }
 
-/// Get the Id of the Core that is assigned to the para being collated on if any
+/// Get the Id of the Core that is assigned to the ally being collated on if any
 /// and the total number of cores.
 async fn determine_core<Context>(
 	ctx: &mut Context,
-	para_id: ParaId,
+	ally_id: AllyId,
 	relay_parent: Hash,
 ) -> Result<Option<(CoreIndex, usize)>>
 where
@@ -436,7 +436,7 @@ where
 
 	for (idx, core) in cores.iter().enumerate() {
 		if let CoreState::Scheduled(occupied) = core {
-			if occupied.para_id == para_id {
+			if occupied.ally_id == ally_id {
 				return Ok(Some(((idx as u32).into(), cores.len())))
 			}
 		}
@@ -452,7 +452,7 @@ struct GroupValidators {
 	validators: Vec<AuthorityDiscoveryId>,
 }
 
-/// Figure out current group of validators assigned to the para being collated on.
+/// Figure out current group of validators assigned to the ally being collated on.
 ///
 /// Returns [`ValidatorId`]'s of current group as determined based on the `relay_parent`.
 async fn determine_our_validators<Context>(
@@ -499,10 +499,10 @@ where
 {
 	let declare_signature_payload = protocol_v1::declare_signature_payload(&state.local_peer_id);
 
-	if let Some(para_id) = state.collating_on {
+	if let Some(ally_id) = state.collating_on {
 		let wire_message = protocol_v1::CollatorProtocolMessage::Declare(
 			state.collator_pair.public(),
-			para_id,
+			ally_id,
 			state.collator_pair.sign(&declare_signature_payload),
 		);
 
@@ -535,7 +535,7 @@ where
 /// Advertise collation to the given `peer`.
 ///
 /// This will only advertise a collation if there exists one for the given `relay_parent` and the given `peer` is
-/// set as validator for our para at the given `relay_parent`.
+/// set as validator for our ally at the given `relay_parent`.
 async fn advertise_collation<Context>(
 	ctx: &mut Context,
 	state: &mut State,
@@ -622,14 +622,14 @@ where
 				.map(|s| s.child("distributing-collation"));
 			let _span2 = jaeger::Span::new(&pov, "distributing-collation");
 			match state.collating_on {
-				Some(id) if receipt.descriptor.para_id != id => {
-					// If the ParaId of a collation requested to be distributed does not match
+				Some(id) if receipt.descriptor.ally_id != id => {
+					// If the AllyId of a collation requested to be distributed does not match
 					// the one we expect, we ignore the message.
 					tracing::warn!(
 						target: LOG_TARGET,
-						para_id = %receipt.descriptor.para_id,
+						ally_id = %receipt.descriptor.ally_id,
 						collating_on = %id,
-						"DistributeCollation for unexpected para_id",
+						"DistributeCollation for unexpected ally_id",
 					);
 				},
 				Some(id) => {
@@ -639,7 +639,7 @@ where
 				None => {
 					tracing::warn!(
 						target: LOG_TARGET,
-						para_id = %receipt.descriptor.para_id,
+						ally_id = %receipt.descriptor.ally_id,
 						"DistributeCollation message while not collating on any",
 					);
 				},
@@ -799,7 +799,7 @@ where
 		.map(|s| s.child("request-collation"));
 
 	match state.collating_on {
-		Some(our_para_id) if our_para_id == req.payload.para_id => {
+		Some(our_ally_id) if our_ally_id == req.payload.ally_id => {
 			let (receipt, pov) =
 				if let Some(collation) = state.collations.get_mut(&req.payload.relay_parent) {
 					collation.status.advance_to_requested();
@@ -838,18 +838,18 @@ where
 				send_collation(state, req, receipt, pov).await;
 			}
 		},
-		Some(our_para_id) => {
+		Some(our_ally_id) => {
 			tracing::warn!(
 				target: LOG_TARGET,
-				for_para_id = %req.payload.para_id,
-				our_para_id = %our_para_id,
-				"received a `CollationFetchingRequest` for unexpected para_id",
+				for_ally_id = %req.payload.ally_id,
+				our_ally_id = %our_ally_id,
+				"received a `CollationFetchingRequest` for unexpected ally_id",
 			);
 		},
 		None => {
 			tracing::warn!(
 				target: LOG_TARGET,
-				for_para_id = %req.payload.para_id,
+				for_ally_id = %req.payload.ally_id,
 				"received a `RequestCollation` while not collating on any para",
 			);
 		},

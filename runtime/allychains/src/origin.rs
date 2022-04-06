@@ -16,7 +16,7 @@
 
 //! Declaration of the allychain specific origin and a pallet that hosts it.
 
-use primitives::v1::Id as ParaId;
+use primitives::v1::Id as AllyId;
 use sp_runtime::traits::BadOrigin;
 use sp_std::result;
 
@@ -24,7 +24,7 @@ pub use pallet::*;
 
 /// Ensure that the origin `o` represents a allychain.
 /// Returns `Ok` with the allychain ID that effected the extrinsic or an `Err` otherwise.
-pub fn ensure_allychain<OuterOrigin>(o: OuterOrigin) -> result::Result<ParaId, BadOrigin>
+pub fn ensure_allychain<OuterOrigin>(o: OuterOrigin) -> result::Result<AllyId, BadOrigin>
 where
 	OuterOrigin: Into<result::Result<Origin, OuterOrigin>>,
 {
@@ -57,7 +57,7 @@ pub mod pallet {
 	#[derive(PartialEq, Eq, Clone, Encode, Decode, sp_core::RuntimeDebug, scale_info::TypeInfo)]
 	pub enum Origin {
 		/// It comes from a allychain.
-		Allychain(ParaId),
+		Allychain(AllyId),
 	}
 }
 

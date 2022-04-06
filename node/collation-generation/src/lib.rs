@@ -33,7 +33,7 @@ use axia_node_subsystem_util::{
 };
 use axia_primitives::v1::{
 	collator_signature_payload, CandidateCommitments, CandidateDescriptor, CandidateReceipt,
-	CoreState, Hash, Id as ParaId, OccupiedCoreAssumption, PersistedValidationData,
+	CoreState, Hash, Id as AllyId, OccupiedCoreAssumption, PersistedValidationData,
 	ValidationCodeHash,
 };
 use sp_core::crypto::Pair;
@@ -225,13 +225,13 @@ async fn handle_new_activations<Context: SubsystemContext>(
 				},
 			};
 
-			if scheduled_core.para_id != config.para_id {
+			if scheduled_core.ally_id != config.ally_id {
 				tracing::trace!(
 					target: LOG_TARGET,
 					core_idx = %core_idx,
 					relay_parent = ?relay_parent,
-					our_para = %config.para_id,
-					their_para = %scheduled_core.para_id,
+					our_para = %config.ally_id,
+					their_para = %scheduled_core.ally_id,
 					"core is not assigned to our para. Keep going.",
 				);
 				continue
@@ -243,7 +243,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 
 			let validation_data = match request_persisted_validation_data(
 				relay_parent,
-				scheduled_core.para_id,
+				scheduled_core.ally_id,
 				assumption,
 				ctx.sender(),
 			)
@@ -256,8 +256,8 @@ async fn handle_new_activations<Context: SubsystemContext>(
 						target: LOG_TARGET,
 						core_idx = %core_idx,
 						relay_parent = ?relay_parent,
-						our_para = %config.para_id,
-						their_para = %scheduled_core.para_id,
+						our_para = %config.ally_id,
+						their_para = %scheduled_core.ally_id,
 						"validation data is not available",
 					);
 					continue
@@ -266,7 +266,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 
 			let validation_code_hash = match obtain_current_validation_code_hash(
 				relay_parent,
-				scheduled_core.para_id,
+				scheduled_core.ally_id,
 				assumption,
 				ctx.sender(),
 			)
@@ -278,8 +278,8 @@ async fn handle_new_activations<Context: SubsystemContext>(
 						target: LOG_TARGET,
 						core_idx = %core_idx,
 						relay_parent = ?relay_parent,
-						our_para = %config.para_id,
-						their_para = %scheduled_core.para_id,
+						our_para = %config.ally_id,
+						their_para = %scheduled_core.ally_id,
 						"validation code hash is not found.",
 					);
 					continue
@@ -300,7 +300,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 							None => {
 								tracing::debug!(
 									target: LOG_TARGET,
-									para_id = %scheduled_core.para_id,
+									ally_id = %scheduled_core.ally_id,
 									"collator returned no collation on collate",
 								);
 								return
@@ -320,7 +320,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 						if encoded_size > validation_data.max_pov_size as usize {
 							tracing::debug!(
 								target: LOG_TARGET,
-								para_id = %scheduled_core.para_id,
+								ally_id = %scheduled_core.ally_id,
 								size = encoded_size,
 								max_size = validation_data.max_pov_size,
 								"PoV exceeded maximum size"
@@ -336,7 +336,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 
 					let signature_payload = collator_signature_payload(
 						&relay_parent,
-						&scheduled_core.para_id,
+						&scheduled_core.ally_id,
 						&persisted_validation_data_hash,
 						&pov_hash,
 						&validation_code_hash,
@@ -348,7 +348,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 							Err(err) => {
 								tracing::error!(
 									target: LOG_TARGET,
-									para_id = %scheduled_core.para_id,
+									ally_id = %scheduled_core.ally_id,
 									err = ?err,
 									"failed to calculate erasure root",
 								);
@@ -369,7 +369,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 						commitments_hash: commitments.hash(),
 						descriptor: CandidateDescriptor {
 							signature: task_config.key.sign(&signature_payload),
-							para_id: scheduled_core.para_id,
+							ally_id: scheduled_core.ally_id,
 							relay_parent,
 							collator: task_config.key.public(),
 							persisted_validation_data_hash,
@@ -385,7 +385,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 						candidate_hash = ?ccr.hash(),
 						?pov_hash,
 						?relay_parent,
-						para_id = %scheduled_core.para_id,
+						ally_id = %scheduled_core.ally_id,
 						"candidate is generated",
 					);
 					metrics.on_collation_generated();
@@ -398,7 +398,7 @@ async fn handle_new_activations<Context: SubsystemContext>(
 					{
 						tracing::warn!(
 							target: LOG_TARGET,
-							para_id = %scheduled_core.para_id,
+							ally_id = %scheduled_core.ally_id,
 							err = ?err,
 							"failed to send collation result",
 						);
@@ -413,20 +413,20 @@ async fn handle_new_activations<Context: SubsystemContext>(
 
 async fn obtain_current_validation_code_hash(
 	relay_parent: Hash,
-	para_id: ParaId,
+	ally_id: AllyId,
 	assumption: OccupiedCoreAssumption,
 	sender: &mut impl SubsystemSender,
 ) -> Result<Option<ValidationCodeHash>, crate::error::Error> {
 	use axia_node_subsystem::RuntimeApiError;
 
-	match request_validation_code_hash(relay_parent, para_id, assumption, sender)
+	match request_validation_code_hash(relay_parent, ally_id, assumption, sender)
 		.await
 		.await?
 	{
 		Ok(Some(v)) => Ok(Some(v)),
 		Ok(None) => Ok(None),
 		Err(RuntimeApiError::NotSupported { .. }) => {
-			match request_validation_code(relay_parent, para_id, assumption, sender).await.await? {
+			match request_validation_code(relay_parent, ally_id, assumption, sender).await.await? {
 				Ok(Some(v)) => Ok(Some(v.hash())),
 				Ok(None) => Ok(None),
 				Err(e) => {

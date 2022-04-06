@@ -22,14 +22,14 @@ const PUPPET_EXE: &str = env!("CARGO_BIN_EXE_adder_collator_puppet_worker");
 // If this test is failing, make sure to run all tests with the `real-overseer` feature being enabled.
 #[substrate_test_utils::test]
 async fn collating_using_adder_collator() {
-	use axia_primitives::v1::Id as ParaId;
+	use axia_primitives::v1::Id as AllyId;
 	use sp_keyring::AccountKeyring::*;
 
 	let mut builder = sc_cli::LoggerBuilder::new("");
 	builder.with_colors(false);
 	builder.init().expect("Set up logger");
 
-	let para_id = ParaId::from(100);
+	let ally_id = AllyId::from(100);
 
 	let alice_config = axia_test_service::node_config(
 		|| {},
@@ -57,7 +57,7 @@ async fn collating_using_adder_collator() {
 
 	// register allychain
 	alice
-		.register_allychain(para_id, collator.validation_code().to_vec(), collator.genesis_head())
+		.register_allychain(ally_id, collator.validation_code().to_vec(), collator.genesis_head())
 		.await
 		.unwrap();
 
@@ -73,7 +73,7 @@ async fn collating_using_adder_collator() {
 	charlie
 		.register_collator(
 			collator.collator_key(),
-			para_id,
+			ally_id,
 			collator.create_collation_function(charlie.task_manager.spawn_handle()),
 		)
 		.await;

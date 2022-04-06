@@ -20,9 +20,9 @@ use axia_node_subsystem::messages::AllMessages;
 use axia_primitives::v1::{CandidateHash, OccupiedCore};
 use test_helpers::dummy_candidate_descriptor;
 
-fn occupied_core(para_id: u32, candidate_hash: CandidateHash) -> CoreState {
+fn occupied_core(ally_id: u32, candidate_hash: CandidateHash) -> CoreState {
 	CoreState::Occupied(OccupiedCore {
-		group_responsible: para_id.into(),
+		group_responsible: ally_id.into(),
 		next_up_on_available: None,
 		occupied_since: 100_u32,
 		time_out_at: 200_u32,

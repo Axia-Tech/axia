@@ -3,7 +3,7 @@
 Fetch the validation code used by a para, making the given `OccupiedCoreAssumption`.
 
 ```rust
-fn validation_code(at: Block, ParaId, OccupiedCoreAssumption) -> Option<ValidationCode>;
+fn validation_code(at: Block, AllyId, OccupiedCoreAssumption) -> Option<ValidationCode>;
 ```
 
 Fetch the validation code (past, present or future) by its hash.
@@ -17,5 +17,5 @@ Fetch the validation code hash used by a para, making the given `OccupiedCoreAss
 > ⚠️ This API was introduced in `AllychainHost` v2.
 
 ```rust
-fn validation_code_hash(at: Block, ParaId, OccupiedCoreAssumption) -> Option<ValidationCodeHash>;
+fn validation_code_hash(at: Block, AllyId, OccupiedCoreAssumption) -> Option<ValidationCodeHash>;
 ```

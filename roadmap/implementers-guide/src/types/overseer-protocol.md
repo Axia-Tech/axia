@@ -382,14 +382,14 @@ enum CollatorProtocolMessage {
     /// the previous signal.
     ///
     /// This should be sent before any `DistributeCollation` message.
-    CollateOn(ParaId),
+    CollateOn(AllyId),
     /// Provide a collation to distribute to validators with an optional result sender.
     ///
     /// The result sender should be informed when at least one allychain validator seconded the collation. It is also
     /// completely okay to just drop the sender.
     DistributeCollation(CandidateReceipt, PoV, Option<oneshot::Sender<CollationSecondedSignal>>),
-    /// Fetch a collation under the given relay-parent for the given ParaId.
-    FetchCollation(Hash, ParaId, ResponseChannel<(CandidateReceipt, PoV)>),
+    /// Fetch a collation under the given relay-parent for the given AllyId.
+    FetchCollation(Hash, AllyId, ResponseChannel<(CandidateReceipt, PoV)>),
     /// Report a collator as having provided an invalid collation. This should lead to disconnect
     /// and blacklist of the collator.
     ReportCollator(CollatorId),
@@ -687,13 +687,13 @@ enum RuntimeApiRequest {
     AvailabilityCores(ResponseChannel<Vec<CoreState>>),
     /// with the given occupied core assumption.
     PersistedValidationData(
-        ParaId,
+        AllyId,
         OccupiedCoreAssumption,
         ResponseChannel<Option<PersistedValidationData>>,
     ),
     /// Sends back `true` if the commitments pass all acceptance criteria checks.
     CheckValidationOutputs(
-        ParaId,
+        AllyId,
         CandidateCommitments,
         RuntimeApiSender<bool>,
     ),
@@ -701,21 +701,21 @@ enum RuntimeApiRequest {
     /// context.
     SessionIndexForChild(ResponseChannel<SessionIndex>),
     /// Get the validation code for a specific para, using the given occupied core assumption.
-    ValidationCode(ParaId, OccupiedCoreAssumption, ResponseChannel<Option<ValidationCode>>),
+    ValidationCode(AllyId, OccupiedCoreAssumption, ResponseChannel<Option<ValidationCode>>),
     /// Get validation code by its hash, either past, current or future code can be returned,
     /// as long as state is still available.
     ValidationCodeByHash(ValidationCodeHash, RuntimeApiSender<Option<ValidationCode>>),
     /// Get a committed candidate receipt for all candidates pending availability.
-    CandidatePendingAvailability(ParaId, ResponseChannel<Option<CommittedCandidateReceipt>>),
+    CandidatePendingAvailability(AllyId, ResponseChannel<Option<CommittedCandidateReceipt>>),
     /// Get all events concerning candidates in the last block.
     CandidateEvents(ResponseChannel<Vec<CandidateEvent>>),
     /// Get the session info for the given session, if stored.
     SessionInfo(SessionIndex, ResponseChannel<Option<SessionInfo>>),
     /// Get all the pending inbound messages in the downward message queue for a para.
-    DmqContents(ParaId, ResponseChannel<Vec<InboundDownwardMessage<BlockNumber>>>),
+    DmqContents(AllyId, ResponseChannel<Vec<InboundDownwardMessage<BlockNumber>>>),
     /// Get the contents of all channels addressed to the given recipient. Channels that have no
     /// messages in them are also included.
-    InboundHrmpChannelsContents(ParaId, ResponseChannel<BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>>>),
+    InboundHrmpChannelsContents(AllyId, ResponseChannel<BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>>>),
     /// Get information about the BABE epoch this block was produced in.
     BabeEpoch(ResponseChannel<BabeEpoch>),
 }
@@ -801,7 +801,7 @@ pub enum CandidateValidationMessage {
     /// This will also perform checking of validation outputs against the acceptance criteria.
     ///
     /// If there is no state available which can provide this data or the core for
-    /// the para is not free at the relay-parent, an error is returned.
+    /// the ally is not free at the relay-parent, an error is returned.
     ValidateFromChainState(
         CandidateDescriptor,
         Arc<PoV>,

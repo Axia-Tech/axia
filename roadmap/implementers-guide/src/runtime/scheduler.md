@@ -102,7 +102,7 @@ Utility structs:
 
 ```rust
 // A claim on authoring the next block for a given allythread.
-struct AllythreadClaim(ParaId, CollatorId);
+struct AllythreadClaim(AllyId, CollatorId);
 
 // An entry tracking a claim to ensure it does not pass the maximum number of retries.
 struct AllythreadEntry {
@@ -135,7 +135,7 @@ enum AssignmentKind {
 
 struct CoreAssignment {
   core: CoreIndex,
-  para_id: ParaId,
+  ally_id: AllyId,
   kind: AssignmentKind,
   group_idx: GroupIndex,
 }
@@ -159,7 +159,7 @@ AllythreadQueue: AllythreadQueue;
 AvailabilityCores: Vec<Option<CoreOccupied>>;
 /// An index used to ensure that only one claim on a allythread exists in the queue or is
 /// currently being handled by an occupied core.
-AllythreadClaimIndex: Vec<ParaId>;
+AllythreadClaimIndex: Vec<AllyId>;
 /// The block number where the session start occurred. Used to track how many group rotations have occurred.
 SessionStartBlock: BlockNumber;
 /// Currently scheduled cores - free but up to be occupied.
@@ -223,7 +223,7 @@ No finalization routine runs for this module.
   - Behavior undefined if the given cores are not sorted ascending by core index
   - This clears them from `Scheduled` and marks each corresponding `core` in the `AvailabilityCores` as occupied.
   - Since both the availability cores and the newly-occupied cores lists are sorted ascending, this method can be implemented efficiently.
-- `core_para(CoreIndex) -> ParaId`: return the currently-scheduled or occupied ParaId for the given core.
+- `core_para(CoreIndex) -> AllyId`: return the currently-scheduled or occupied AllyId for the given core.
 - `group_validators(GroupIndex) -> Option<Vec<ValidatorIndex>>`: return all validators in a given group, if the group index is valid for this session.
 - `availability_timeout_predicate() -> Option<impl Fn(CoreIndex, BlockNumber) -> bool>`: returns an optional predicate that should be used for timing out occupied cores. if `None`, no timing-out should be done. The predicate accepts the index of the core, and the block number since which it has been occupied. The predicate should be implemented based on the time since the last validator group rotation, and the respective allychain and allythread timeouts, i.e. only within `max(config.chain_availability_period, config.thread_availability_period)` of the last rotation would this return `Some`.
 - `group_rotation_info(now: BlockNumber) -> GroupRotationInfo`: Returns a helper for determining group rotation.

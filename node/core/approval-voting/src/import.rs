@@ -720,9 +720,9 @@ pub(crate) mod tests {
 		};
 
 		let hash = header.hash();
-		let make_candidate = |para_id| {
+		let make_candidate = |ally_id| {
 			let mut r = dummy_candidate_receipt(dummy_hash());
-			r.descriptor.para_id = para_id;
+			r.descriptor.ally_id = ally_id;
 			r.descriptor.relay_parent = hash;
 			r
 		};
@@ -834,9 +834,9 @@ pub(crate) mod tests {
 		};
 
 		let hash = header.hash();
-		let make_candidate = |para_id| {
+		let make_candidate = |ally_id| {
 			let mut r = dummy_candidate_receipt(dummy_hash());
-			r.descriptor.para_id = para_id;
+			r.descriptor.ally_id = ally_id;
 			r.descriptor.relay_parent = hash;
 			r
 		};
@@ -936,9 +936,9 @@ pub(crate) mod tests {
 		};
 
 		let hash = header.hash();
-		let make_candidate = |para_id| {
+		let make_candidate = |ally_id| {
 			let mut r = dummy_candidate_receipt(dummy_hash());
-			r.descriptor.para_id = para_id;
+			r.descriptor.ally_id = ally_id;
 			r.descriptor.relay_parent = hash;
 			r
 		};
@@ -1026,9 +1026,9 @@ pub(crate) mod tests {
 		};
 
 		let hash = header.hash();
-		let make_candidate = |para_id| {
+		let make_candidate = |ally_id| {
 			let mut r = dummy_candidate_receipt(dummy_hash());
-			r.descriptor.para_id = para_id;
+			r.descriptor.ally_id = ally_id;
 			r.descriptor.relay_parent = hash;
 			r
 		};
@@ -1171,9 +1171,9 @@ pub(crate) mod tests {
 		};
 
 		let hash = header.hash();
-		let make_candidate = |para_id| {
+		let make_candidate = |ally_id| {
 			let mut r = dummy_candidate_receipt(dummy_hash());
-			r.descriptor.para_id = para_id;
+			r.descriptor.ally_id = ally_id;
 			r.descriptor.relay_parent = hash;
 			r
 		};

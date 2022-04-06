@@ -29,7 +29,7 @@ use cumulus_client_network::build_block_announce_validator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 
 // Substrate Imports
 use sc_client_api::ExecutorProvider;
@@ -188,7 +188,7 @@ where
 async fn start_node_impl<RuntimeApi, Executor, RB, BIQ, BIC>(
 	allychain_config: Configuration,
 	axia_config: Configuration,
-	id: ParaId,
+	id: AllyId,
 	rpc_ext_builder: RB,
 	build_import_queue: BIQ,
 	build_consensus: BIC,
@@ -325,7 +325,7 @@ where
 		let spawner = task_manager.spawn_handle();
 
 		let params = StartCollatorParams {
-			para_id: id,
+			ally_id: id,
 			block_status: client.clone(),
 			announce_block,
 			client: client.clone(),
@@ -342,7 +342,7 @@ where
 			client: client.clone(),
 			announce_block,
 			task_manager: &mut task_manager,
-			para_id: id,
+			ally_id: id,
 			relay_chain_full_node,
 		};
 
@@ -404,7 +404,7 @@ pub fn allychain_build_import_queue(
 pub async fn start_node(
 	allychain_config: Configuration,
 	axia_config: Configuration,
-	id: ParaId,
+	id: AllyId,
 ) -> sc_service::error::Result<(
 	TaskManager,
 	Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<AllychainRuntimeExecutor>>>,

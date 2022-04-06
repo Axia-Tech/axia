@@ -108,7 +108,7 @@ async fn get_core_availability(
 
 		tracing::trace!(
 			target: LOG_TARGET,
-			para_id = %core.para_id(),
+			ally_id = %core.ally_id(),
 			availability = ?res,
 			?core.candidate_hash,
 			"Candidate availability",

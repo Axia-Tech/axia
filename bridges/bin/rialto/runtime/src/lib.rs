@@ -766,25 +766,25 @@ impl_runtime_apis! {
 		}
 
 		fn persisted_validation_data(
-			para_id: axia_primitives::v1::Id,
+			ally_id: axia_primitives::v1::Id,
 			assumption: axia_primitives::v1::OccupiedCoreAssumption,
 		)
 			-> Option<axia_primitives::v1::PersistedValidationData<Hash, BlockNumber>> {
-			axia_runtime_allychains::runtime_api_impl::v1::persisted_validation_data::<Runtime>(para_id, assumption)
+			axia_runtime_allychains::runtime_api_impl::v1::persisted_validation_data::<Runtime>(ally_id, assumption)
 		}
 
 		fn assumed_validation_data(
-			para_id: axia_primitives::v1::Id,
+			ally_id: axia_primitives::v1::Id,
 			expected_persisted_validation_data_hash: Hash,
 		) -> Option<(axia_primitives::v1::PersistedValidationData<Hash, BlockNumber>, axia_primitives::v1::ValidationCodeHash)> {
-			axia_runtime_allychains::runtime_api_impl::v1::assumed_validation_data::<Runtime>(para_id, expected_persisted_validation_data_hash)
+			axia_runtime_allychains::runtime_api_impl::v1::assumed_validation_data::<Runtime>(ally_id, expected_persisted_validation_data_hash)
 		}
 
 		fn check_validation_outputs(
-			para_id: axia_primitives::v1::Id,
+			ally_id: axia_primitives::v1::Id,
 			outputs: axia_primitives::v1::CandidateCommitments,
 		) -> bool {
-			axia_runtime_allychains::runtime_api_impl::v1::check_validation_outputs::<Runtime>(para_id, outputs)
+			axia_runtime_allychains::runtime_api_impl::v1::check_validation_outputs::<Runtime>(ally_id, outputs)
 		}
 
 		fn session_index_for_child() -> axia_primitives::v1::SessionIndex {
@@ -792,17 +792,17 @@ impl_runtime_apis! {
 		}
 
 		fn validation_code(
-			para_id: axia_primitives::v1::Id,
+			ally_id: axia_primitives::v1::Id,
 			assumption: axia_primitives::v1::OccupiedCoreAssumption,
 		)
 			-> Option<axia_primitives::v1::ValidationCode> {
-			axia_runtime_allychains::runtime_api_impl::v1::validation_code::<Runtime>(para_id, assumption)
+			axia_runtime_allychains::runtime_api_impl::v1::validation_code::<Runtime>(ally_id, assumption)
 		}
 
 		fn candidate_pending_availability(
-			para_id: axia_primitives::v1::Id,
+			ally_id: axia_primitives::v1::Id,
 		) -> Option<axia_primitives::v1::CommittedCandidateReceipt<Hash>> {
-			axia_runtime_allychains::runtime_api_impl::v1::candidate_pending_availability::<Runtime>(para_id)
+			axia_runtime_allychains::runtime_api_impl::v1::candidate_pending_availability::<Runtime>(ally_id)
 		}
 
 		fn candidate_events() -> Vec<axia_primitives::v1::CandidateEvent<Hash>> {
