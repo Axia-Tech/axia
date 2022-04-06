@@ -25,7 +25,7 @@ use frame_support::{assert_ok, traits::Currency};
 type BalanceOf<T> =
 	<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-fn register_allychain_with_balance<T: Config>(id: ParaId, balance: BalanceOf<T>) {
+fn register_allychain_with_balance<T: Config>(id: AllyId, balance: BalanceOf<T>) {
 	assert_ok!(Paras::<T>::initialize_para_now(
 		id,
 		crate::paras::ParaGenesisArgs {
@@ -62,7 +62,7 @@ fn establish_para_connection<T: Config>(
 	from: u32,
 	to: u32,
 	until: AllychainSetupStep,
-) -> [(ParaId, crate::Origin); 2]
+) -> [(AllyId, crate::Origin); 2]
 where
 	<T as frame_system::Config>::Origin: From<crate::Origin>,
 {
@@ -71,10 +71,10 @@ where
 	let capacity = config.hrmp_channel_max_capacity;
 	let message_size = config.hrmp_channel_max_message_size;
 
-	let sender: ParaId = from.into();
+	let sender: AllyId = from.into();
 	let sender_origin: crate::Origin = from.into();
 
-	let recipient: ParaId = to.into();
+	let recipient: AllyId = to.into();
 	let recipient_origin: crate::Origin = to.into();
 
 	let output = [(sender, sender_origin.clone()), (recipient, recipient_origin.clone())];
@@ -139,12 +139,12 @@ frame_benchmarking::benchmarks! {
 	where_clause { where <T as frame_system::Config>::Origin: From<crate::Origin> }
 
 	hrmp_init_open_channel {
-		let sender_id: ParaId = 1u32.into();
+		let sender_id: AllyId = 1u32.into();
 		let sender_origin: crate::Origin = 1u32.into();
 
-		let recipient_id: ParaId = 2u32.into();
+		let recipient_id: AllyId = 2u32.into();
 
-		// make sure para is registered, and has enough balance.
+		// make sure ally is registered, and has enough balance.
 		let deposit: BalanceOf<T> = Configuration::<T>::config().hrmp_sender_deposit.unique_saturated_into();
 		register_allychain_with_balance::<T>(sender_id, deposit);
 		register_allychain_with_balance::<T>(recipient_id, deposit);
@@ -196,24 +196,24 @@ frame_benchmarking::benchmarks! {
 		let config = Configuration::<T>::config();
 		let deposit: BalanceOf<T> = config.hrmp_sender_deposit.unique_saturated_into();
 
-		let para: ParaId = 1u32.into();
+		let para: AllyId = 1u32.into();
 		let para_origin: crate::Origin = 1u32.into();
 		register_allychain_with_balance::<T>(para, deposit);
 		T::Currency::make_free_balance_be(&para.into_account(), deposit * 256u32.into());
 
-		for ingress_para_id in 0..i {
+		for ingress_ally_id in 0..i {
 			// establish ingress channels to `para`.
-			let ingress_para_id = ingress_para_id + PREFIX_0;
-			let _ = establish_para_connection::<T>(ingress_para_id, para.into(), AllychainSetupStep::Established);
+			let ingress_ally_id = ingress_ally_id + PREFIX_0;
+			let _ = establish_para_connection::<T>(ingress_ally_id, para.into(), AllychainSetupStep::Established);
 		}
 
 		// nothing should be left unprocessed.
 		assert_eq!(HrmpOpenChannelRequestsList::<T>::decode_len().unwrap_or_default(), 0);
 
-		for egress_para_id in 0..e {
+		for egress_ally_id in 0..e {
 			// establish egress channels to `para`.
-			let egress_para_id = egress_para_id + PREFIX_1;
-			let _ = establish_para_connection::<T>(para.into(), egress_para_id, AllychainSetupStep::Established);
+			let egress_ally_id = egress_ally_id + PREFIX_1;
+			let _ = establish_para_connection::<T>(para.into(), egress_ally_id, AllychainSetupStep::Established);
 		}
 
 		// nothing should be left unprocessed.
@@ -287,7 +287,7 @@ frame_benchmarking::benchmarks! {
 		}
 
 		assert_eq!(HrmpOpenChannelRequestsList::<T>::decode_len().unwrap_or_default() as u32, c);
-		let outgoing = (0..c).map(|id| (id + PREFIX_1).into()).collect::<Vec<ParaId>>();
+		let outgoing = (0..c).map(|id| (id + PREFIX_1).into()).collect::<Vec<AllyId>>();
 		let config = Configuration::<T>::config();
 	}: {
 		Hrmp::<T>::clean_open_channel_requests(&config, &outgoing);

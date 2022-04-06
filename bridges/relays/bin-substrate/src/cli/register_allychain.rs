@@ -22,7 +22,7 @@ use crate::cli::{
 use codec::Encode;
 use num_traits::Zero;
 use axia_allychain::primitives::{
-	HeadData as ParaHeadData, Id as ParaId, ValidationCode as ParaValidationCode,
+	HeadData as ParaHeadData, Id as AllyId, ValidationCode as ParaValidationCode,
 };
 use axia_runtime_common::{
 	paras_registrar::Call as ParaRegistrarCall, slots::Call as ParaSlotsCall,
@@ -39,8 +39,8 @@ use sp_core::{
 use structopt::StructOpt;
 use strum::{EnumString, EnumVariantNames, VariantNames};
 
-/// Name of the `NextFreeParaId` value in the `axia_runtime_common::paras_registrar` pallet.
-const NEXT_FREE_PARA_ID_STORAGE_NAME: &str = "NextFreeParaId";
+/// Name of the `NextFreeAllyId` value in the `axia_runtime_common::paras_registrar` pallet.
+const NEXT_FREE_ALLY_ID_STORAGE_NAME: &str = "NextFreeAllyId";
 /// Name of the `ParaLifecycles` map in the `axia_runtime_allychains::paras` pallet.
 const PARAS_LIFECYCLES_STORAGE_NAME: &str = "ParaLifecycles";
 
@@ -99,16 +99,16 @@ impl RegisterAllychain {
 
 			// hopefully we're the only actor that is registering allychain right now
 			// => read next allychain id
-			let para_id_key = bp_runtime::storage_value_final_key(
+			let ally_id_key = bp_runtime::storage_value_final_key(
 				PARAS_REGISTRAR_PALLET_NAME.as_bytes(),
-				NEXT_FREE_PARA_ID_STORAGE_NAME.as_bytes(),
+				NEXT_FREE_ALLY_ID_STORAGE_NAME.as_bytes(),
 			);
-			let para_id: ParaId = relay_client
-				.storage_value(StorageKey(para_id_key.to_vec()), None)
+			let ally_id: AllyId = relay_client
+				.storage_value(StorageKey(ally_id_key.to_vec()), None)
 				.await?
 				.unwrap_or(axia_primitives::v1::LOWEST_PUBLIC_ID)
 				.max(axia_primitives::v1::LOWEST_PUBLIC_ID);
-			log::info!(target: "bridge", "Going to reserve allychain id: {:?}", para_id);
+			log::info!(target: "bridge", "Going to reserve allychain id: {:?}", ally_id);
 
 			// step 1: reserve a allychain id
 			let relay_genesis_hash = *relay_client.genesis_hash();
@@ -138,9 +138,9 @@ impl RegisterAllychain {
 					.await?,
 			)
 			.await?;
-			log::info!(target: "bridge", "Reserved allychain id: {:?}", para_id);
+			log::info!(target: "bridge", "Reserved allychain id: {:?}", ally_id);
 
-			// step 2: register parathread
+			// step 2: register allythread
 			let para_genesis_header = para_client.header_by_number(Zero::zero()).await?;
 			let para_code = para_client
 				.raw_storage_value(StorageKey(CODE.to_vec()), Some(para_genesis_header.hash()))
@@ -152,17 +152,17 @@ impl RegisterAllychain {
 			log::info!(
 				target: "bridge",
 				"Going to register allychain {:?}: genesis len = {} code len = {}",
-				para_id,
+				ally_id,
 				para_genesis_header.encode().len(),
 				para_code.len(),
 			);
-			let register_parathread_call: CallOf<Relaychain> = ParaRegistrarCall::register {
-				id: para_id,
+			let register_allythread_call: CallOf<Relaychain> = ParaRegistrarCall::register {
+				id: ally_id,
 				genesis_head: ParaHeadData(para_genesis_header.encode()),
 				validation_code: ParaValidationCode(para_code),
 			}
 			.into();
-			let register_parathread_signer = relay_sign.clone();
+			let register_allythread_signer = relay_sign.clone();
 			wait_until_transaction_is_finalized::<Relaychain>(
 				relay_client
 					.submit_and_watch_signed_extrinsic(
@@ -171,10 +171,10 @@ impl RegisterAllychain {
 							Bytes(
 								Relaychain::sign_transaction(
 									relay_genesis_hash,
-									&register_parathread_signer,
+									&register_allythread_signer,
 									relay_substrate_client::TransactionEra::immortal(),
 									UnsignedTransaction::new(
-										register_parathread_call,
+										register_allythread_call,
 										transaction_nonce,
 									),
 								)
@@ -185,19 +185,19 @@ impl RegisterAllychain {
 					.await?,
 			)
 			.await?;
-			log::info!(target: "bridge", "Registered allychain: {:?}. Waiting for onboarding", para_id);
+			log::info!(target: "bridge", "Registered allychain: {:?}. Waiting for onboarding", ally_id);
 
-			// wait until parathread is onboarded
+			// wait until allythread is onboarded
 			let para_state_key = bp_runtime::storage_map_final_key_twox64_concat(
 				PARAS_PALLET_NAME,
 				PARAS_LIFECYCLES_STORAGE_NAME,
-				&para_id.encode(),
+				&ally_id.encode(),
 			);
 			wait_para_state(
 				&relay_client,
 				&para_state_key.0,
-				&[ParaLifecycle::Onboarding, ParaLifecycle::Parathread],
-				ParaLifecycle::Parathread,
+				&[ParaLifecycle::Onboarding, ParaLifecycle::Allythread],
+				ParaLifecycle::Allythread,
 			)
 			.await?;
 
@@ -208,14 +208,14 @@ impl RegisterAllychain {
 			log::info!(
 				target: "bridge",
 				"Going to force leases of allychain {:?}: [{}; {}]",
-				para_id,
+				ally_id,
 				lease_begin,
 				lease_end,
 			);
 			let force_lease_call: CallOf<Relaychain> = SudoCall::sudo {
 				call: Box::new(
 					ParaSlotsCall::force_lease {
-						para: para_id,
+						para: ally_id,
 						leaser: relay_sudo_account.clone(),
 						amount: para_deposit,
 						period_begin: lease_begin,
@@ -239,7 +239,7 @@ impl RegisterAllychain {
 					)
 				})
 				.await?;
-			log::info!(target: "bridge", "Registered allychain leases: {:?}. Waiting for onboarding", para_id);
+			log::info!(target: "bridge", "Registered allychain leases: {:?}. Waiting for onboarding", ally_id);
 
 			// wait until allychain is onboarded
 			wait_para_state(
@@ -247,8 +247,8 @@ impl RegisterAllychain {
 				&para_state_key.0,
 				&[
 					ParaLifecycle::Onboarding,
-					ParaLifecycle::UpgradingParathread,
-					ParaLifecycle::Parathread,
+					ParaLifecycle::UpgradingAllythread,
+					ParaLifecycle::Allythread,
 				],
 				ParaLifecycle::Allychain,
 			)

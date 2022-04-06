@@ -286,7 +286,7 @@ pub mod v1 {
 
 	use axia_primitives::v1::{
 		CandidateHash, CandidateIndex, CollatorId, CollatorSignature, CompactStatement, Hash,
-		Id as ParaId, UncheckedSignedAvailabilityBitfield, ValidatorIndex, ValidatorSignature,
+		Id as AllyId, UncheckedSignedAvailabilityBitfield, ValidatorIndex, ValidatorSignature,
 	};
 
 	use axia_node_primitives::{
@@ -398,7 +398,7 @@ pub mod v1 {
 		/// Declare the intent to advertise collations under a collator ID, attaching a
 		/// signature of the `PeerId` of the node using the given collator ID key.
 		#[codec(index = 0)]
-		Declare(CollatorId, ParaId, CollatorSignature),
+		Declare(CollatorId, AllyId, CollatorSignature),
 		/// Advertise a collation to a validator. Can only be sent once the peer has
 		/// declared that they are a collator with given ID.
 		#[codec(index = 1)]

@@ -815,7 +815,7 @@ fn test_collator_generation_msg() -> CollationGenerationMessage {
 	CollationGenerationMessage::Initialize(CollationGenerationConfig {
 		key: CollatorPair::generate().0,
 		collator: Box::new(|_, _| TestCollator.boxed()),
-		para_id: Default::default(),
+		ally_id: Default::default(),
 	})
 }
 struct TestCollator;

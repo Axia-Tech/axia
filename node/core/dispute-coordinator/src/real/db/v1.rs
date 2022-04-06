@@ -265,7 +265,7 @@ pub(crate) fn note_current_session(
 mod tests {
 	use super::*;
 	use ::test_helpers::{dummy_candidate_receipt, dummy_hash};
-	use axia_primitives::v1::{Hash, Id as ParaId};
+	use axia_primitives::v1::{Hash, Id as AllyId};
 
 	fn make_db() -> DbBackend {
 		let store = Arc::new(kvdb_memorydb::create(1));
@@ -309,7 +309,7 @@ mod tests {
 			CandidateVotes {
 				candidate_receipt: {
 					let mut receipt = dummy_candidate_receipt(dummy_hash());
-					receipt.descriptor.para_id = 5.into();
+					receipt.descriptor.ally_id = 5.into();
 
 					receipt
 				},
@@ -335,8 +335,8 @@ mod tests {
 				.unwrap()
 				.candidate_receipt
 				.descriptor
-				.para_id,
-			ParaId::from(5),
+				.ally_id,
+			AllyId::from(5),
 		);
 
 		let write_ops = overlay_db.into_write_ops();
@@ -359,8 +359,8 @@ mod tests {
 				.unwrap()
 				.candidate_receipt
 				.descriptor
-				.para_id,
-			ParaId::from(5),
+				.ally_id,
+			AllyId::from(5),
 		);
 	}
 
@@ -391,8 +391,8 @@ mod tests {
 				.unwrap()
 				.candidate_receipt
 				.descriptor
-				.para_id,
-			ParaId::from(1),
+				.ally_id,
+			AllyId::from(1),
 		);
 
 		let mut overlay_db = OverlayedBackend::new(&backend);
@@ -402,7 +402,7 @@ mod tests {
 			CandidateVotes {
 				candidate_receipt: {
 					let mut receipt = dummy_candidate_receipt(dummy_hash());
-					receipt.descriptor.para_id = 5.into();
+					receipt.descriptor.ally_id = 5.into();
 
 					receipt
 				},

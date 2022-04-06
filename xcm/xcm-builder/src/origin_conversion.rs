@@ -67,9 +67,9 @@ impl<Origin: OriginTrait> ConvertOrigin<Origin> for ParentAsSuperuser<Origin> {
 	}
 }
 
-pub struct ChildSystemAllychainAsSuperuser<ParaId, Origin>(PhantomData<(ParaId, Origin)>);
-impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
-	for ChildSystemAllychainAsSuperuser<ParaId, Origin>
+pub struct ChildSystemAllychainAsSuperuser<AllyId, Origin>(PhantomData<(AllyId, Origin)>);
+impl<AllyId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
+	for ChildSystemAllychainAsSuperuser<AllyId, Origin>
 {
 	fn convert_origin(
 		origin: impl Into<MultiLocation>,
@@ -81,15 +81,15 @@ impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
 			(
 				OriginKind::Superuser,
 				MultiLocation { parents: 0, interior: X1(Junction::Allychain(id)) },
-			) if ParaId::from(id).is_system() => Ok(Origin::root()),
+			) if AllyId::from(id).is_system() => Ok(Origin::root()),
 			(_, origin) => Err(origin),
 		}
 	}
 }
 
-pub struct SiblingSystemAllychainAsSuperuser<ParaId, Origin>(PhantomData<(ParaId, Origin)>);
-impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
-	for SiblingSystemAllychainAsSuperuser<ParaId, Origin>
+pub struct SiblingSystemAllychainAsSuperuser<AllyId, Origin>(PhantomData<(AllyId, Origin)>);
+impl<AllyId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
+	for SiblingSystemAllychainAsSuperuser<AllyId, Origin>
 {
 	fn convert_origin(
 		origin: impl Into<MultiLocation>,
@@ -105,7 +105,7 @@ impl<ParaId: IsSystem + From<u32>, Origin: OriginTrait> ConvertOrigin<Origin>
 			(
 				OriginKind::Superuser,
 				MultiLocation { parents: 1, interior: X1(Junction::Allychain(id)) },
-			) if ParaId::from(id).is_system() => Ok(Origin::root()),
+			) if AllyId::from(id).is_system() => Ok(Origin::root()),
 			(_, origin) => Err(origin),
 		}
 	}

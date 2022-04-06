@@ -20,7 +20,7 @@ use crate::{
 	configuration, disputes, dmp, hrmp, inclusion, initializer, origin, paras, paras_inherent,
 	scheduler, session_info, shared,
 	ump::{self, MessageId, UmpSink},
-	ParaId,
+	AllyId,
 };
 
 use frame_support::{
@@ -337,11 +337,11 @@ pub fn availability_rewards() -> HashMap<ValidatorIndex, usize> {
 }
 
 std::thread_local! {
-	static PROCESSED: RefCell<Vec<(ParaId, UpwardMessage)>> = RefCell::new(vec![]);
+	static PROCESSED: RefCell<Vec<(AllyId, UpwardMessage)>> = RefCell::new(vec![]);
 }
 
 /// Return which messages have been processed by `pocess_upward_message` and clear the buffer.
-pub fn take_processed() -> Vec<(ParaId, UpwardMessage)> {
+pub fn take_processed() -> Vec<(AllyId, UpwardMessage)> {
 	PROCESSED.with(|opt_hook| std::mem::take(&mut *opt_hook.borrow_mut()))
 }
 
@@ -352,7 +352,7 @@ pub fn take_processed() -> Vec<(ParaId, UpwardMessage)> {
 pub struct TestUmpSink;
 impl UmpSink for TestUmpSink {
 	fn process_upward_message(
-		actual_origin: ParaId,
+		actual_origin: AllyId,
 		actual_msg: &[u8],
 		max_weight: Weight,
 	) -> Result<Weight, (MessageId, Weight)> {

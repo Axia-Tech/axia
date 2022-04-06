@@ -1640,7 +1640,7 @@ fn check_and_import_assignment(
 				target: LOG_TARGET,
 				validator = assignment.validator.0,
 				candidate_hash = ?assigned_candidate_hash,
-				para_id = ?candidate_entry.candidate_receipt().descriptor.para_id,
+				ally_id = ?candidate_entry.candidate_receipt().descriptor.ally_id,
 				"Imported assignment.",
 			);
 
@@ -1764,7 +1764,7 @@ fn check_and_import_approval<T>(
 		validator_index = approval.validator.0,
 		validator = ?pubkey,
 		candidate_hash = ?approved_candidate_hash,
-		para_id = ?candidate_entry.candidate_receipt().descriptor.para_id,
+		ally_id = ?candidate_entry.candidate_receipt().descriptor.ally_id,
 		"Importing approval vote",
 	);
 
@@ -2106,7 +2106,7 @@ fn process_wakeup(
 			tracing::trace!(
 				target: LOG_TARGET,
 				?candidate_hash,
-				para_id = ?candidate_receipt.descriptor.para_id,
+				ally_id = ?candidate_receipt.descriptor.ally_id,
 				block_hash = ?relay_block,
 				"Launching approval work.",
 			);
@@ -2186,9 +2186,9 @@ async fn launch_approval(
 	}
 
 	let candidate_hash = candidate.hash();
-	let para_id = candidate.descriptor.para_id;
+	let ally_id = candidate.descriptor.ally_id;
 
-	tracing::trace!(target: LOG_TARGET, ?candidate_hash, ?para_id, "Recovering data.");
+	tracing::trace!(target: LOG_TARGET, ?candidate_hash, ?ally_id, "Recovering data.");
 
 	let timer = metrics.time_recover_and_approve();
 	ctx.send_message(AvailabilityRecoveryMessage::RecoverAvailableData(
@@ -2224,10 +2224,10 @@ async fn launch_approval(
 					&RecoveryError::Unavailable => {
 						tracing::warn!(
 							target: LOG_TARGET,
-							?para_id,
+							?ally_id,
 							?candidate_hash,
 							"Data unavailable for candidate {:?}",
-							(candidate_hash, candidate.descriptor.para_id),
+							(candidate_hash, candidate.descriptor.ally_id),
 						);
 						// do nothing. we'll just be a no-show and that'll cause others to rise up.
 						metrics_guard.take().on_approval_unavailable();
@@ -2235,10 +2235,10 @@ async fn launch_approval(
 					&RecoveryError::Invalid => {
 						tracing::warn!(
 							target: LOG_TARGET,
-							?para_id,
+							?ally_id,
 							?candidate_hash,
 							"Data recovery invalid for candidate {:?}",
-							(candidate_hash, candidate.descriptor.para_id),
+							(candidate_hash, candidate.descriptor.ally_id),
 						);
 
 						sender
@@ -2300,7 +2300,7 @@ async fn launch_approval(
 				// Validation checked out. Issue an approval command. If the underlying service is unreachable,
 				// then there isn't anything we can do.
 
-				tracing::trace!(target: LOG_TARGET, ?candidate_hash, ?para_id, "Candidate Valid");
+				tracing::trace!(target: LOG_TARGET, ?candidate_hash, ?ally_id, "Candidate Valid");
 
 				let expected_commitments_hash = candidate.commitments_hash;
 				if commitments.hash() == expected_commitments_hash {
@@ -2329,7 +2329,7 @@ async fn launch_approval(
 					target: LOG_TARGET,
 					?reason,
 					?candidate_hash,
-					?para_id,
+					?ally_id,
 					"Detected invalid candidate as an approval checker.",
 				);
 
@@ -2353,7 +2353,7 @@ async fn launch_approval(
 					target: LOG_TARGET,
 					err = ?e,
 					?candidate_hash,
-					?para_id,
+					?ally_id,
 					"Failed to validate candidate due to internal error",
 				);
 				metrics_guard.take().on_approval_error();

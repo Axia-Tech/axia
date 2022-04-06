@@ -23,7 +23,7 @@ use sp_consensus_babe::Epoch;
 use axia_primitives::{
 	v1::{
 		AuthorityDiscoveryId, BlockNumber, CandidateCommitments, CandidateEvent,
-		CommittedCandidateReceipt, CoreState, GroupRotationInfo, Hash, Id as ParaId,
+		CommittedCandidateReceipt, CoreState, GroupRotationInfo, Hash, Id as AllyId,
 		InboundDownwardMessage, InboundHrmpMessage, OccupiedCoreAssumption,
 		PersistedValidationData, ScrapedOnChainVotes, SessionIndex, ValidationCode,
 		ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
@@ -83,37 +83,37 @@ pub(crate) struct RequestResultCache {
 		MemoryLruCache<Hash, ResidentSizeOf<(Vec<Vec<ValidatorIndex>>, GroupRotationInfo)>>,
 	availability_cores: MemoryLruCache<Hash, ResidentSizeOf<Vec<CoreState>>>,
 	persisted_validation_data: MemoryLruCache<
-		(Hash, ParaId, OccupiedCoreAssumption),
+		(Hash, AllyId, OccupiedCoreAssumption),
 		ResidentSizeOf<Option<PersistedValidationData>>,
 	>,
 	assumed_validation_data: MemoryLruCache<
-		(ParaId, Hash),
+		(AllyId, Hash),
 		ResidentSizeOf<Option<(PersistedValidationData, ValidationCodeHash)>>,
 	>,
 	check_validation_outputs:
-		MemoryLruCache<(Hash, ParaId, CandidateCommitments), ResidentSizeOf<bool>>,
+		MemoryLruCache<(Hash, AllyId, CandidateCommitments), ResidentSizeOf<bool>>,
 	session_index_for_child: MemoryLruCache<Hash, ResidentSizeOf<SessionIndex>>,
 	validation_code: MemoryLruCache<
-		(Hash, ParaId, OccupiedCoreAssumption),
+		(Hash, AllyId, OccupiedCoreAssumption),
 		ResidentSizeOf<Option<ValidationCode>>,
 	>,
 	validation_code_by_hash:
 		MemoryLruCache<ValidationCodeHash, ResidentSizeOf<Option<ValidationCode>>>,
 	candidate_pending_availability:
-		MemoryLruCache<(Hash, ParaId), ResidentSizeOf<Option<CommittedCandidateReceipt>>>,
+		MemoryLruCache<(Hash, AllyId), ResidentSizeOf<Option<CommittedCandidateReceipt>>>,
 	candidate_events: MemoryLruCache<Hash, ResidentSizeOf<Vec<CandidateEvent>>>,
 	session_info: MemoryLruCache<SessionIndex, ResidentSizeOf<SessionInfo>>,
 	dmq_contents:
-		MemoryLruCache<(Hash, ParaId), ResidentSizeOf<Vec<InboundDownwardMessage<BlockNumber>>>>,
+		MemoryLruCache<(Hash, AllyId), ResidentSizeOf<Vec<InboundDownwardMessage<BlockNumber>>>>,
 	inbound_hrmp_channels_contents: MemoryLruCache<
-		(Hash, ParaId),
-		ResidentSizeOf<BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>>>,
+		(Hash, AllyId),
+		ResidentSizeOf<BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>>>,
 	>,
 	current_babe_epoch: MemoryLruCache<Hash, DoesNotAllocate<Epoch>>,
 	on_chain_votes: MemoryLruCache<Hash, ResidentSizeOf<Option<ScrapedOnChainVotes>>>,
 	pvfs_require_precheck: MemoryLruCache<Hash, ResidentSizeOf<Vec<ValidationCodeHash>>>,
 	validation_code_hash: MemoryLruCache<
-		(Hash, ParaId, OccupiedCoreAssumption),
+		(Hash, AllyId, OccupiedCoreAssumption),
 		ResidentSizeOf<Option<ValidationCodeHash>>,
 	>,
 }
@@ -195,14 +195,14 @@ impl RequestResultCache {
 
 	pub(crate) fn persisted_validation_data(
 		&mut self,
-		key: (Hash, ParaId, OccupiedCoreAssumption),
+		key: (Hash, AllyId, OccupiedCoreAssumption),
 	) -> Option<&Option<PersistedValidationData>> {
 		self.persisted_validation_data.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_persisted_validation_data(
 		&mut self,
-		key: (Hash, ParaId, OccupiedCoreAssumption),
+		key: (Hash, AllyId, OccupiedCoreAssumption),
 		data: Option<PersistedValidationData>,
 	) {
 		self.persisted_validation_data.insert(key, ResidentSizeOf(data));
@@ -210,14 +210,14 @@ impl RequestResultCache {
 
 	pub(crate) fn assumed_validation_data(
 		&mut self,
-		key: (Hash, ParaId, Hash),
+		key: (Hash, AllyId, Hash),
 	) -> Option<&Option<(PersistedValidationData, ValidationCodeHash)>> {
 		self.assumed_validation_data.get(&(key.1, key.2)).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_assumed_validation_data(
 		&mut self,
-		key: (ParaId, Hash),
+		key: (AllyId, Hash),
 		data: Option<(PersistedValidationData, ValidationCodeHash)>,
 	) {
 		self.assumed_validation_data.insert(key, ResidentSizeOf(data));
@@ -225,14 +225,14 @@ impl RequestResultCache {
 
 	pub(crate) fn check_validation_outputs(
 		&mut self,
-		key: (Hash, ParaId, CandidateCommitments),
+		key: (Hash, AllyId, CandidateCommitments),
 	) -> Option<&bool> {
 		self.check_validation_outputs.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_check_validation_outputs(
 		&mut self,
-		key: (Hash, ParaId, CandidateCommitments),
+		key: (Hash, AllyId, CandidateCommitments),
 		value: bool,
 	) {
 		self.check_validation_outputs.insert(key, ResidentSizeOf(value));
@@ -252,14 +252,14 @@ impl RequestResultCache {
 
 	pub(crate) fn validation_code(
 		&mut self,
-		key: (Hash, ParaId, OccupiedCoreAssumption),
+		key: (Hash, AllyId, OccupiedCoreAssumption),
 	) -> Option<&Option<ValidationCode>> {
 		self.validation_code.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_validation_code(
 		&mut self,
-		key: (Hash, ParaId, OccupiedCoreAssumption),
+		key: (Hash, AllyId, OccupiedCoreAssumption),
 		value: Option<ValidationCode>,
 	) {
 		self.validation_code.insert(key, ResidentSizeOf(value));
@@ -284,14 +284,14 @@ impl RequestResultCache {
 
 	pub(crate) fn candidate_pending_availability(
 		&mut self,
-		key: (Hash, ParaId),
+		key: (Hash, AllyId),
 	) -> Option<&Option<CommittedCandidateReceipt>> {
 		self.candidate_pending_availability.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_candidate_pending_availability(
 		&mut self,
-		key: (Hash, ParaId),
+		key: (Hash, AllyId),
 		value: Option<CommittedCandidateReceipt>,
 	) {
 		self.candidate_pending_availability.insert(key, ResidentSizeOf(value));
@@ -319,14 +319,14 @@ impl RequestResultCache {
 
 	pub(crate) fn dmq_contents(
 		&mut self,
-		key: (Hash, ParaId),
+		key: (Hash, AllyId),
 	) -> Option<&Vec<InboundDownwardMessage<BlockNumber>>> {
 		self.dmq_contents.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_dmq_contents(
 		&mut self,
-		key: (Hash, ParaId),
+		key: (Hash, AllyId),
 		value: Vec<InboundDownwardMessage<BlockNumber>>,
 	) {
 		self.dmq_contents.insert(key, ResidentSizeOf(value));
@@ -334,15 +334,15 @@ impl RequestResultCache {
 
 	pub(crate) fn inbound_hrmp_channels_contents(
 		&mut self,
-		key: (Hash, ParaId),
-	) -> Option<&BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>>> {
+		key: (Hash, AllyId),
+	) -> Option<&BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>>> {
 		self.inbound_hrmp_channels_contents.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_inbound_hrmp_channel_contents(
 		&mut self,
-		key: (Hash, ParaId),
-		value: BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>>,
+		key: (Hash, AllyId),
+		value: BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>>,
 	) {
 		self.inbound_hrmp_channels_contents.insert(key, ResidentSizeOf(value));
 	}
@@ -387,14 +387,14 @@ impl RequestResultCache {
 
 	pub(crate) fn validation_code_hash(
 		&mut self,
-		key: (Hash, ParaId, OccupiedCoreAssumption),
+		key: (Hash, AllyId, OccupiedCoreAssumption),
 	) -> Option<&Option<ValidationCodeHash>> {
 		self.validation_code_hash.get(&key).map(|v| &v.0)
 	}
 
 	pub(crate) fn cache_validation_code_hash(
 		&mut self,
-		key: (Hash, ParaId, OccupiedCoreAssumption),
+		key: (Hash, AllyId, OccupiedCoreAssumption),
 		value: Option<ValidationCodeHash>,
 	) {
 		self.validation_code_hash.insert(key, ResidentSizeOf(value));
@@ -407,30 +407,30 @@ pub(crate) enum RequestResult {
 	Validators(Hash, Vec<ValidatorId>),
 	ValidatorGroups(Hash, (Vec<Vec<ValidatorIndex>>, GroupRotationInfo)),
 	AvailabilityCores(Hash, Vec<CoreState>),
-	PersistedValidationData(Hash, ParaId, OccupiedCoreAssumption, Option<PersistedValidationData>),
+	PersistedValidationData(Hash, AllyId, OccupiedCoreAssumption, Option<PersistedValidationData>),
 	AssumedValidationData(
 		Hash,
-		ParaId,
+		AllyId,
 		Hash,
 		Option<(PersistedValidationData, ValidationCodeHash)>,
 	),
-	CheckValidationOutputs(Hash, ParaId, CandidateCommitments, bool),
+	CheckValidationOutputs(Hash, AllyId, CandidateCommitments, bool),
 	SessionIndexForChild(Hash, SessionIndex),
-	ValidationCode(Hash, ParaId, OccupiedCoreAssumption, Option<ValidationCode>),
+	ValidationCode(Hash, AllyId, OccupiedCoreAssumption, Option<ValidationCode>),
 	ValidationCodeByHash(Hash, ValidationCodeHash, Option<ValidationCode>),
-	CandidatePendingAvailability(Hash, ParaId, Option<CommittedCandidateReceipt>),
+	CandidatePendingAvailability(Hash, AllyId, Option<CommittedCandidateReceipt>),
 	CandidateEvents(Hash, Vec<CandidateEvent>),
 	SessionInfo(Hash, SessionIndex, Option<SessionInfo>),
-	DmqContents(Hash, ParaId, Vec<InboundDownwardMessage<BlockNumber>>),
+	DmqContents(Hash, AllyId, Vec<InboundDownwardMessage<BlockNumber>>),
 	InboundHrmpChannelsContents(
 		Hash,
-		ParaId,
-		BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>>,
+		AllyId,
+		BTreeMap<AllyId, Vec<InboundHrmpMessage<BlockNumber>>>,
 	),
 	CurrentBabeEpoch(Hash, Epoch),
 	FetchOnChainVotes(Hash, Option<ScrapedOnChainVotes>),
 	PvfsRequirePrecheck(Hash, Vec<ValidationCodeHash>),
 	// This is a request with side-effects and no result, hence ().
 	SubmitPvfCheckStatement(Hash, PvfCheckStatement, ValidatorSignature, ()),
-	ValidationCodeHash(Hash, ParaId, OccupiedCoreAssumption, Option<ValidationCodeHash>),
+	ValidationCodeHash(Hash, AllyId, OccupiedCoreAssumption, Option<ValidationCodeHash>),
 }

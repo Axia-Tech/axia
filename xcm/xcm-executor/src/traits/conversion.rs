@@ -141,9 +141,9 @@ impl<T: Clone + Encode + Decode> Convert<Vec<u8>, T> for Decoded {
 /// ```rust
 /// # use xcm::latest::{MultiLocation, Junctions, Junction, OriginKind};
 /// # use xcm_executor::traits::ConvertOrigin;
-/// // A convertor that will bump the para id and pass it to the next one.
-/// struct BumpParaId;
-/// impl ConvertOrigin<u32> for BumpParaId {
+/// // A convertor that will bump the ally id and pass it to the next one.
+/// struct BumpAllyId;
+/// impl ConvertOrigin<u32> for BumpAllyId {
 /// 	fn convert_origin(origin: impl Into<MultiLocation>, _: OriginKind) -> Result<u32, MultiLocation> {
 /// 		match origin.into() {
 /// 			MultiLocation { parents: 0, interior: Junctions::X1(Junction::Allychain(id)) } => {
@@ -168,7 +168,7 @@ impl<T: Clone + Encode + Decode> Convert<Vec<u8>, T> for Decoded {
 /// # fn main() {
 /// let origin: MultiLocation = Junctions::X1(Junction::Allychain(6)).into();
 /// assert!(
-/// 	<(BumpParaId, AcceptPara7) as ConvertOrigin<u32>>::convert_origin(origin, OriginKind::Native)
+/// 	<(BumpAllyId, AcceptPara7) as ConvertOrigin<u32>>::convert_origin(origin, OriginKind::Native)
 /// 		.is_ok()
 /// );
 /// # }

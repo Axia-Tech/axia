@@ -40,7 +40,7 @@ use axia_node_network_protocol::{
 };
 use axia_node_primitives::ErasureChunk;
 use axia_primitives::{
-	v1::{CandidateHash, CoreState, GroupIndex, Hash, Id as ParaId, ScheduledCore, ValidatorIndex},
+	v1::{CandidateHash, CoreState, GroupIndex, Hash, Id as AllyId, ScheduledCore, ValidatorIndex},
 	v2::SessionInfo,
 };
 use axia_subsystem::{
@@ -89,8 +89,8 @@ pub struct TestState {
 impl Default for TestState {
 	fn default() -> Self {
 		let relay_chain: Vec<_> = (1u8..10).map(Hash::repeat_byte).collect();
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
 
 		let chain_ids = vec![chain_a, chain_b];
 
@@ -105,8 +105,8 @@ impl Default for TestState {
 			cores.insert(
 				relay_chain[0],
 				vec![
-					CoreState::Scheduled(ScheduledCore { para_id: chain_ids[0], collator: None }),
-					CoreState::Scheduled(ScheduledCore { para_id: chain_ids[1], collator: None }),
+					CoreState::Scheduled(ScheduledCore { ally_id: chain_ids[0], collator: None }),
+					CoreState::Scheduled(ScheduledCore { ally_id: chain_ids[1], collator: None }),
 				],
 			);
 
@@ -119,10 +119,10 @@ impl Default for TestState {
 				let (p_cores, p_chunks): (Vec<_>, Vec<_>) = chain_ids
 					.iter()
 					.enumerate()
-					.map(|(i, para_id)| {
+					.map(|(i, ally_id)| {
 						let (core, chunk) = OccupiedCoreBuilder {
 							group_responsible: GroupIndex(i as _),
-							para_id: *para_id,
+							ally_id: *ally_id,
 							relay_parent: relay_parent.clone(),
 						}
 						.build();

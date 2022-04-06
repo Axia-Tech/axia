@@ -49,7 +49,7 @@ use axia_subsystem_testhelpers as test_helpers;
 
 #[derive(Clone)]
 struct TestState {
-	para_id: ParaId,
+	ally_id: AllyId,
 	session_info: SessionInfo,
 	group_rotation_info: GroupRotationInfo,
 	validator_peer_id: Vec<PeerId>,
@@ -70,7 +70,7 @@ fn validator_authority_id(val_ids: &[Sr25519Keyring]) -> Vec<AuthorityDiscoveryI
 
 impl Default for TestState {
 	fn default() -> Self {
-		let para_id = ParaId::from(1);
+		let ally_id = AllyId::from(1);
 
 		let validators = vec![
 			Sr25519Keyring::Alice,
@@ -93,7 +93,7 @@ impl Default for TestState {
 		let group_rotation_info =
 			GroupRotationInfo { session_start_block: 0, group_rotation_frequency: 100, now: 1 };
 
-		let availability_core = CoreState::Scheduled(ScheduledCore { para_id, collator: None });
+		let availability_core = CoreState::Scheduled(ScheduledCore { ally_id, collator: None });
 
 		let relay_parent = Hash::random();
 
@@ -101,7 +101,7 @@ impl Default for TestState {
 		let collator_pair = CollatorPair::generate().0;
 
 		Self {
-			para_id,
+			ally_id,
 			session_info: SessionInfo {
 				validators: validator_public,
 				discovery_keys,
@@ -265,7 +265,7 @@ async fn overseer_signal(overseer: &mut VirtualOverseer, signal: OverseerSignal)
 
 // Setup the system by sending the `CollateOn`, `ActiveLeaves` and `OurViewChange` messages.
 async fn setup_system(virtual_overseer: &mut VirtualOverseer, test_state: &TestState) {
-	overseer_send(virtual_overseer, CollatorProtocolMessage::CollateOn(test_state.para_id)).await;
+	overseer_send(virtual_overseer, CollatorProtocolMessage::CollateOn(test_state.ally_id)).await;
 
 	overseer_signal(
 		virtual_overseer,
@@ -306,7 +306,7 @@ async fn distribute_collation(
 	let pov_hash = pov_block.hash();
 
 	let candidate = TestCandidateBuilder {
-		para_id: test_state.para_id,
+		ally_id: test_state.ally_id,
 		relay_parent: test_state.relay_parent,
 		pov_hash,
 		..Default::default()
@@ -437,7 +437,7 @@ async fn expect_declare_msg(
 				wire_message,
 				protocol_v1::CollatorProtocolMessage::Declare(
 					collator_id,
-					para_id,
+					ally_id,
 					signature,
 				) => {
 					assert!(signature.verify(
@@ -445,7 +445,7 @@ async fn expect_declare_msg(
 						&collator_id),
 					);
 					assert_eq!(collator_id, test_state.collator_pair.public());
-					assert_eq!(para_id, test_state.para_id);
+					assert_eq!(ally_id, test_state.ally_id);
 				}
 			);
 		}
@@ -544,7 +544,7 @@ fn advertise_and_send_collation() {
 				peer,
 				payload: CollationFetchingRequest {
 					relay_parent: test_state.relay_parent,
-					para_id: test_state.para_id,
+					ally_id: test_state.ally_id,
 				}
 				.encode(),
 				pending_response,
@@ -563,7 +563,7 @@ fn advertise_and_send_collation() {
 					peer,
 					payload: CollationFetchingRequest {
 						relay_parent: test_state.relay_parent,
-						para_id: test_state.para_id,
+						ally_id: test_state.ally_id,
 					}
 					.encode(),
 					pending_response,
@@ -613,7 +613,7 @@ fn advertise_and_send_collation() {
 				peer,
 				payload: CollationFetchingRequest {
 					relay_parent: old_relay_parent,
-					para_id: test_state.para_id,
+					ally_id: test_state.ally_id,
 				}
 				.encode(),
 				pending_response,
@@ -831,7 +831,7 @@ fn collators_reject_declare_messages() {
 				peer.clone(),
 				protocol_v1::CollatorProtocolMessage::Declare(
 					collator_pair2.public(),
-					ParaId::from(5),
+					AllyId::from(5),
 					collator_pair2.sign(b"garbage"),
 				),
 			)),
@@ -915,7 +915,7 @@ where
 				peer: validator_0,
 				payload: CollationFetchingRequest {
 					relay_parent: test_state.relay_parent,
-					para_id: test_state.para_id,
+					ally_id: test_state.ally_id,
 				}
 				.encode(),
 				pending_response,
@@ -950,7 +950,7 @@ where
 				peer: validator_1,
 				payload: CollationFetchingRequest {
 					relay_parent: test_state.relay_parent,
-					para_id: test_state.para_id,
+					ally_id: test_state.ally_id,
 				}
 				.encode(),
 				pending_response,

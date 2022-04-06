@@ -269,7 +269,7 @@ parameter_types! {
 impl cumulus_pallet_allychain_system::Config for Runtime {
 	type Event = Event;
 	type OnValidationData = ();
-	type SelfParaId = allychain_info::Pallet<Runtime>;
+	type SelfAllyId = allychain_info::Pallet<Runtime>;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
@@ -296,7 +296,7 @@ parameter_types! {
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the parent `AccountId`.
 	ParentIsPreset<AccountId>,
-	// Sibling allychain origins convert to AccountId via the `ParaId::into`.
+	// Sibling allychain origins convert to AccountId via the `AllyId::into`.
 	SiblingAllychainConvertsVia<Sibling, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,

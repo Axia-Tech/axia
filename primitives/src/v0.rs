@@ -146,7 +146,7 @@ pub enum Retriable {
 	/// Ineligible for retry. This means it's either a allychain that is always scheduled anyway or
 	/// has been removed/swapped.
 	Never,
-	/// Eligible for retry; the associated value is the number of retries that the para already had.
+	/// Eligible for retry; the associated value is the number of retries that the ally already had.
 	WithRetries(u32),
 }
 
@@ -158,7 +158,7 @@ pub trait ActiveParas {
 	/// other collator's block.
 	///
 	/// NOTE: The initial implementation simply concatenates the (ordered) set of (permanent)
-	/// allychain IDs with the (unordered) set of parathread IDs selected for this block.
+	/// allychain IDs with the (unordered) set of allythread IDs selected for this block.
 	fn active_paras() -> Vec<(Id, Option<(CollatorId, Retriable)>)>;
 }
 
@@ -167,7 +167,7 @@ pub trait ActiveParas {
 pub enum Scheduling {
 	/// Scheduled every block.
 	Always,
-	/// Scheduled dynamically (i.e. a parathread).
+	/// Scheduled dynamically (i.e. a allythread).
 	Dynamic,
 }
 
@@ -181,7 +181,7 @@ pub struct Info {
 /// An `Info` value for a standard leased allychain.
 pub const ALLYCHAIN_INFO: Info = Info { scheduling: Scheduling::Always };
 
-/// Auxiliary for when there's an attempt to swap two allychains/parathreads.
+/// Auxiliary for when there's an attempt to swap two allychains/allythreads.
 pub trait SwapAux {
 	/// Result describing whether it is possible to swap two allychains. Doesn't mutate state.
 	fn ensure_can_swap(one: Id, other: Id) -> Result<(), &'static str>;
@@ -516,7 +516,7 @@ impl AbridgedCandidateReceipt {
 	/// Clone the relevant portions of the `AbridgedCandidateReceipt` to form a `CandidateDescriptor`.
 	pub fn to_descriptor(&self) -> CandidateDescriptor {
 		CandidateDescriptor {
-			para_id: self.allychain_index,
+			ally_id: self.allychain_index,
 			relay_parent: self.relay_parent,
 			collator: self.collator.clone(),
 			signature: self.signature.clone(),
@@ -544,8 +544,8 @@ impl Ord for AbridgedCandidateReceipt {
 /// A unique descriptor of the candidate receipt, in a lightweight format.
 #[derive(PartialEq, Eq, Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 pub struct CandidateDescriptor<H = Hash> {
-	/// The ID of the para this is a candidate for.
-	pub para_id: Id,
+	/// The ID of the ally this is a candidate for.
+	pub ally_id: Id,
 	/// The hash of the relay-chain block this should be executed in
 	/// the context of.
 	// NOTE: the fact that the hash includes this value means that code depends
@@ -554,7 +554,7 @@ pub struct CandidateDescriptor<H = Hash> {
 	/// The collator's relay-chain account ID
 	pub collator: CollatorId,
 	/// Signature on blake2-256 of components of this receipt:
-	/// The para ID, the relay parent, and the `pov_hash`.
+	/// The ally ID, the relay parent, and the `pov_hash`.
 	pub signature: CollatorSignature,
 	/// The hash of the `pov-block`.
 	pub pov_hash: H,

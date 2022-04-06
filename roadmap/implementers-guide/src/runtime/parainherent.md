@@ -14,7 +14,7 @@ There are a couple of important notes to the operations in this inherent as they
 ## Storage
 
 ```rust
-/// Whether the para inherent was included or not.
+/// Whether the ally inherent was included or not.
 Included: Option<()>,
 ```
 

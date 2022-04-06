@@ -199,10 +199,10 @@ fn default_allychains_host_configuration(
 		hrmp_channel_max_capacity: 8,
 		hrmp_channel_max_total_size: 8 * 1024,
 		hrmp_max_allychain_inbound_channels: 4,
-		hrmp_max_parathread_inbound_channels: 4,
+		hrmp_max_allythread_inbound_channels: 4,
 		hrmp_channel_max_message_size: 1024 * 1024,
 		hrmp_max_allychain_outbound_channels: 4,
-		hrmp_max_parathread_outbound_channels: 4,
+		hrmp_max_allythread_outbound_channels: 4,
 		hrmp_max_message_num_per_candidate: 5,
 		dispute_period: 6,
 		no_show_slots: 2,
@@ -648,7 +648,7 @@ fn alphanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> alphanet::Gene
 		},
 		paras: Default::default(),
 		registrar: alphanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 	}
@@ -975,7 +975,7 @@ fn betanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> betanet_runtime
 			config: default_allychains_host_configuration(),
 		},
 		registrar: betanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 		transaction_payment: Default::default(),
@@ -1420,7 +1420,7 @@ pub fn alphanet_testnet_genesis(
 		},
 		paras: Default::default(),
 		registrar: alphanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 	}
@@ -1494,7 +1494,7 @@ pub fn betanet_testnet_genesis(
 		},
 		paras: betanet_runtime::ParasConfig { paras: vec![] },
 		registrar: betanet_runtime::RegistrarConfig {
-			next_free_para_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
 		},
 		xcm_pallet: Default::default(),
 		transaction_payment: Default::default(),

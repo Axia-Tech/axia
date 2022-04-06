@@ -68,9 +68,9 @@ fn run_to_block(to: BlockNumber, new_session: Option<Vec<BlockNumber>>) {
 pub(super) struct GenesisConfigBuilder {
 	hrmp_channel_max_capacity: u32,
 	hrmp_channel_max_message_size: u32,
-	hrmp_max_parathread_outbound_channels: u32,
+	hrmp_max_allythread_outbound_channels: u32,
 	hrmp_max_allychain_outbound_channels: u32,
-	hrmp_max_parathread_inbound_channels: u32,
+	hrmp_max_allythread_inbound_channels: u32,
 	hrmp_max_allychain_inbound_channels: u32,
 	hrmp_max_message_num_per_candidate: u32,
 	hrmp_channel_max_total_size: u32,
@@ -83,9 +83,9 @@ impl Default for GenesisConfigBuilder {
 		Self {
 			hrmp_channel_max_capacity: 2,
 			hrmp_channel_max_message_size: 8,
-			hrmp_max_parathread_outbound_channels: 1,
+			hrmp_max_allythread_outbound_channels: 1,
 			hrmp_max_allychain_outbound_channels: 2,
-			hrmp_max_parathread_inbound_channels: 1,
+			hrmp_max_allythread_inbound_channels: 1,
 			hrmp_max_allychain_inbound_channels: 2,
 			hrmp_max_message_num_per_candidate: 2,
 			hrmp_channel_max_total_size: 16,
@@ -101,9 +101,9 @@ impl GenesisConfigBuilder {
 		let config = &mut genesis.configuration.config;
 		config.hrmp_channel_max_capacity = self.hrmp_channel_max_capacity;
 		config.hrmp_channel_max_message_size = self.hrmp_channel_max_message_size;
-		config.hrmp_max_parathread_outbound_channels = self.hrmp_max_parathread_outbound_channels;
+		config.hrmp_max_allythread_outbound_channels = self.hrmp_max_allythread_outbound_channels;
 		config.hrmp_max_allychain_outbound_channels = self.hrmp_max_allychain_outbound_channels;
-		config.hrmp_max_parathread_inbound_channels = self.hrmp_max_parathread_inbound_channels;
+		config.hrmp_max_allythread_inbound_channels = self.hrmp_max_allythread_inbound_channels;
 		config.hrmp_max_allychain_inbound_channels = self.hrmp_max_allychain_inbound_channels;
 		config.hrmp_max_message_num_per_candidate = self.hrmp_max_message_num_per_candidate;
 		config.hrmp_channel_max_total_size = self.hrmp_channel_max_total_size;
@@ -126,7 +126,7 @@ fn default_genesis_config() -> MockGenesisConfig {
 	}
 }
 
-fn register_allychain_with_balance(id: ParaId, balance: Balance) {
+fn register_allychain_with_balance(id: AllyId, balance: Balance) {
 	assert_ok!(Paras::schedule_para_initialize(
 		id,
 		crate::paras::ParaGenesisArgs {
@@ -138,15 +138,15 @@ fn register_allychain_with_balance(id: ParaId, balance: Balance) {
 	<Test as Config>::Currency::make_free_balance_be(&id.into_account(), balance);
 }
 
-fn register_allychain(id: ParaId) {
+fn register_allychain(id: AllyId) {
 	register_allychain_with_balance(id, 1000);
 }
 
-fn deregister_allychain(id: ParaId) {
+fn deregister_allychain(id: AllyId) {
 	assert_ok!(Paras::schedule_para_cleanup(id));
 }
 
-fn channel_exists(sender: ParaId, recipient: ParaId) -> bool {
+fn channel_exists(sender: AllyId, recipient: AllyId) -> bool {
 	<Hrmp as Store>::HrmpChannels::get(&HrmpChannelId { sender, recipient }).is_some()
 }
 
@@ -431,16 +431,16 @@ fn verify_externally_accessible() {
 		let raw_ingress_index =
 			sp_io::storage::get(&well_known_keys::hrmp_ingress_channel_index(para_b))
 				.expect("the ingress index must be present for para_b");
-		let ingress_index = <Vec<ParaId>>::decode(&mut &raw_ingress_index[..])
-			.expect("ingress indexx should be decodable as a list of para ids");
+		let ingress_index = <Vec<AllyId>>::decode(&mut &raw_ingress_index[..])
+			.expect("ingress indexx should be decodable as a list of ally ids");
 		assert_eq!(ingress_index, vec![para_a]);
 
 		// Now, verify that we can access and decode the egress index.
 		let raw_egress_index =
 			sp_io::storage::get(&well_known_keys::hrmp_egress_channel_index(para_a))
 				.expect("the egress index must be present for para_a");
-		let egress_index = <Vec<ParaId>>::decode(&mut &raw_egress_index[..])
-			.expect("egress index should be decodable as a list of para ids");
+		let egress_index = <Vec<AllyId>>::decode(&mut &raw_egress_index[..])
+			.expect("egress index should be decodable as a list of ally ids");
 		assert_eq!(egress_index, vec![para_b]);
 	});
 }

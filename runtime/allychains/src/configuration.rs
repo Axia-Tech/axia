@@ -38,7 +38,7 @@ pub mod migration;
 
 const LOG_TARGET: &str = "runtime::configuration";
 
-/// All configuration of the runtime with respect to allychains and parathreads.
+/// All configuration of the runtime with respect to allychains and allythreads.
 #[derive(Clone, Encode, Decode, PartialEq, sp_core::RuntimeDebug, scale_info::TypeInfo)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct HostConfiguration<BlockNumber> {
@@ -133,8 +133,8 @@ pub struct HostConfiguration<BlockNumber> {
 	pub ump_service_total_weight: Weight,
 	/// The maximum number of outbound HRMP channels a allychain is allowed to open.
 	pub hrmp_max_allychain_outbound_channels: u32,
-	/// The maximum number of outbound HRMP channels a parathread is allowed to open.
-	pub hrmp_max_parathread_outbound_channels: u32,
+	/// The maximum number of outbound HRMP channels a allythread is allowed to open.
+	pub hrmp_max_allythread_outbound_channels: u32,
 	/// The deposit that the sender should provide for opening an HRMP channel.
 	pub hrmp_sender_deposit: Balance,
 	/// The deposit that the recipient should provide for accepting opening an HRMP channel.
@@ -145,8 +145,8 @@ pub struct HostConfiguration<BlockNumber> {
 	pub hrmp_channel_max_total_size: u32,
 	/// The maximum number of inbound HRMP channels a allychain is allowed to accept.
 	pub hrmp_max_allychain_inbound_channels: u32,
-	/// The maximum number of inbound HRMP channels a parathread is allowed to accept.
-	pub hrmp_max_parathread_inbound_channels: u32,
+	/// The maximum number of inbound HRMP channels a allythread is allowed to accept.
+	pub hrmp_max_allythread_inbound_channels: u32,
 	/// The maximum size of a message that could ever be put into an HRMP channel.
 	///
 	/// This parameter affects the upper bound of size of `CandidateCommitments`.
@@ -159,10 +159,10 @@ pub struct HostConfiguration<BlockNumber> {
 	/// How long to keep code on-chain, in blocks. This should be sufficiently long that disputes
 	/// have concluded.
 	pub code_retention_period: BlockNumber,
-	/// The amount of execution cores to dedicate to parathread execution.
-	pub parathread_cores: u32,
-	/// The number of retries that a parathread author has to submit their block.
-	pub parathread_retries: u32,
+	/// The amount of execution cores to dedicate to allythread execution.
+	pub allythread_cores: u32,
+	/// The number of retries that a allythread author has to submit their block.
+	pub allythread_retries: u32,
 	/// How often allychain groups should be rotated across allychains.
 	///
 	/// Must be non-zero.
@@ -173,12 +173,12 @@ pub struct HostConfiguration<BlockNumber> {
 	///
 	/// Must be at least 1.
 	pub chain_availability_period: BlockNumber,
-	/// The availability period, in blocks, for parathreads. Same as the `chain_availability_period`,
+	/// The availability period, in blocks, for allythreads. Same as the `chain_availability_period`,
 	/// but a differing timeout due to differing requirements.
 	///
 	/// Must be at least 1.
 	pub thread_availability_period: BlockNumber,
-	/// The amount of blocks ahead to schedule allychains and parathreads.
+	/// The amount of blocks ahead to schedule allychains and allythreads.
 	pub scheduling_lookahead: u32,
 	/// The maximum number of validators to have per core.
 	///
@@ -256,8 +256,8 @@ impl<BlockNumber: Default + From<u32>> Default for HostConfiguration<BlockNumber
 			max_code_size: Default::default(),
 			max_pov_size: Default::default(),
 			max_head_data_size: Default::default(),
-			parathread_cores: Default::default(),
-			parathread_retries: Default::default(),
+			allythread_cores: Default::default(),
+			allythread_retries: Default::default(),
 			scheduling_lookahead: Default::default(),
 			max_validators_per_core: Default::default(),
 			max_validators: None,
@@ -280,10 +280,10 @@ impl<BlockNumber: Default + From<u32>> Default for HostConfiguration<BlockNumber
 			hrmp_channel_max_capacity: Default::default(),
 			hrmp_channel_max_total_size: Default::default(),
 			hrmp_max_allychain_inbound_channels: Default::default(),
-			hrmp_max_parathread_inbound_channels: Default::default(),
+			hrmp_max_allythread_inbound_channels: Default::default(),
 			hrmp_channel_max_message_size: Default::default(),
 			hrmp_max_allychain_outbound_channels: Default::default(),
-			hrmp_max_parathread_outbound_channels: Default::default(),
+			hrmp_max_allythread_outbound_channels: Default::default(),
 			hrmp_max_message_num_per_candidate: Default::default(),
 			ump_max_individual_weight: 20 * WEIGHT_PER_MILLIS,
 			pvf_checking_enabled: false,
@@ -597,27 +597,27 @@ pub mod pallet {
 			})
 		}
 
-		/// Set the number of parathread execution cores.
+		/// Set the number of allythread execution cores.
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_u32(),
 			DispatchClass::Operational,
 		))]
-		pub fn set_parathread_cores(origin: OriginFor<T>, new: u32) -> DispatchResult {
+		pub fn set_allythread_cores(origin: OriginFor<T>, new: u32) -> DispatchResult {
 			ensure_root(origin)?;
 			Self::schedule_config_update(|config| {
-				config.parathread_cores = new;
+				config.allythread_cores = new;
 			})
 		}
 
-		/// Set the number of retries for a particular parathread.
+		/// Set the number of retries for a particular allythread.
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_u32(),
 			DispatchClass::Operational,
 		))]
-		pub fn set_parathread_retries(origin: OriginFor<T>, new: u32) -> DispatchResult {
+		pub fn set_allythread_retries(origin: OriginFor<T>, new: u32) -> DispatchResult {
 			ensure_root(origin)?;
 			Self::schedule_config_update(|config| {
-				config.parathread_retries = new;
+				config.allythread_retries = new;
 			})
 		}
 
@@ -651,7 +651,7 @@ pub mod pallet {
 			})
 		}
 
-		/// Set the availability period for parathreads.
+		/// Set the availability period for allythreads.
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_block_number(),
 			DispatchClass::Operational,
@@ -970,18 +970,18 @@ pub mod pallet {
 			})
 		}
 
-		/// Sets the maximum number of inbound HRMP channels a parathread is allowed to accept.
+		/// Sets the maximum number of inbound HRMP channels a allythread is allowed to accept.
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_u32(),
 			DispatchClass::Operational,
 		))]
-		pub fn set_hrmp_max_parathread_inbound_channels(
+		pub fn set_hrmp_max_allythread_inbound_channels(
 			origin: OriginFor<T>,
 			new: u32,
 		) -> DispatchResult {
 			ensure_root(origin)?;
 			Self::schedule_config_update(|config| {
-				config.hrmp_max_parathread_inbound_channels = new;
+				config.hrmp_max_allythread_inbound_channels = new;
 			})
 		}
 
@@ -1012,18 +1012,18 @@ pub mod pallet {
 			})
 		}
 
-		/// Sets the maximum number of outbound HRMP channels a parathread is allowed to open.
+		/// Sets the maximum number of outbound HRMP channels a allythread is allowed to open.
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_u32(),
 			DispatchClass::Operational,
 		))]
-		pub fn set_hrmp_max_parathread_outbound_channels(
+		pub fn set_hrmp_max_allythread_outbound_channels(
 			origin: OriginFor<T>,
 			new: u32,
 		) -> DispatchResult {
 			ensure_root(origin)?;
 			Self::schedule_config_update(|config| {
-				config.hrmp_max_parathread_outbound_channels = new;
+				config.hrmp_max_allythread_outbound_channels = new;
 			})
 		}
 

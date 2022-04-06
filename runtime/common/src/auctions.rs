@@ -30,7 +30,7 @@ use frame_support::{
 };
 pub use pallet::*;
 use parity_scale_codec::Decode;
-use primitives::v1::Id as ParaId;
+use primitives::v1::Id as AllyId;
 use sp_runtime::traits::{CheckedSub, One, Saturating, Zero};
 use sp_std::{mem::swap, prelude::*};
 
@@ -70,12 +70,12 @@ type LeasePeriodOf<T> =
 	<<T as Config>::Leaser as Leaser<<T as frame_system::Config>::BlockNumber>>::LeasePeriod;
 
 // Winning data type. This encodes the top bidders of each range together with their bid.
-type WinningData<T> = [Option<(<T as frame_system::Config>::AccountId, ParaId, BalanceOf<T>)>;
+type WinningData<T> = [Option<(<T as frame_system::Config>::AccountId, AllyId, BalanceOf<T>)>;
 	SlotRange::SLOT_RANGE_COUNT];
 // Winners data type. This encodes each of the final winners of a allychain auction, the allychain
 // index assigned to them, their winning bid and the range that they won.
 type WinnersData<T> =
-	Vec<(<T as frame_system::Config>::AccountId, ParaId, BalanceOf<T>, SlotRange)>;
+	Vec<(<T as frame_system::Config>::AccountId, AllyId, BalanceOf<T>, SlotRange)>;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -140,10 +140,10 @@ pub mod pallet {
 		/// Someone attempted to lease the same slot twice for a allychain. The amount is held in reserve
 		/// but no allychain slot has been leased.
 		/// `[allychain_id, leaser, amount]`
-		ReserveConfiscated(ParaId, T::AccountId, BalanceOf<T>),
+		ReserveConfiscated(AllyId, T::AccountId, BalanceOf<T>),
 		/// A new bid has been accepted as the current winner.
-		/// `[who, para_id, amount, first_slot, last_slot]`
-		BidAccepted(T::AccountId, ParaId, BalanceOf<T>, LeasePeriodOf<T>, LeasePeriodOf<T>),
+		/// `[who, ally_id, amount, first_slot, last_slot]`
+		BidAccepted(T::AccountId, AllyId, BalanceOf<T>, LeasePeriodOf<T>, LeasePeriodOf<T>),
 		/// The winning offset was chosen for an auction. This will map into the `Winning` storage map.
 		/// `[auction_index, block_number]`
 		WinningOffset(AuctionIndex, T::BlockNumber),
@@ -155,7 +155,7 @@ pub mod pallet {
 		AuctionInProgress,
 		/// The lease period is in the past.
 		LeasePeriodInPast,
-		/// Para is not registered
+		/// Ally is not registered
 		ParaNotRegistered,
 		/// Not a current auction.
 		NotCurrentAuction,
@@ -163,7 +163,7 @@ pub mod pallet {
 		NotAuction,
 		/// Auction has already ended.
 		AuctionEnded,
-		/// The para is already leased out for part of this range.
+		/// The ally is already leased out for part of this range.
 		AlreadyLeasedOut,
 	}
 
@@ -186,7 +186,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn reserved_amounts)]
 	pub type ReservedAmounts<T: Config> =
-		StorageMap<_, Twox64Concat, (T::AccountId, ParaId), BalanceOf<T>>;
+		StorageMap<_, Twox64Concat, (T::AccountId, AllyId), BalanceOf<T>>;
 
 	/// The winning bids for each of the 10 ranges at each sample in the final Ending Period of
 	/// the current auction. The map's key is the 0-based index into the Sample Size. The
@@ -278,7 +278,7 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::bid())]
 		pub fn bid(
 			origin: OriginFor<T>,
-			#[pallet::compact] para: ParaId,
+			#[pallet::compact] para: AllyId,
 			#[pallet::compact] auction_index: AuctionIndex,
 			#[pallet::compact] first_slot: LeasePeriodOf<T>,
 			#[pallet::compact] last_slot: LeasePeriodOf<T>,
@@ -344,7 +344,7 @@ impl<T: Config> Auctioneer<T::BlockNumber> for Pallet<T> {
 
 	fn place_bid(
 		bidder: T::AccountId,
-		para: ParaId,
+		para: AllyId,
 		first_slot: LeasePeriodOf<T>,
 		last_slot: LeasePeriodOf<T>,
 		amount: BalanceOf<T>,
@@ -361,14 +361,14 @@ impl<T: Config> Auctioneer<T::BlockNumber> for Pallet<T> {
 		T::Leaser::lease_period_length()
 	}
 
-	fn has_won_an_auction(para: ParaId, bidder: &T::AccountId) -> bool {
+	fn has_won_an_auction(para: AllyId, bidder: &T::AccountId) -> bool {
 		!T::Leaser::deposit_held(para, bidder).is_zero()
 	}
 }
 
 impl<T: Config> Pallet<T> {
 	// A trick to allow me to initialize large arrays with nothing in them.
-	const EMPTY: Option<(<T as frame_system::Config>::AccountId, ParaId, BalanceOf<T>)> = None;
+	const EMPTY: Option<(<T as frame_system::Config>::AccountId, AllyId, BalanceOf<T>)> = None;
 
 	/// Create a new auction.
 	///
@@ -411,13 +411,13 @@ impl<T: Config> Pallet<T> {
 	/// - `amount`: The total amount to be the bid for deposit over the range.
 	pub fn handle_bid(
 		bidder: T::AccountId,
-		para: ParaId,
+		para: AllyId,
 		auction_index: u32,
 		first_slot: LeasePeriodOf<T>,
 		last_slot: LeasePeriodOf<T>,
 		amount: BalanceOf<T>,
 	) -> DispatchResult {
-		// Ensure para is registered before placing a bid on it.
+		// Ensure ally is registered before placing a bid on it.
 		ensure!(T::Registrar::is_registered(para), Error::<T>::ParaNotRegistered);
 		// Bidding on latest auction.
 		ensure!(auction_index == AuctionCounter::<T>::get(), Error::<T>::NotCurrentAuction);
@@ -435,7 +435,7 @@ impl<T: Config> Pallet<T> {
 			AuctionStatus::VrfDelay(_) => return Err(Error::<T>::AuctionEnded.into()),
 		};
 
-		// We also make sure that the bid is not for any existing leases the para already has.
+		// We also make sure that the bid is not for any existing leases the ally already has.
 		ensure!(
 			!T::Leaser::already_leased(para, first_slot, last_slot),
 			Error::<T>::AlreadyLeasedOut
@@ -456,7 +456,7 @@ impl<T: Config> Pallet<T> {
 			// Ok; we are the new winner of this range - reserve the additional amount and record.
 
 			// Get the amount already held on deposit if this is a renewal bid (i.e. there's
-			// an existing lease on the same para by the same leaser).
+			// an existing lease on the same ally by the same leaser).
 			let existing_lease_deposit = T::Leaser::deposit_held(para, &bidder);
 			let reserve_required = amount.saturating_sub(existing_lease_deposit);
 
@@ -582,7 +582,7 @@ impl<T: Config> Pallet<T> {
 					// present period). But if it does, there's not much we can do.
 				},
 				Err(LeaseError::AlreadyLeased) => {
-					// The leaser attempted to get a second lease on the same para ID, possibly griefing us. Let's
+					// The leaser attempted to get a second lease on the same ally ID, possibly griefing us. Let's
 					// keep the amount reserved and let governance sort it out.
 					if CurrencyOf::<T>::reserve(&leaser, amount).is_ok() {
 						Self::deposit_event(Event::<T>::ReserveConfiscated(para, leaser, amount));
@@ -658,7 +658,7 @@ mod tests {
 	};
 	use frame_system::{EnsureRoot, EnsureSignedBy};
 	use pallet_balances;
-	use primitives::v1::{BlockNumber, Header, Id as ParaId};
+	use primitives::v1::{BlockNumber, Header, Id as AllyId};
 	use sp_core::H256;
 	use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 	use std::{cell::RefCell, collections::BTreeMap};
@@ -733,10 +733,10 @@ mod tests {
 
 	thread_local! {
 		pub static LEASES:
-			RefCell<BTreeMap<(ParaId, BlockNumber), LeaseData>> = RefCell::new(BTreeMap::new());
+			RefCell<BTreeMap<(AllyId, BlockNumber), LeaseData>> = RefCell::new(BTreeMap::new());
 	}
 
-	fn leases() -> Vec<((ParaId, BlockNumber), LeaseData)> {
+	fn leases() -> Vec<((AllyId, BlockNumber), LeaseData)> {
 		LEASES.with(|p| (&*p.borrow()).clone().into_iter().collect::<Vec<_>>())
 	}
 
@@ -747,7 +747,7 @@ mod tests {
 		type Currency = Balances;
 
 		fn lease_out(
-			para: ParaId,
+			para: AllyId,
 			leaser: &Self::AccountId,
 			amount: <Self::Currency as Currency<Self::AccountId>>::Balance,
 			period_begin: Self::LeasePeriod,
@@ -772,7 +772,7 @@ mod tests {
 		}
 
 		fn deposit_held(
-			para: ParaId,
+			para: AllyId,
 			leaser: &Self::AccountId,
 		) -> <Self::Currency as Currency<Self::AccountId>>::Balance {
 			leases()
@@ -803,12 +803,12 @@ mod tests {
 		}
 
 		fn already_leased(
-			para_id: ParaId,
+			ally_id: AllyId,
 			first_period: Self::LeasePeriod,
 			last_period: Self::LeasePeriod,
 		) -> bool {
 			leases().into_iter().any(|((para, period), _data)| {
-				para == para_id && first_period <= period && period <= last_period
+				para == ally_id && first_period <= period && period <= last_period
 			})
 		}
 	}
@@ -865,7 +865,7 @@ mod tests {
 		.unwrap();
 		let mut ext: sp_io::TestExternalities = t.into();
 		ext.execute_with(|| {
-			// Register para 0, 1, 2, and 3 for tests
+			// Register ally 0, 1, 2, and 3 for tests
 			assert_ok!(TestRegistrar::<Test>::register(
 				1,
 				0.into(),
@@ -1178,11 +1178,11 @@ mod tests {
 			run_to_block(1);
 			assert_ok!(Auctions::new_auction(Origin::signed(6), 5, 1));
 
-			// User 1 will make a bid for period 1 and 4 for the same Para 0
+			// User 1 will make a bid for period 1 and 4 for the same Ally 0
 			assert_ok!(Auctions::bid(Origin::signed(1), 0.into(), 1, 1, 1, 1));
 			assert_ok!(Auctions::bid(Origin::signed(1), 0.into(), 1, 4, 4, 4));
 
-			// User 2 and 3 will make a bid for para 1 on period 2 and 3 respectively
+			// User 2 and 3 will make a bid for ally 1 on period 2 and 3 respectively
 			assert_ok!(Auctions::bid(Origin::signed(2), 1.into(), 1, 2, 2, 2));
 			assert_ok!(Auctions::bid(Origin::signed(3), 1.into(), 1, 3, 3, 3));
 
@@ -1315,7 +1315,7 @@ mod tests {
 				}
 			}
 			for i in 1..6u64 {
-				assert_eq!(ReservedAmounts::<Test>::get((i, ParaId::from(0))).unwrap(), i);
+				assert_eq!(ReservedAmounts::<Test>::get((i, AllyId::from(0))).unwrap(), i);
 			}
 
 			run_to_block(5);
@@ -1383,8 +1383,8 @@ mod tests {
 		new_test_ext().execute_with(|| {
 			run_to_block(1);
 			assert_ok!(Auctions::new_auction(Origin::signed(6), 1, 1));
-			let para_1 = ParaId::from(1);
-			let para_2 = ParaId::from(2);
+			let para_1 = AllyId::from(1);
+			let para_2 = AllyId::from(2);
 
 			// Make a bid and reserve a balance
 			assert_ok!(Auctions::bid(Origin::signed(1), para_1, 1, 1, 4, 10));
@@ -1407,9 +1407,9 @@ mod tests {
 		new_test_ext().execute_with(|| {
 			run_to_block(1);
 			assert_ok!(Auctions::new_auction(Origin::signed(6), 9, 1));
-			let para_1 = ParaId::from(1);
-			let para_2 = ParaId::from(2);
-			let para_3 = ParaId::from(3);
+			let para_1 = AllyId::from(1);
+			let para_2 = AllyId::from(2);
+			let para_3 = AllyId::from(3);
 
 			// Make bids
 			assert_ok!(Auctions::bid(Origin::signed(1), para_1, 1, 1, 4, 10));
@@ -1493,7 +1493,7 @@ mod tests {
 			);
 			assert_eq!(TestLeaser::deposit_held(0.into(), &1), 1);
 
-			// Para 1 just won an auction above and won some lease periods.
+			// Ally 1 just won an auction above and won some lease periods.
 			// No bids can work which overlap these periods.
 			assert_ok!(Auctions::new_auction(Origin::signed(6), 5, 1));
 			assert_noop!(
@@ -1522,9 +1522,9 @@ mod tests {
 
 			run_to_block(1);
 			assert_ok!(Auctions::new_auction(Origin::signed(6), 9, 11));
-			let para_1 = ParaId::from(1);
-			let para_2 = ParaId::from(2);
-			let para_3 = ParaId::from(3);
+			let para_1 = AllyId::from(1);
+			let para_2 = AllyId::from(2);
+			let para_3 = AllyId::from(3);
 
 			// Make bids
 			assert_ok!(Auctions::bid(Origin::signed(1), para_1, 1, 11, 14, 10));
@@ -1726,7 +1726,7 @@ mod benchmarking {
 
 			assert!(T::Registrar::register(
 				owner,
-				ParaId::from(n),
+				AllyId::from(n),
 				worst_head_data,
 				worst_validation_code
 			)
@@ -1744,7 +1744,7 @@ mod benchmarking {
 
 			assert!(Auctions::<T>::bid(
 				RawOrigin::Signed(bidder).into(),
-				ParaId::from(n),
+				AllyId::from(n),
 				auction_index,
 				lease_period_index + start.into(),        // First Slot
 				lease_period_index + end.into(),          // Last slot
@@ -1777,8 +1777,8 @@ mod benchmarking {
 			let lease_period_index = LeasePeriodOf::<T>::zero();
 			Auctions::<T>::new_auction(RawOrigin::Root.into(), duration, lease_period_index)?;
 
-			let para = ParaId::from(0);
-			let new_para = ParaId::from(1);
+			let ally = AllyId::from(0);
+			let new_para = AllyId::from(1);
 
 			// Register the paras
 			let owner = account("owner", 0, 0);

@@ -48,12 +48,12 @@ use test_helpers::{
 
 fn default_config() -> HostConfiguration<BlockNumber> {
 	let mut config = HostConfiguration::default();
-	config.parathread_cores = 1;
+	config.allythread_cores = 1;
 	config.max_code_size = 3;
 	config
 }
 
-pub(crate) fn genesis_config(paras: Vec<(ParaId, bool)>) -> MockGenesisConfig {
+pub(crate) fn genesis_config(paras: Vec<(AllyId, bool)>) -> MockGenesisConfig {
 	MockGenesisConfig {
 		paras: paras::GenesisConfig {
 			paras: paras
@@ -95,7 +95,7 @@ pub(crate) fn collator_sign_candidate(
 
 	let payload = primitives::v1::collator_signature_payload(
 		&candidate.descriptor.relay_parent,
-		&candidate.descriptor.para_id,
+		&candidate.descriptor.ally_id,
 		&candidate.descriptor.persisted_validation_data_hash,
 		&candidate.descriptor.pov_hash,
 		&candidate.descriptor.validation_code_hash,
@@ -197,7 +197,7 @@ pub(crate) fn run_to_block(
 }
 
 pub(crate) fn expected_bits() -> usize {
-	Paras::allychains().len() + Configuration::config().parathread_cores as usize
+	Paras::allychains().len() + Configuration::config().allythread_cores as usize
 }
 
 fn default_bitfield() -> AvailabilityBitfield {
@@ -244,7 +244,7 @@ pub(crate) async fn sign_bitfield(
 }
 
 pub(crate) struct TestCandidateBuilder {
-	pub(crate) para_id: ParaId,
+	pub(crate) ally_id: AllyId,
 	pub(crate) head_data: HeadData,
 	pub(crate) para_head_hash: Option<Hash>,
 	pub(crate) pov_hash: Hash,
@@ -259,7 +259,7 @@ impl std::default::Default for TestCandidateBuilder {
 	fn default() -> Self {
 		let zeros = Hash::zero();
 		Self {
-			para_id: 0.into(),
+			ally_id: 0.into(),
 			head_data: Default::default(),
 			para_head_hash: None,
 			pov_hash: zeros,
@@ -276,7 +276,7 @@ impl TestCandidateBuilder {
 	pub(crate) fn build(self) -> CommittedCandidateReceipt {
 		CommittedCandidateReceipt {
 			descriptor: CandidateDescriptor {
-				para_id: self.para_id,
+				ally_id: self.ally_id,
 				pov_hash: self.pov_hash,
 				relay_parent: self.relay_parent,
 				persisted_validation_data_hash: self.persisted_validation_data_hash,
@@ -296,10 +296,10 @@ impl TestCandidateBuilder {
 	}
 }
 
-pub(crate) fn make_vdata_hash(para_id: ParaId) -> Option<Hash> {
+pub(crate) fn make_vdata_hash(ally_id: AllyId) -> Option<Hash> {
 	let relay_parent_number = <frame_system::Pallet<Test>>::block_number() - 1;
 	let persisted_validation_data = crate::util::make_persisted_validation_data::<Test>(
-		para_id,
+		ally_id,
 		relay_parent_number,
 		Default::default(),
 	)?;
@@ -308,9 +308,9 @@ pub(crate) fn make_vdata_hash(para_id: ParaId) -> Option<Hash> {
 
 #[test]
 fn collect_pending_cleans_up_pending() {
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let thread_a = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let thread_a = AllyId::from(3);
 
 	let paras = vec![(chain_a, true), (chain_b, true), (thread_a, false)];
 	new_test_ext(genesis_config(paras)).execute_with(|| {
@@ -366,9 +366,9 @@ fn collect_pending_cleans_up_pending() {
 
 #[test]
 fn bitfield_checks() {
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let thread_a = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let thread_a = AllyId::from(3);
 
 	let paras = vec![(chain_a, true), (chain_b, true), (thread_a, false)];
 	let validators = vec![
@@ -707,9 +707,9 @@ fn bitfield_checks() {
 
 #[test]
 fn supermajority_bitfields_trigger_availability() {
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let thread_a = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let thread_a = AllyId::from(3);
 
 	let paras = vec![(chain_a, true), (chain_b, true), (thread_a, false)];
 	let validators = vec![
@@ -741,11 +741,11 @@ fn supermajority_bitfields_trigger_availability() {
 			core if core == CoreIndex::from(0) => Some(chain_a),
 			core if core == CoreIndex::from(1) => Some(chain_b),
 			core if core == CoreIndex::from(2) => Some(thread_a),
-			_ => panic!("Core out of bounds for 2 allychains and 1 parathread core."),
+			_ => panic!("Core out of bounds for 2 allychains and 1 allythread core."),
 		};
 
 		let candidate_a = TestCandidateBuilder {
-			para_id: chain_a,
+			ally_id: chain_a,
 			head_data: vec![1, 2, 3, 4].into(),
 			..Default::default()
 		}
@@ -767,7 +767,7 @@ fn supermajority_bitfields_trigger_availability() {
 		PendingAvailabilityCommitments::<Test>::insert(chain_a, candidate_a.clone().commitments);
 
 		let candidate_b = TestCandidateBuilder {
-			para_id: chain_b,
+			ally_id: chain_b,
 			head_data: vec![5, 6, 7, 8].into(),
 			..Default::default()
 		}
@@ -892,9 +892,9 @@ fn supermajority_bitfields_trigger_availability() {
 
 #[test]
 fn candidate_checks() {
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let thread_a = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let thread_a = AllyId::from(3);
 
 	// The block number of the relay-parent for testing.
 	const RELAY_PARENT_NUM: BlockNumber = 4;
@@ -932,7 +932,7 @@ fn candidate_checks() {
 				group_index if group_index == GroupIndex::from(0) => Some(vec![0, 1]),
 				group_index if group_index == GroupIndex::from(1) => Some(vec![2, 3]),
 				group_index if group_index == GroupIndex::from(2) => Some(vec![4]),
-				_ => panic!("Group index out of bounds for 2 allychains and 1 parathread core"),
+				_ => panic!("Group index out of bounds for 2 allychains and 1 allythread core"),
 			}
 			.map(|m| m.into_iter().map(ValidatorIndex).collect::<Vec<_>>())
 		};
@@ -941,29 +941,29 @@ fn candidate_checks() {
 
 		let chain_a_assignment = CoreAssignment {
 			core: CoreIndex::from(0),
-			para_id: chain_a,
+			ally_id: chain_a,
 			kind: AssignmentKind::Allychain,
 			group_idx: GroupIndex::from(0),
 		};
 
 		let chain_b_assignment = CoreAssignment {
 			core: CoreIndex::from(1),
-			para_id: chain_b,
+			ally_id: chain_b,
 			kind: AssignmentKind::Allychain,
 			group_idx: GroupIndex::from(1),
 		};
 
 		let thread_a_assignment = CoreAssignment {
 			core: CoreIndex::from(2),
-			para_id: thread_a,
-			kind: AssignmentKind::Parathread(thread_collator.clone(), 0),
+			ally_id: thread_a,
+			kind: AssignmentKind::Allythread(thread_collator.clone(), 0),
 			group_idx: GroupIndex::from(2),
 		};
 
 		// unscheduled candidate.
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -996,7 +996,7 @@ fn candidate_checks() {
 		// candidates out of order.
 		{
 			let mut candidate_a = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1005,7 +1005,7 @@ fn candidate_checks() {
 			}
 			.build();
 			let mut candidate_b = TestCandidateBuilder {
-				para_id: chain_b,
+				ally_id: chain_b,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(2),
 				persisted_validation_data_hash: make_vdata_hash(chain_b).unwrap(),
@@ -1051,7 +1051,7 @@ fn candidate_checks() {
 		// candidate not backed.
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1087,7 +1087,7 @@ fn candidate_checks() {
 			assert!(System::parent_hash() != wrong_parent_hash);
 
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: wrong_parent_hash,
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1119,7 +1119,7 @@ fn candidate_checks() {
 		// candidate has wrong collator.
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: thread_a,
+				ally_id: thread_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(thread_a).unwrap(),
@@ -1158,7 +1158,7 @@ fn candidate_checks() {
 		// candidate not well-signed by collator.
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: thread_a,
+				ally_id: thread_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(thread_a).unwrap(),
@@ -1193,10 +1193,10 @@ fn candidate_checks() {
 			);
 		}
 
-		// para occupied - reject.
+		// ally occupied - reject.
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1249,7 +1249,7 @@ fn candidate_checks() {
 		// messed up commitments storage - do not panic - reject.
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1288,7 +1288,7 @@ fn candidate_checks() {
 		// interfering code upgrade - reject
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				new_validation_code: Some(vec![5, 6, 7, 8].into()),
@@ -1330,7 +1330,7 @@ fn candidate_checks() {
 		// Bad validation data hash - reject
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: [42u8; 32].into(),
@@ -1364,7 +1364,7 @@ fn candidate_checks() {
 		// bad validation code hash
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1396,10 +1396,10 @@ fn candidate_checks() {
 			);
 		}
 
-		// Para head hash in descriptor doesn't match head data
+		// Ally head hash in descriptor doesn't match head data
 		{
 			let mut candidate = TestCandidateBuilder {
-				para_id: chain_a,
+				ally_id: chain_a,
 				relay_parent: System::parent_hash(),
 				pov_hash: Hash::repeat_byte(1),
 				persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1435,9 +1435,9 @@ fn candidate_checks() {
 
 #[test]
 fn backing_works() {
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let thread_a = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let thread_a = AllyId::from(3);
 
 	// The block number of the relay-parent for testing.
 	const RELAY_PARENT_NUM: BlockNumber = 4;
@@ -1475,7 +1475,7 @@ fn backing_works() {
 				group_index if group_index == GroupIndex::from(0) => Some(vec![0, 1]),
 				group_index if group_index == GroupIndex::from(1) => Some(vec![2, 3]),
 				group_index if group_index == GroupIndex::from(2) => Some(vec![4]),
-				_ => panic!("Group index out of bounds for 2 allychains and 1 parathread core"),
+				_ => panic!("Group index out of bounds for 2 allychains and 1 allythread core"),
 			}
 			.map(|vs| vs.into_iter().map(ValidatorIndex).collect::<Vec<_>>())
 		};
@@ -1484,27 +1484,27 @@ fn backing_works() {
 
 		let chain_a_assignment = CoreAssignment {
 			core: CoreIndex::from(0),
-			para_id: chain_a,
+			ally_id: chain_a,
 			kind: AssignmentKind::Allychain,
 			group_idx: GroupIndex::from(0),
 		};
 
 		let chain_b_assignment = CoreAssignment {
 			core: CoreIndex::from(1),
-			para_id: chain_b,
+			ally_id: chain_b,
 			kind: AssignmentKind::Allychain,
 			group_idx: GroupIndex::from(1),
 		};
 
 		let thread_a_assignment = CoreAssignment {
 			core: CoreIndex::from(2),
-			para_id: thread_a,
-			kind: AssignmentKind::Parathread(thread_collator.clone(), 0),
+			ally_id: thread_a,
+			kind: AssignmentKind::Allythread(thread_collator.clone(), 0),
 			group_idx: GroupIndex::from(2),
 		};
 
 		let mut candidate_a = TestCandidateBuilder {
-			para_id: chain_a,
+			ally_id: chain_a,
 			relay_parent: System::parent_hash(),
 			pov_hash: Hash::repeat_byte(1),
 			persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1515,7 +1515,7 @@ fn backing_works() {
 		collator_sign_candidate(Sr25519Keyring::One, &mut candidate_a);
 
 		let mut candidate_b = TestCandidateBuilder {
-			para_id: chain_b,
+			ally_id: chain_b,
 			relay_parent: System::parent_hash(),
 			pov_hash: Hash::repeat_byte(2),
 			persisted_validation_data_hash: make_vdata_hash(chain_b).unwrap(),
@@ -1526,7 +1526,7 @@ fn backing_works() {
 		collator_sign_candidate(Sr25519Keyring::One, &mut candidate_b);
 
 		let mut candidate_c = TestCandidateBuilder {
-			para_id: thread_a,
+			ally_id: thread_a,
 			relay_parent: System::parent_hash(),
 			pov_hash: Hash::repeat_byte(3),
 			persisted_validation_data_hash: make_vdata_hash(thread_a).unwrap(),
@@ -1642,7 +1642,7 @@ fn backing_works() {
 			Vec<(ValidatorIndex, ValidityAttestation)>,
 		)>| {
 			candidate_receipts_with_backers.sort_by(|(cr1, _), (cr2, _)| {
-				cr1.descriptor().para_id.cmp(&cr2.descriptor().para_id)
+				cr1.descriptor().ally_id.cmp(&cr2.descriptor().ally_id)
 			});
 			candidate_receipts_with_backers
 		};
@@ -1717,7 +1717,7 @@ fn backing_works() {
 
 #[test]
 fn can_include_candidate_with_ok_code_upgrade() {
-	let chain_a = ParaId::from(1);
+	let chain_a = AllyId::from(1);
 
 	// The block number of the relay-parent for testing.
 	const RELAY_PARENT_NUM: BlockNumber = 4;
@@ -1760,13 +1760,13 @@ fn can_include_candidate_with_ok_code_upgrade() {
 
 		let chain_a_assignment = CoreAssignment {
 			core: CoreIndex::from(0),
-			para_id: chain_a,
+			ally_id: chain_a,
 			kind: AssignmentKind::Allychain,
 			group_idx: GroupIndex::from(0),
 		};
 
 		let mut candidate_a = TestCandidateBuilder {
-			para_id: chain_a,
+			ally_id: chain_a,
 			relay_parent: System::parent_hash(),
 			pov_hash: Hash::repeat_byte(1),
 			persisted_validation_data_hash: make_vdata_hash(chain_a).unwrap(),
@@ -1823,9 +1823,9 @@ fn can_include_candidate_with_ok_code_upgrade() {
 
 #[test]
 fn session_change_wipes() {
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let thread_a = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let thread_a = AllyId::from(3);
 
 	let paras = vec![(chain_a, true), (chain_b, true), (thread_a, false)];
 	let validators = vec![

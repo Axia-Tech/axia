@@ -86,7 +86,7 @@
 use parity_scale_codec::Encode;
 use axia_node_primitives::PoV;
 use axia_primitives::v1::{
-	BlakeTwo256, CandidateHash, Hash, HashT, Id as ParaId, ValidatorIndex,
+	BlakeTwo256, CandidateHash, Hash, HashT, Id as AllyId, ValidatorIndex,
 };
 use sc_network::PeerId;
 
@@ -153,7 +153,7 @@ pub enum Stage {
 	ApprovalChecking = 8,
 	// Expand as needed, numbers should be ascending according to the stage
 	// through the inclusion pipeline, or according to the descriptions
-	// in [the path of a para chain block]
+	// in [the path of a ally chain block]
 	// (https://axia.network/the-path-of-a-allychain-block/)
 	// see [issue](https://github.com/axiatech/axia/issues/2389)
 }
@@ -291,8 +291,8 @@ impl Span {
 
 	/// Attach a para-id to the span.
 	#[inline(always)]
-	pub fn with_para_id(self, para_id: ParaId) -> Self {
-		self.with_int_tag("para-id", u32::from(para_id) as i64)
+	pub fn with_ally_id(self, ally_id: AllyId) -> Self {
+		self.with_int_tag("para-id", u32::from(ally_id) as i64)
 	}
 
 	/// Attach a candidate stage.
@@ -369,8 +369,8 @@ impl Span {
 	}
 
 	#[inline(always)]
-	pub fn add_para_id(&mut self, para_id: ParaId) {
-		self.add_int_tag("para-id", u32::from(para_id) as i64);
+	pub fn add_ally_id(&mut self, ally_id: AllyId) {
+		self.add_int_tag("para-id", u32::from(ally_id) as i64);
 	}
 
 	/// Add a string tag, without consuming the span.

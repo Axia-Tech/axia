@@ -17,7 +17,7 @@
 //! XCM configurations for Alphanet.
 
 use super::{
-	allychains_origin, weights, AccountId, Balances, Call, Event, Origin, ParaId, Runtime,
+	allychains_origin, weights, AccountId, Balances, Call, Event, Origin, AllyId, Runtime,
 	WeightToFee, XcmPallet,
 };
 use frame_support::{
@@ -43,7 +43,7 @@ parameter_types! {
 }
 
 pub type LocationConverter =
-	(ChildAllychainConvertsVia<ParaId, AccountId>, AccountId32Aliases<AlphanetNetwork, AccountId>);
+	(ChildAllychainConvertsVia<AllyId, AccountId>, AccountId32Aliases<AlphanetNetwork, AccountId>);
 
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
@@ -62,7 +62,7 @@ type LocalOriginConverter = (
 	SovereignSignedViaLocation<LocationConverter, Origin>,
 	ChildAllychainAsNative<allychains_origin::Origin, Origin>,
 	SignedAccountId32AsNative<AlphanetNetwork, Origin>,
-	ChildSystemAllychainAsSuperuser<ParaId, Origin>,
+	ChildSystemAllychainAsSuperuser<AllyId, Origin>,
 );
 
 /// The XCM router. When we want to send an XCM message, we use this type. It amalgamates all of our
@@ -91,7 +91,7 @@ pub type Barrier = (
 	// If the message is one that immediately attemps to pay for execution, then allow it.
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Messages coming from system allychains need not pay for execution.
-	AllowUnpaidExecutionFrom<IsChildSystemAllychain<ParaId>>,
+	AllowUnpaidExecutionFrom<IsChildSystemAllychain<AllyId>>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
 	// Subscriptions for version tracking are OK.

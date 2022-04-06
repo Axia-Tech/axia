@@ -60,17 +60,17 @@ pub mod v1 {
 		pub max_downward_message_size: u32,
 		pub ump_service_total_weight: Weight,
 		pub hrmp_max_allychain_outbound_channels: u32,
-		pub hrmp_max_parathread_outbound_channels: u32,
+		pub hrmp_max_allythread_outbound_channels: u32,
 		pub hrmp_sender_deposit: Balance,
 		pub hrmp_recipient_deposit: Balance,
 		pub hrmp_channel_max_capacity: u32,
 		pub hrmp_channel_max_total_size: u32,
 		pub hrmp_max_allychain_inbound_channels: u32,
-		pub hrmp_max_parathread_inbound_channels: u32,
+		pub hrmp_max_allythread_inbound_channels: u32,
 		pub hrmp_channel_max_message_size: u32,
 		pub code_retention_period: BlockNumber,
-		pub parathread_cores: u32,
-		pub parathread_retries: u32,
+		pub allythread_cores: u32,
+		pub allythread_retries: u32,
 		pub group_rotation_frequency: BlockNumber,
 		pub chain_availability_period: BlockNumber,
 		pub thread_availability_period: BlockNumber,
@@ -102,8 +102,8 @@ pub mod v1 {
 				max_code_size: Default::default(),
 				max_pov_size: Default::default(),
 				max_head_data_size: Default::default(),
-				parathread_cores: Default::default(),
-				parathread_retries: Default::default(),
+				allythread_cores: Default::default(),
+				allythread_retries: Default::default(),
 				scheduling_lookahead: Default::default(),
 				max_validators_per_core: Default::default(),
 				max_validators: None,
@@ -126,10 +126,10 @@ pub mod v1 {
 				hrmp_channel_max_capacity: Default::default(),
 				hrmp_channel_max_total_size: Default::default(),
 				hrmp_max_allychain_inbound_channels: Default::default(),
-				hrmp_max_parathread_inbound_channels: Default::default(),
+				hrmp_max_allythread_inbound_channels: Default::default(),
 				hrmp_channel_max_message_size: Default::default(),
 				hrmp_max_allychain_outbound_channels: Default::default(),
-				hrmp_max_parathread_outbound_channels: Default::default(),
+				hrmp_max_allythread_outbound_channels: Default::default(),
 				hrmp_max_message_num_per_candidate: Default::default(),
 				ump_max_individual_weight: 20 *
 					frame_support::weights::constants::WEIGHT_PER_MILLIS,
@@ -162,17 +162,17 @@ max_pov_size                             : pre.max_pov_size,
 max_downward_message_size                : pre.max_downward_message_size,
 ump_service_total_weight                 : pre.ump_service_total_weight,
 hrmp_max_allychain_outbound_channels     : pre.hrmp_max_allychain_outbound_channels,
-hrmp_max_parathread_outbound_channels    : pre.hrmp_max_parathread_outbound_channels,
+hrmp_max_allythread_outbound_channels    : pre.hrmp_max_allythread_outbound_channels,
 hrmp_sender_deposit                      : pre.hrmp_sender_deposit,
 hrmp_recipient_deposit                   : pre.hrmp_recipient_deposit,
 hrmp_channel_max_capacity                : pre.hrmp_channel_max_capacity,
 hrmp_channel_max_total_size              : pre.hrmp_channel_max_total_size,
 hrmp_max_allychain_inbound_channels      : pre.hrmp_max_allychain_inbound_channels,
-hrmp_max_parathread_inbound_channels     : pre.hrmp_max_parathread_inbound_channels,
+hrmp_max_allythread_inbound_channels     : pre.hrmp_max_allythread_inbound_channels,
 hrmp_channel_max_message_size            : pre.hrmp_channel_max_message_size,
 code_retention_period                    : pre.code_retention_period,
-parathread_cores                         : pre.parathread_cores,
-parathread_retries                       : pre.parathread_retries,
+allythread_cores                         : pre.allythread_cores,
+allythread_retries                       : pre.allythread_retries,
 group_rotation_frequency                 : pre.group_rotation_frequency,
 chain_availability_period                : pre.chain_availability_period,
 thread_availability_period               : pre.thread_availability_period,
@@ -297,7 +297,7 @@ mod tests {
 			(
 				3,
 				v1::HostConfiguration::<primitives::v1::BlockNumber> {
-					parathread_retries: 11,
+					allythread_retries: 11,
 					..v1.clone()
 				},
 			),
@@ -353,17 +353,17 @@ mod tests {
 			assert_eq!(v1.max_downward_message_size                , v2.max_downward_message_size);
 			assert_eq!(v1.ump_service_total_weight                 , v2.ump_service_total_weight);
 			assert_eq!(v1.hrmp_max_allychain_outbound_channels     , v2.hrmp_max_allychain_outbound_channels);
-			assert_eq!(v1.hrmp_max_parathread_outbound_channels    , v2.hrmp_max_parathread_outbound_channels);
+			assert_eq!(v1.hrmp_max_allythread_outbound_channels    , v2.hrmp_max_allythread_outbound_channels);
 			assert_eq!(v1.hrmp_sender_deposit                      , v2.hrmp_sender_deposit);
 			assert_eq!(v1.hrmp_recipient_deposit                   , v2.hrmp_recipient_deposit);
 			assert_eq!(v1.hrmp_channel_max_capacity                , v2.hrmp_channel_max_capacity);
 			assert_eq!(v1.hrmp_channel_max_total_size              , v2.hrmp_channel_max_total_size);
 			assert_eq!(v1.hrmp_max_allychain_inbound_channels      , v2.hrmp_max_allychain_inbound_channels);
-			assert_eq!(v1.hrmp_max_parathread_inbound_channels     , v2.hrmp_max_parathread_inbound_channels);
+			assert_eq!(v1.hrmp_max_allythread_inbound_channels     , v2.hrmp_max_allythread_inbound_channels);
 			assert_eq!(v1.hrmp_channel_max_message_size            , v2.hrmp_channel_max_message_size);
 			assert_eq!(v1.code_retention_period                    , v2.code_retention_period);
-			assert_eq!(v1.parathread_cores                         , v2.parathread_cores);
-			assert_eq!(v1.parathread_retries                       , v2.parathread_retries);
+			assert_eq!(v1.allythread_cores                         , v2.allythread_cores);
+			assert_eq!(v1.allythread_retries                       , v2.allythread_retries);
 			assert_eq!(v1.group_rotation_frequency                 , v2.group_rotation_frequency);
 			assert_eq!(v1.chain_availability_period                , v2.chain_availability_period);
 			assert_eq!(v1.thread_availability_period               , v2.thread_availability_period);

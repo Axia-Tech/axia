@@ -29,7 +29,7 @@ use crate::{
 	paras::ParaGenesisArgs,
 };
 
-fn schedule_blank_para(id: ParaId, is_chain: bool) {
+fn schedule_blank_para(id: AllyId, is_chain: bool) {
 	assert_ok!(Paras::schedule_para_initialize(
 		id,
 		ParaGenesisArgs {
@@ -93,12 +93,12 @@ fn run_to_end_of_block(
 
 fn default_config() -> HostConfiguration<BlockNumber> {
 	HostConfiguration {
-		parathread_cores: 3,
+		allythread_cores: 3,
 		group_rotation_frequency: 10,
 		chain_availability_period: 3,
 		thread_availability_period: 5,
 		scheduling_lookahead: 2,
-		parathread_retries: 1,
+		allythread_retries: 1,
 		pvf_checking_enabled: false,
 		// This field does not affect anything that scheduler does. However, `HostConfiguration`
 		// is still a subject to consistency test. It requires that `minimum_validation_upgrade_delay`
@@ -109,7 +109,7 @@ fn default_config() -> HostConfiguration<BlockNumber> {
 }
 
 #[test]
-fn add_parathread_claim_works() {
+fn add_allythread_claim_works() {
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
 			config: default_config(),
@@ -118,28 +118,28 @@ fn add_parathread_claim_works() {
 		..Default::default()
 	};
 
-	let thread_id = ParaId::from(10);
+	let thread_id = AllyId::from(10);
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(thread_id, false);
 
-		assert!(!Paras::is_parathread(thread_id));
+		assert!(!Paras::is_allythread(thread_id));
 
 		run_to_block(10, |n| if n == 10 { Some(Default::default()) } else { None });
 
-		assert!(Paras::is_parathread(thread_id));
+		assert!(Paras::is_allythread(thread_id));
 
 		{
-			Scheduler::add_parathread_claim(ParathreadClaim(thread_id, collator.clone()));
-			let queue = ParathreadQueue::<Test>::get();
+			Scheduler::add_allythread_claim(AllythreadClaim(thread_id, collator.clone()));
+			let queue = AllythreadQueue::<Test>::get();
 			assert_eq!(queue.next_core_offset, 1);
 			assert_eq!(queue.queue.len(), 1);
 			assert_eq!(
 				queue.queue[0],
-				QueuedParathread {
-					claim: ParathreadEntry {
-						claim: ParathreadClaim(thread_id, collator.clone()),
+				QueuedAllythread {
+					claim: AllythreadEntry {
+						claim: AllythreadClaim(thread_id, collator.clone()),
 						retries: 0,
 					},
 					core_offset: 0,
@@ -150,15 +150,15 @@ fn add_parathread_claim_works() {
 		// due to the index, completing claims are not allowed.
 		{
 			let collator2 = CollatorId::from(Sr25519Keyring::Bob.public());
-			Scheduler::add_parathread_claim(ParathreadClaim(thread_id, collator2.clone()));
-			let queue = ParathreadQueue::<Test>::get();
+			Scheduler::add_allythread_claim(AllythreadClaim(thread_id, collator2.clone()));
+			let queue = AllythreadQueue::<Test>::get();
 			assert_eq!(queue.next_core_offset, 1);
 			assert_eq!(queue.queue.len(), 1);
 			assert_eq!(
 				queue.queue[0],
-				QueuedParathread {
-					claim: ParathreadEntry {
-						claim: ParathreadClaim(thread_id, collator.clone()),
+				QueuedAllythread {
+					claim: AllythreadEntry {
+						claim: AllythreadClaim(thread_id, collator.clone()),
 						retries: 0,
 					},
 					core_offset: 0,
@@ -166,18 +166,18 @@ fn add_parathread_claim_works() {
 			);
 		}
 
-		// claims on non-live parathreads have no effect.
+		// claims on non-live allythreads have no effect.
 		{
-			let thread_id2 = ParaId::from(11);
-			Scheduler::add_parathread_claim(ParathreadClaim(thread_id2, collator.clone()));
-			let queue = ParathreadQueue::<Test>::get();
+			let thread_id2 = AllyId::from(11);
+			Scheduler::add_allythread_claim(AllythreadClaim(thread_id2, collator.clone()));
+			let queue = AllythreadQueue::<Test>::get();
 			assert_eq!(queue.next_core_offset, 1);
 			assert_eq!(queue.queue.len(), 1);
 			assert_eq!(
 				queue.queue[0],
-				QueuedParathread {
-					claim: ParathreadEntry {
-						claim: ParathreadClaim(thread_id, collator.clone()),
+				QueuedAllythread {
+					claim: AllythreadEntry {
+						claim: AllythreadClaim(thread_id, collator.clone()),
 						retries: 0,
 					},
 					core_offset: 0,
@@ -188,10 +188,10 @@ fn add_parathread_claim_works() {
 }
 
 #[test]
-fn cannot_add_claim_when_no_parathread_cores() {
+fn cannot_add_claim_when_no_allythread_cores() {
 	let config = {
 		let mut config = default_config();
-		config.parathread_cores = 0;
+		config.allythread_cores = 0;
 		config
 	};
 	let genesis_config = MockGenesisConfig {
@@ -199,25 +199,25 @@ fn cannot_add_claim_when_no_parathread_cores() {
 		..Default::default()
 	};
 
-	let thread_id = ParaId::from(10);
+	let thread_id = AllyId::from(10);
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(thread_id, false);
 
-		assert!(!Paras::is_parathread(thread_id));
+		assert!(!Paras::is_allythread(thread_id));
 
 		run_to_block(10, |n| if n == 10 { Some(Default::default()) } else { None });
 
-		assert!(Paras::is_parathread(thread_id));
+		assert!(Paras::is_allythread(thread_id));
 
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_id, collator.clone()));
-		assert_eq!(ParathreadQueue::<Test>::get(), Default::default());
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_id, collator.clone()));
+		assert_eq!(AllythreadQueue::<Test>::get(), Default::default());
 	});
 }
 
 #[test]
-fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_parathreads() {
+fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_allythreads() {
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
 			config: default_config(),
@@ -225,12 +225,12 @@ fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_parathread
 		},
 		..Default::default()
 	};
-	let max_parathread_retries = default_config().parathread_retries;
+	let max_allythread_retries = default_config().allythread_retries;
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
-	let thread_c = ParaId::from(3);
-	let thread_d = ParaId::from(4);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
+	let thread_c = AllyId::from(3);
+	let thread_d = AllyId::from(4);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -245,43 +245,43 @@ fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_parathread
 		}
 
 		// set up a queue as if `n_cores` was 4 and with some with many retries.
-		ParathreadQueue::<Test>::put({
-			let mut queue = ParathreadClaimQueue::default();
+		AllythreadQueue::<Test>::put({
+			let mut queue = AllythreadClaimQueue::default();
 
 			// Will be pruned: too many retries.
 			queue.enqueue_entry(
-				ParathreadEntry {
-					claim: ParathreadClaim(thread_a, collator.clone()),
-					retries: max_parathread_retries + 1,
+				AllythreadEntry {
+					claim: AllythreadClaim(thread_a, collator.clone()),
+					retries: max_allythread_retries + 1,
 				},
 				4,
 			);
 
 			// Will not be pruned.
 			queue.enqueue_entry(
-				ParathreadEntry {
-					claim: ParathreadClaim(thread_b, collator.clone()),
-					retries: max_parathread_retries,
+				AllythreadEntry {
+					claim: AllythreadClaim(thread_b, collator.clone()),
+					retries: max_allythread_retries,
 				},
 				4,
 			);
 
 			// Will not be pruned.
 			queue.enqueue_entry(
-				ParathreadEntry { claim: ParathreadClaim(thread_c, collator.clone()), retries: 0 },
+				AllythreadEntry { claim: AllythreadClaim(thread_c, collator.clone()), retries: 0 },
 				4,
 			);
 
-			// Will be pruned: not a live parathread.
+			// Will be pruned: not a live allythread.
 			queue.enqueue_entry(
-				ParathreadEntry { claim: ParathreadClaim(thread_d, collator.clone()), retries: 0 },
+				AllythreadEntry { claim: AllythreadClaim(thread_d, collator.clone()), retries: 0 },
 				4,
 			);
 
 			queue
 		});
 
-		ParathreadClaimIndex::<Test>::put(vec![thread_a, thread_b, thread_c, thread_d]);
+		AllythreadClaimIndex::<Test>::put(vec![thread_a, thread_b, thread_c, thread_d]);
 
 		run_to_block(10, |b| match b {
 			10 => Some(SessionChangeNotification {
@@ -292,20 +292,20 @@ fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_parathread
 		});
 		assert_eq!(Configuration::config(), default_config());
 
-		let queue = ParathreadQueue::<Test>::get();
+		let queue = AllythreadQueue::<Test>::get();
 		assert_eq!(
 			queue.queue,
 			vec![
-				QueuedParathread {
-					claim: ParathreadEntry {
-						claim: ParathreadClaim(thread_b, collator.clone()),
-						retries: max_parathread_retries,
+				QueuedAllythread {
+					claim: AllythreadEntry {
+						claim: AllythreadClaim(thread_b, collator.clone()),
+						retries: max_allythread_retries,
 					},
 					core_offset: 0,
 				},
-				QueuedParathread {
-					claim: ParathreadEntry {
-						claim: ParathreadClaim(thread_c, collator.clone()),
+				QueuedAllythread {
+					claim: AllythreadEntry {
+						claim: AllythreadClaim(thread_c, collator.clone()),
 						retries: 0,
 					},
 					core_offset: 1,
@@ -314,7 +314,7 @@ fn session_change_prunes_cores_beyond_retries_and_those_from_non_live_parathread
 		);
 		assert_eq!(queue.next_core_offset, 2);
 
-		assert_eq!(ParathreadClaimIndex::<Test>::get(), vec![thread_b, thread_c]);
+		assert_eq!(AllythreadClaimIndex::<Test>::get(), vec![thread_b, thread_c]);
 	})
 }
 
@@ -328,10 +328,10 @@ fn session_change_shuffles_validators() {
 		..Default::default()
 	};
 
-	assert_eq!(default_config().parathread_cores, 3);
+	assert_eq!(default_config().allythread_cores, 3);
 	new_test_ext(genesis_config).execute_with(|| {
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
 
 		// ensure that we have 5 groups by registering 2 allychains.
 		schedule_blank_para(chain_a, true);
@@ -373,7 +373,7 @@ fn session_change_shuffles_validators() {
 fn session_change_takes_only_max_per_core() {
 	let config = {
 		let mut config = default_config();
-		config.parathread_cores = 0;
+		config.allythread_cores = 0;
 		config.max_validators_per_core = Some(1);
 		config
 	};
@@ -387,9 +387,9 @@ fn session_change_takes_only_max_per_core() {
 	};
 
 	new_test_ext(genesis_config).execute_with(|| {
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
-		let chain_c = ParaId::from(3);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
+		let chain_c = AllyId::from(3);
 
 		// ensure that we have 5 groups by registering 2 allychains.
 		schedule_blank_para(chain_a, true);
@@ -434,23 +434,23 @@ fn schedule_schedules() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
 
-	let thread_a = ParaId::from(3);
-	let thread_b = ParaId::from(4);
-	let thread_c = ParaId::from(5);
+	let thread_a = AllyId::from(3);
+	let thread_b = AllyId::from(4);
+	let thread_c = AllyId::from(5);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
-		assert_eq!(default_config().parathread_cores, 3);
+		assert_eq!(default_config().allythread_cores, 3);
 
 		// register 2 allychains
 		schedule_blank_para(chain_a, true);
 		schedule_blank_para(chain_b, true);
 
-		// and 3 parathreads
+		// and 3 allythreads
 		schedule_blank_para(thread_a, false);
 		schedule_blank_para(thread_b, false);
 		schedule_blank_para(thread_c, false);
@@ -479,7 +479,7 @@ fn schedule_schedules() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -489,16 +489,16 @@ fn schedule_schedules() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(1),
-					para_id: chain_b,
+					ally_id: chain_b,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(1),
 				}
 			);
 		}
 
-		// add a couple of parathread claims.
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_a, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_c, collator.clone()));
+		// add a couple of allythread claims.
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_a, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_c, collator.clone()));
 
 		run_to_block(2, |_| None);
 
@@ -510,7 +510,7 @@ fn schedule_schedules() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -520,7 +520,7 @@ fn schedule_schedules() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(1),
-					para_id: chain_b,
+					ally_id: chain_b,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(1),
 				}
@@ -530,8 +530,8 @@ fn schedule_schedules() {
 				scheduled[2],
 				CoreAssignment {
 					core: CoreIndex(2),
-					para_id: thread_a,
-					kind: AssignmentKind::Parathread(collator.clone(), 0),
+					ally_id: thread_a,
+					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(2),
 				}
 			);
@@ -540,8 +540,8 @@ fn schedule_schedules() {
 				scheduled[3],
 				CoreAssignment {
 					core: CoreIndex(3),
-					para_id: thread_c,
-					kind: AssignmentKind::Parathread(collator.clone(), 0),
+					ally_id: thread_c,
+					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(3),
 				}
 			);
@@ -559,25 +559,25 @@ fn schedule_schedules_including_just_freed() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
 
-	let thread_a = ParaId::from(3);
-	let thread_b = ParaId::from(4);
-	let thread_c = ParaId::from(5);
-	let thread_d = ParaId::from(6);
-	let thread_e = ParaId::from(7);
+	let thread_a = AllyId::from(3);
+	let thread_b = AllyId::from(4);
+	let thread_c = AllyId::from(5);
+	let thread_d = AllyId::from(6);
+	let thread_e = AllyId::from(7);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
-		assert_eq!(default_config().parathread_cores, 3);
+		assert_eq!(default_config().allythread_cores, 3);
 
 		// register 2 allychains
 		schedule_blank_para(chain_a, true);
 		schedule_blank_para(chain_b, true);
 
-		// and 5 parathreads
+		// and 5 allythreads
 		schedule_blank_para(thread_a, false);
 		schedule_blank_para(thread_b, false);
 		schedule_blank_para(thread_c, false);
@@ -600,9 +600,9 @@ fn schedule_schedules_including_just_freed() {
 			_ => None,
 		});
 
-		// add a couple of parathread claims now that the parathreads are live.
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_a, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_c, collator.clone()));
+		// add a couple of allythread claims now that the allythreads are live.
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_a, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_c, collator.clone()));
 
 		run_to_block(2, |_| None);
 
@@ -623,27 +623,27 @@ fn schedule_schedules_including_just_freed() {
 			assert!(Scheduler::scheduled().is_empty());
 		}
 
-		// add a couple more parathread claims - the claim on `b` will go to the 3rd parathread core (4)
-		// and the claim on `d` will go back to the 1st parathread core (2). The claim on `e` then
+		// add a couple more allythread claims - the claim on `b` will go to the 3rd allythread core (4)
+		// and the claim on `d` will go back to the 1st allythread core (2). The claim on `e` then
 		// will go for core `3`.
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_b, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_d, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_e, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_b, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_d, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_e, collator.clone()));
 
 		run_to_block(3, |_| None);
 
 		{
 			let scheduled = Scheduler::scheduled();
 
-			// cores 0 and 1 are occupied by allychains. cores 2 and 3 are occupied by parathread
+			// cores 0 and 1 are occupied by allychains. cores 2 and 3 are occupied by allythread
 			// claims. core 4 was free.
 			assert_eq!(scheduled.len(), 1);
 			assert_eq!(
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(4),
-					para_id: thread_b,
-					kind: AssignmentKind::Parathread(collator.clone(), 0),
+					ally_id: thread_b,
+					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(4),
 				}
 			);
@@ -668,7 +668,7 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -677,8 +677,8 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(2),
-					para_id: thread_d,
-					kind: AssignmentKind::Parathread(collator.clone(), 0),
+					ally_id: thread_d,
+					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(2),
 				}
 			);
@@ -686,8 +686,8 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[2],
 				CoreAssignment {
 					core: CoreIndex(3),
-					para_id: thread_e,
-					kind: AssignmentKind::Parathread(collator.clone(), 0),
+					ally_id: thread_e,
+					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(3),
 				}
 			);
@@ -695,27 +695,27 @@ fn schedule_schedules_including_just_freed() {
 				scheduled[3],
 				CoreAssignment {
 					core: CoreIndex(4),
-					para_id: thread_b,
-					kind: AssignmentKind::Parathread(collator.clone(), 0),
+					ally_id: thread_b,
+					kind: AssignmentKind::Allythread(collator.clone(), 0),
 					group_idx: GroupIndex(4),
 				}
 			);
 
 			// the prior claim on thread A concluded, but the claim on thread C was marked as
 			// timed out.
-			let index = ParathreadClaimIndex::<Test>::get();
-			let parathread_queue = ParathreadQueue::<Test>::get();
+			let index = AllythreadClaimIndex::<Test>::get();
+			let allythread_queue = AllythreadQueue::<Test>::get();
 
 			// thread A claim should have been wiped, but thread C claim should remain.
 			assert_eq!(index, vec![thread_b, thread_c, thread_d, thread_e]);
 
 			// Although C was descheduled, the core `4`  was occupied so C goes back on the queue.
-			assert_eq!(parathread_queue.queue.len(), 1);
+			assert_eq!(allythread_queue.queue.len(), 1);
 			assert_eq!(
-				parathread_queue.queue[0],
-				QueuedParathread {
-					claim: ParathreadEntry {
-						claim: ParathreadClaim(thread_c, collator.clone()),
+				allythread_queue.queue[0],
+				QueuedAllythread {
+					claim: AllythreadEntry {
+						claim: AllythreadClaim(thread_c, collator.clone()),
 						retries: 0, // retries not incremented by timeout - validators' fault.
 					},
 					core_offset: 2, // reassigned to next core. thread_e claim was on offset 1.
@@ -735,12 +735,12 @@ fn schedule_clears_availability_cores() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
-	let chain_b = ParaId::from(2);
-	let chain_c = ParaId::from(3);
+	let chain_a = AllyId::from(1);
+	let chain_b = AllyId::from(2);
+	let chain_c = AllyId::from(3);
 
 	new_test_ext(genesis_config).execute_with(|| {
-		assert_eq!(default_config().parathread_cores, 3);
+		assert_eq!(default_config().allythread_cores, 3);
 
 		// register 3 allychains
 		schedule_blank_para(chain_a, true);
@@ -796,7 +796,7 @@ fn schedule_clears_availability_cores() {
 				scheduled[0],
 				CoreAssignment {
 					core: CoreIndex(0),
-					para_id: chain_a,
+					ally_id: chain_a,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(0),
 				}
@@ -805,7 +805,7 @@ fn schedule_clears_availability_cores() {
 				scheduled[1],
 				CoreAssignment {
 					core: CoreIndex(2),
-					para_id: chain_c,
+					ally_id: chain_c,
 					kind: AssignmentKind::Allychain,
 					group_idx: GroupIndex(2),
 				}
@@ -824,14 +824,14 @@ fn schedule_rotates_groups() {
 	let config = {
 		let mut config = default_config();
 
-		// make sure parathread requests don't retry-out
-		config.parathread_retries = config.group_rotation_frequency * 3;
-		config.parathread_cores = 2;
+		// make sure allythread requests don't retry-out
+		config.allythread_retries = config.group_rotation_frequency * 3;
+		config.allythread_cores = 2;
 		config
 	};
 
 	let rotation_frequency = config.group_rotation_frequency;
-	let parathread_cores = config.parathread_cores;
+	let allythread_cores = config.allythread_cores;
 
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
@@ -841,13 +841,13 @@ fn schedule_rotates_groups() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
-		assert_eq!(default_config().parathread_cores, 3);
+		assert_eq!(default_config().allythread_cores, 3);
 
 		schedule_blank_para(thread_a, false);
 		schedule_blank_para(thread_b, false);
@@ -868,16 +868,16 @@ fn schedule_rotates_groups() {
 		let session_start_block = <Scheduler as Store>::SessionStartBlock::get();
 		assert_eq!(session_start_block, 1);
 
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_a, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_b, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_a, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_b, collator.clone()));
 
 		run_to_block(2, |_| None);
 
 		let assert_groups_rotated = |rotations: u32| {
 			let scheduled = Scheduler::scheduled();
 			assert_eq!(scheduled.len(), 2);
-			assert_eq!(scheduled[0].group_idx, GroupIndex((0u32 + rotations) % parathread_cores));
-			assert_eq!(scheduled[1].group_idx, GroupIndex((1u32 + rotations) % parathread_cores));
+			assert_eq!(scheduled[0].group_idx, GroupIndex((0u32 + rotations) % allythread_cores));
+			assert_eq!(scheduled[1].group_idx, GroupIndex((1u32 + rotations) % allythread_cores));
 		};
 
 		assert_groups_rotated(0);
@@ -902,8 +902,8 @@ fn schedule_rotates_groups() {
 }
 
 #[test]
-fn parathread_claims_are_pruned_after_retries() {
-	let max_retries = default_config().parathread_retries;
+fn allythread_claims_are_pruned_after_retries() {
+	let max_retries = default_config().allythread_retries;
 
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
@@ -913,13 +913,13 @@ fn parathread_claims_are_pruned_after_retries() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
-		assert_eq!(default_config().parathread_cores, 3);
+		assert_eq!(default_config().allythread_cores, 3);
 
 		schedule_blank_para(thread_a, false);
 		schedule_blank_para(thread_b, false);
@@ -937,8 +937,8 @@ fn parathread_claims_are_pruned_after_retries() {
 			_ => None,
 		});
 
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_a, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_b, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_a, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_b, collator.clone()));
 
 		run_to_block(2, |_| None);
 		assert_eq!(Scheduler::scheduled().len(), 2);
@@ -974,8 +974,8 @@ fn availability_predicate_works() {
 			thread_availability_period < group_rotation_frequency
 	);
 
-	let chain_a = ParaId::from(1);
-	let thread_a = ParaId::from(2);
+	let chain_a = AllyId::from(1);
+	let thread_a = AllyId::from(2);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(chain_a, true);
@@ -1001,8 +1001,8 @@ fn availability_predicate_works() {
 		{
 			AvailabilityCores::<Test>::mutate(|cores| {
 				cores[0] = Some(CoreOccupied::Allychain);
-				cores[1] = Some(CoreOccupied::Parathread(ParathreadEntry {
-					claim: ParathreadClaim(thread_a, collator),
+				cores[1] = Some(CoreOccupied::Allythread(AllythreadEntry {
+					claim: AllythreadClaim(thread_a, collator),
 					retries: 0,
 				}))
 			});
@@ -1059,7 +1059,7 @@ fn availability_predicate_works() {
 #[test]
 fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 	let mut config = default_config();
-	config.parathread_cores = 1;
+	config.allythread_cores = 1;
 
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
@@ -1069,8 +1069,8 @@ fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -1091,10 +1091,10 @@ fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 			_ => None,
 		});
 
-		let thread_claim_a = ParathreadClaim(thread_a, collator.clone());
-		let thread_claim_b = ParathreadClaim(thread_b, collator.clone());
+		let thread_claim_a = AllythreadClaim(thread_a, collator.clone());
+		let thread_claim_b = AllythreadClaim(thread_b, collator.clone());
 
-		Scheduler::add_parathread_claim(thread_claim_a.clone());
+		Scheduler::add_allythread_claim(thread_claim_a.clone());
 
 		run_to_block(2, |_| None);
 
@@ -1106,23 +1106,23 @@ fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 
 			let cores = Scheduler::availability_cores();
 			match cores[0].as_ref().unwrap() {
-				CoreOccupied::Parathread(entry) => assert_eq!(entry.claim, thread_claim_a),
+				CoreOccupied::Allythread(entry) => assert_eq!(entry.claim, thread_claim_a),
 				_ => panic!("with no chains, only core should be a thread core"),
 			}
 
 			assert!(Scheduler::next_up_on_available(CoreIndex(0)).is_none());
 
-			Scheduler::add_parathread_claim(thread_claim_b);
+			Scheduler::add_allythread_claim(thread_claim_b);
 
-			let queue = ParathreadQueue::<Test>::get();
+			let queue = AllythreadQueue::<Test>::get();
 			assert_eq!(
 				queue.get_next_on_core(0).unwrap().claim,
-				ParathreadClaim(thread_b, collator.clone()),
+				AllythreadClaim(thread_b, collator.clone()),
 			);
 
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: thread_b, collator: Some(collator.clone()) }
+				ScheduledCore { ally_id: thread_b, collator: Some(collator.clone()) }
 			);
 		}
 	});
@@ -1131,7 +1131,7 @@ fn next_up_on_available_uses_next_scheduled_or_none_for_thread() {
 #[test]
 fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 	let mut config = default_config();
-	config.parathread_cores = 1;
+	config.allythread_cores = 1;
 
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
@@ -1141,8 +1141,8 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
@@ -1163,10 +1163,10 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 			_ => None,
 		});
 
-		let thread_claim_a = ParathreadClaim(thread_a, collator.clone());
-		let thread_claim_b = ParathreadClaim(thread_b, collator.clone());
+		let thread_claim_a = AllythreadClaim(thread_a, collator.clone());
+		let thread_claim_b = AllythreadClaim(thread_b, collator.clone());
 
-		Scheduler::add_parathread_claim(thread_claim_a.clone());
+		Scheduler::add_allythread_claim(thread_claim_a.clone());
 
 		run_to_block(2, |_| None);
 
@@ -1178,29 +1178,29 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 
 			let cores = Scheduler::availability_cores();
 			match cores[0].as_ref().unwrap() {
-				CoreOccupied::Parathread(entry) => assert_eq!(entry.claim, thread_claim_a),
+				CoreOccupied::Allythread(entry) => assert_eq!(entry.claim, thread_claim_a),
 				_ => panic!("with no chains, only core should be a thread core"),
 			}
 
-			let queue = ParathreadQueue::<Test>::get();
+			let queue = AllythreadQueue::<Test>::get();
 			assert!(queue.get_next_on_core(0).is_none());
 			assert_eq!(
 				Scheduler::next_up_on_time_out(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: thread_a, collator: Some(collator.clone()) }
+				ScheduledCore { ally_id: thread_a, collator: Some(collator.clone()) }
 			);
 
-			Scheduler::add_parathread_claim(thread_claim_b);
+			Scheduler::add_allythread_claim(thread_claim_b);
 
-			let queue = ParathreadQueue::<Test>::get();
+			let queue = AllythreadQueue::<Test>::get();
 			assert_eq!(
 				queue.get_next_on_core(0).unwrap().claim,
-				ParathreadClaim(thread_b, collator.clone()),
+				AllythreadClaim(thread_b, collator.clone()),
 			);
 
 			// Now that there is an earlier next-up, we use that.
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: thread_b, collator: Some(collator.clone()) }
+				ScheduledCore { ally_id: thread_b, collator: Some(collator.clone()) }
 			);
 		}
 	});
@@ -1209,7 +1209,7 @@ fn next_up_on_time_out_reuses_claim_if_nothing_queued() {
 #[test]
 fn next_up_on_available_is_allychain_always() {
 	let mut config = default_config();
-	config.parathread_cores = 0;
+	config.allythread_cores = 0;
 
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
@@ -1219,7 +1219,7 @@ fn next_up_on_available_is_allychain_always() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
+	let chain_a = AllyId::from(1);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(chain_a, true);
@@ -1254,7 +1254,7 @@ fn next_up_on_available_is_allychain_always() {
 			// Now that there is an earlier next-up, we use that.
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: chain_a, collator: None }
+				ScheduledCore { ally_id: chain_a, collator: None }
 			);
 		}
 	});
@@ -1263,7 +1263,7 @@ fn next_up_on_available_is_allychain_always() {
 #[test]
 fn next_up_on_time_out_is_allychain_always() {
 	let mut config = default_config();
-	config.parathread_cores = 0;
+	config.allythread_cores = 0;
 
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
@@ -1273,7 +1273,7 @@ fn next_up_on_time_out_is_allychain_always() {
 		..Default::default()
 	};
 
-	let chain_a = ParaId::from(1);
+	let chain_a = AllyId::from(1);
 
 	new_test_ext(genesis_config).execute_with(|| {
 		schedule_blank_para(chain_a, true);
@@ -1308,7 +1308,7 @@ fn next_up_on_time_out_is_allychain_always() {
 			// Now that there is an earlier next-up, we use that.
 			assert_eq!(
 				Scheduler::next_up_on_available(CoreIndex(0)).unwrap(),
-				ScheduledCore { para_id: chain_a, collator: None }
+				ScheduledCore { ally_id: chain_a, collator: None }
 			);
 		}
 	});
@@ -1324,10 +1324,10 @@ fn session_change_requires_reschedule_dropping_removed_paras() {
 		..Default::default()
 	};
 
-	assert_eq!(default_config().parathread_cores, 3);
+	assert_eq!(default_config().allythread_cores, 3);
 	new_test_ext(genesis_config).execute_with(|| {
-		let chain_a = ParaId::from(1);
-		let chain_b = ParaId::from(2);
+		let chain_a = AllyId::from(1);
+		let chain_b = AllyId::from(2);
 
 		// ensure that we have 5 groups by registering 2 allychains.
 		schedule_blank_para(chain_a, true);
@@ -1383,7 +1383,7 @@ fn session_change_requires_reschedule_dropping_removed_paras() {
 			Scheduler::scheduled(),
 			vec![CoreAssignment {
 				core: CoreIndex(0),
-				para_id: chain_a,
+				ally_id: chain_a,
 				kind: AssignmentKind::Allychain,
 				group_idx: GroupIndex(0),
 			}],
@@ -1392,7 +1392,7 @@ fn session_change_requires_reschedule_dropping_removed_paras() {
 }
 
 #[test]
-fn parathread_claims_are_pruned_after_deregistration() {
+fn allythread_claims_are_pruned_after_deregistration() {
 	let genesis_config = MockGenesisConfig {
 		configuration: crate::configuration::GenesisConfig {
 			config: default_config(),
@@ -1401,13 +1401,13 @@ fn parathread_claims_are_pruned_after_deregistration() {
 		..Default::default()
 	};
 
-	let thread_a = ParaId::from(1);
-	let thread_b = ParaId::from(2);
+	let thread_a = AllyId::from(1);
+	let thread_b = AllyId::from(2);
 
 	let collator = CollatorId::from(Sr25519Keyring::Alice.public());
 
 	new_test_ext(genesis_config).execute_with(|| {
-		assert_eq!(default_config().parathread_cores, 3);
+		assert_eq!(default_config().allythread_cores, 3);
 
 		schedule_blank_para(thread_a, false);
 		schedule_blank_para(thread_b, false);
@@ -1425,8 +1425,8 @@ fn parathread_claims_are_pruned_after_deregistration() {
 			_ => None,
 		});
 
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_a, collator.clone()));
-		Scheduler::add_parathread_claim(ParathreadClaim(thread_b, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_a, collator.clone()));
+		Scheduler::add_allythread_claim(AllythreadClaim(thread_b, collator.clone()));
 
 		run_to_block(2, |_| None);
 		assert_eq!(Scheduler::scheduled().len(), 2);

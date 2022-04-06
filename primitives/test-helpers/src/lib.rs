@@ -23,7 +23,7 @@
 //! contain randomness based data.
 use axia_primitives::v1::{
 	CandidateCommitments, CandidateDescriptor, CandidateReceipt, CollatorId, CollatorSignature,
-	CommittedCandidateReceipt, Hash, HeadData, Id as ParaId, ValidationCode, ValidationCodeHash,
+	CommittedCandidateReceipt, Hash, HeadData, Id as AllyId, ValidationCode, ValidationCodeHash,
 	ValidatorId,
 };
 use sp_application_crypto::sr25519;
@@ -91,7 +91,7 @@ pub fn dummy_digest() -> Digest {
 pub fn dummy_candidate_descriptor_bad_sig(relay_parent: Hash) -> CandidateDescriptor<Hash> {
 	let zeros = Hash::zero();
 	CandidateDescriptor::<Hash> {
-		para_id: 0.into(),
+		ally_id: 0.into(),
 		relay_parent,
 		collator: dummy_collator(),
 		persisted_validation_data_hash: zeros,
@@ -148,7 +148,7 @@ pub fn dummy_collator_signature() -> CollatorSignature {
 /// Create a new candidate descriptor, and apply a valid signature
 /// using the provided `collator` key.
 pub fn make_valid_candidate_descriptor<H: AsRef<[u8]>>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	relay_parent: H,
 	persisted_validation_data_hash: Hash,
 	pov_hash: Hash,
@@ -160,7 +160,7 @@ pub fn make_valid_candidate_descriptor<H: AsRef<[u8]>>(
 	let validation_code_hash = validation_code_hash.into();
 	let payload = axia_primitives::v1::collator_signature_payload::<H>(
 		&relay_parent,
-		&para_id,
+		&ally_id,
 		&persisted_validation_data_hash,
 		&pov_hash,
 		&validation_code_hash,
@@ -168,7 +168,7 @@ pub fn make_valid_candidate_descriptor<H: AsRef<[u8]>>(
 
 	let signature = collator.sign(&payload).into();
 	let descriptor = CandidateDescriptor {
-		para_id,
+		ally_id,
 		relay_parent,
 		collator: collator.public().into(),
 		persisted_validation_data_hash,
@@ -191,7 +191,7 @@ pub fn resign_candidate_descriptor_with_collator<H: AsRef<[u8]>>(
 	descriptor.collator = collator.public().into();
 	let payload = axia_primitives::v1::collator_signature_payload::<H>(
 		&descriptor.relay_parent,
-		&descriptor.para_id,
+		&descriptor.ally_id,
 		&descriptor.persisted_validation_data_hash,
 		&descriptor.pov_hash,
 		&descriptor.validation_code_hash,
@@ -202,7 +202,7 @@ pub fn resign_candidate_descriptor_with_collator<H: AsRef<[u8]>>(
 
 /// Builder for `CandidateReceipt`.
 pub struct TestCandidateBuilder {
-	pub para_id: ParaId,
+	pub ally_id: AllyId,
 	pub pov_hash: Hash,
 	pub relay_parent: Hash,
 	pub commitments_hash: Hash,
@@ -211,7 +211,7 @@ pub struct TestCandidateBuilder {
 impl std::default::Default for TestCandidateBuilder {
 	fn default() -> Self {
 		let zeros = Hash::zero();
-		Self { para_id: 0.into(), pov_hash: zeros, relay_parent: zeros, commitments_hash: zeros }
+		Self { ally_id: 0.into(), pov_hash: zeros, relay_parent: zeros, commitments_hash: zeros }
 	}
 }
 
@@ -219,7 +219,7 @@ impl TestCandidateBuilder {
 	/// Build a `CandidateReceipt`.
 	pub fn build(self) -> CandidateReceipt {
 		let mut descriptor = dummy_candidate_descriptor(self.relay_parent);
-		descriptor.para_id = self.para_id;
+		descriptor.ally_id = self.ally_id;
 		descriptor.pov_hash = self.pov_hash;
 		CandidateReceipt { descriptor, commitments_hash: self.commitments_hash }
 	}

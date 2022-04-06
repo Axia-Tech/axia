@@ -79,7 +79,7 @@ use bridge_runtime_common::messages::{
 
 pub use pallet_balances::Call as BalancesCall;
 
-use axia_allychain::primitives::Id as ParaId;
+use axia_allychain::primitives::Id as AllyId;
 
 /// Constant values used within the runtime.
 use betanet_runtime_constants::{currency::*, fee::*, time::*};
@@ -1181,39 +1181,39 @@ sp_api::impl_runtime_apis! {
 			runtime_api_impl::availability_cores::<Runtime>()
 		}
 
-		fn persisted_validation_data(para_id: Id, assumption: OccupiedCoreAssumption)
+		fn persisted_validation_data(ally_id: Id, assumption: OccupiedCoreAssumption)
 			-> Option<PersistedValidationData<Hash, BlockNumber>> {
-			runtime_api_impl::persisted_validation_data::<Runtime>(para_id, assumption)
+			runtime_api_impl::persisted_validation_data::<Runtime>(ally_id, assumption)
 		}
 
 		fn assumed_validation_data(
-			para_id: ParaId,
+			ally_id: AllyId,
 			expected_persisted_validation_data_hash: Hash,
 		) -> Option<(PersistedValidationData<Hash, BlockNumber>, ValidationCodeHash)> {
 			runtime_api_impl::assumed_validation_data::<Runtime>(
-				para_id,
+				ally_id,
 				expected_persisted_validation_data_hash,
 			)
 		}
 
 		fn check_validation_outputs(
-			para_id: Id,
+			ally_id: Id,
 			outputs: primitives::v1::CandidateCommitments,
 		) -> bool {
-			runtime_api_impl::check_validation_outputs::<Runtime>(para_id, outputs)
+			runtime_api_impl::check_validation_outputs::<Runtime>(ally_id, outputs)
 		}
 
 		fn session_index_for_child() -> SessionIndex {
 			runtime_api_impl::session_index_for_child::<Runtime>()
 		}
 
-		fn validation_code(para_id: Id, assumption: OccupiedCoreAssumption)
+		fn validation_code(ally_id: Id, assumption: OccupiedCoreAssumption)
 			-> Option<ValidationCode> {
-			runtime_api_impl::validation_code::<Runtime>(para_id, assumption)
+			runtime_api_impl::validation_code::<Runtime>(ally_id, assumption)
 		}
 
-		fn candidate_pending_availability(para_id: Id) -> Option<CommittedCandidateReceipt<Hash>> {
-			runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
+		fn candidate_pending_availability(ally_id: Id) -> Option<CommittedCandidateReceipt<Hash>> {
+			runtime_api_impl::candidate_pending_availability::<Runtime>(ally_id)
 		}
 
 		fn candidate_events() -> Vec<CandidateEvent<Hash>> {
@@ -1257,10 +1257,10 @@ sp_api::impl_runtime_apis! {
 			runtime_api_impl::pvfs_require_precheck::<Runtime>()
 		}
 
-		fn validation_code_hash(para_id: ParaId, assumption: OccupiedCoreAssumption)
+		fn validation_code_hash(ally_id: AllyId, assumption: OccupiedCoreAssumption)
 			-> Option<ValidationCodeHash>
 		{
-			runtime_api_impl::validation_code_hash::<Runtime>(para_id, assumption)
+			runtime_api_impl::validation_code_hash::<Runtime>(ally_id, assumption)
 		}
 	}
 

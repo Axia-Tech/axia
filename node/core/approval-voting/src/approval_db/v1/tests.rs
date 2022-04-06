@@ -22,7 +22,7 @@ use crate::{
 	ops::{add_block_entry, canonicalize, force_approve, NewCandidateInfo},
 };
 use kvdb::KeyValueDB;
-use axia_primitives::v1::Id as ParaId;
+use axia_primitives::v1::Id as AllyId;
 use std::{collections::HashMap, sync::Arc};
 
 use ::test_helpers::{dummy_candidate_receipt, dummy_candidate_receipt_bad_sig, dummy_hash};
@@ -60,10 +60,10 @@ fn make_block_entry(
 	}
 }
 
-fn make_candidate(para_id: ParaId, relay_parent: Hash) -> CandidateReceipt {
+fn make_candidate(ally_id: AllyId, relay_parent: Hash) -> CandidateReceipt {
 	let mut c = dummy_candidate_receipt(dummy_hash());
 
-	c.descriptor.para_id = para_id;
+	c.descriptor.ally_id = ally_id;
 	c.descriptor.relay_parent = relay_parent;
 
 	c

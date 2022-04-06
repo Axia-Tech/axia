@@ -51,17 +51,17 @@ fn default_genesis_config() -> MockGenesisConfig {
 }
 
 fn queue_downward_message(
-	para_id: ParaId,
+	ally_id: AllyId,
 	msg: DownwardMessage,
 ) -> Result<(), QueueDownwardMessageError> {
-	Dmp::queue_downward_message(&Configuration::config(), para_id, msg)
+	Dmp::queue_downward_message(&Configuration::config(), ally_id, msg)
 }
 
 #[test]
 fn clean_dmp_works() {
-	let a = ParaId::from(1312);
-	let b = ParaId::from(228);
-	let c = ParaId::from(123);
+	let a = AllyId::from(1312);
+	let b = AllyId::from(228);
+	let c = AllyId::from(123);
 
 	new_test_ext(default_genesis_config()).execute_with(|| {
 		// enqueue downward messages to A, B and C.
@@ -81,8 +81,8 @@ fn clean_dmp_works() {
 
 #[test]
 fn dmq_length_and_head_updated_properly() {
-	let a = ParaId::from(1312);
-	let b = ParaId::from(228);
+	let a = AllyId::from(1312);
+	let b = AllyId::from(228);
 
 	new_test_ext(default_genesis_config()).execute_with(|| {
 		assert_eq!(Dmp::dmq_length(a), 0);
@@ -99,7 +99,7 @@ fn dmq_length_and_head_updated_properly() {
 
 #[test]
 fn dmp_mqc_head_fixture() {
-	let a = ParaId::from(2000);
+	let a = AllyId::from(2000);
 
 	new_test_ext(default_genesis_config()).execute_with(|| {
 		run_to_block(2, None);
@@ -118,7 +118,7 @@ fn dmp_mqc_head_fixture() {
 
 #[test]
 fn check_processed_downward_messages() {
-	let a = ParaId::from(1312);
+	let a = AllyId::from(1312);
 
 	new_test_ext(default_genesis_config()).execute_with(|| {
 		// processed_downward_messages=0 is allowed when the DMQ is empty.
@@ -141,7 +141,7 @@ fn check_processed_downward_messages() {
 
 #[test]
 fn dmq_pruning() {
-	let a = ParaId::from(1312);
+	let a = AllyId::from(1312);
 
 	new_test_ext(default_genesis_config()).execute_with(|| {
 		assert_eq!(Dmp::dmq_length(a), 0);
@@ -162,7 +162,7 @@ fn dmq_pruning() {
 
 #[test]
 fn queue_downward_message_critical() {
-	let a = ParaId::from(1312);
+	let a = AllyId::from(1312);
 
 	let mut genesis = default_genesis_config();
 	genesis.configuration.config.max_downward_message_size = 7;
@@ -186,7 +186,7 @@ fn verify_dmq_mqc_head_is_externally_accessible() {
 	use hex_literal::hex;
 	use primitives::v1::well_known_keys;
 
-	let a = ParaId::from(2020);
+	let a = AllyId::from(2020);
 
 	new_test_ext(default_genesis_config()).execute_with(|| {
 		let head = sp_io::storage::get(&well_known_keys::dmq_mqc_head(a));

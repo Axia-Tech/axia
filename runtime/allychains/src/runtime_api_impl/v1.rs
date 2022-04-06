@@ -24,7 +24,7 @@ use crate::{
 use primitives::{
 	v1::{
 		AuthorityDiscoveryId, CandidateEvent, CommittedCandidateReceipt, CoreIndex, CoreOccupied,
-		CoreState, GroupIndex, GroupRotationInfo, Hash, Id as ParaId, InboundDownwardMessage,
+		CoreState, GroupIndex, GroupRotationInfo, Hash, Id as AllyId, InboundDownwardMessage,
 		InboundHrmpMessage, OccupiedCore, OccupiedCoreAssumption, PersistedValidationData,
 		ScheduledCore, ScrapedOnChainVotes, SessionIndex, ValidationCode, ValidationCodeHash,
 		ValidatorId, ValidatorIndex, ValidatorSignature,
@@ -105,9 +105,9 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 		.map(|(i, core)| match core {
 			Some(occupied) => CoreState::Occupied(match occupied {
 				CoreOccupied::Allychain => {
-					let para_id = allychains[i];
+					let ally_id = allychains[i];
 					let pending_availability =
-						<inclusion::Pallet<T>>::pending_availability(para_id)
+						<inclusion::Pallet<T>>::pending_availability(ally_id)
 							.expect("Occupied core always has pending availability; qed");
 
 					let backed_in_number = pending_availability.backed_in_number().clone();
@@ -132,10 +132,10 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 						candidate_descriptor: pending_availability.candidate_descriptor().clone(),
 					}
 				},
-				CoreOccupied::Parathread(p) => {
-					let para_id = p.claim.0;
+				CoreOccupied::Allythread(p) => {
+					let ally_id = p.claim.0;
 					let pending_availability =
-						<inclusion::Pallet<T>>::pending_availability(para_id)
+						<inclusion::Pallet<T>>::pending_availability(ally_id)
 							.expect("Occupied core always has pending availability; qed");
 
 					let backed_in_number = pending_availability.backed_in_number().clone();
@@ -168,7 +168,7 @@ pub fn availability_cores<T: initializer::Config>() -> Vec<CoreState<T::Hash, T:
 	// This will overwrite only `Free` cores if the scheduler module is working as intended.
 	for scheduled in <scheduler::Pallet<T>>::scheduled() {
 		core_states[scheduled.core.0 as usize] = CoreState::Scheduled(ScheduledCore {
-			para_id: scheduled.para_id,
+			ally_id: scheduled.ally_id,
 			collator: scheduled.required_collator().map(|c| c.clone()),
 		});
 	}
@@ -188,7 +188,7 @@ fn current_relay_parent<T: frame_system::Config>(
 }
 
 fn with_assumption<Config, T, F>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	assumption: OccupiedCoreAssumption,
 	build: F,
 ) -> Option<T>
@@ -198,12 +198,12 @@ where
 {
 	match assumption {
 		OccupiedCoreAssumption::Included => {
-			<inclusion::Pallet<Config>>::force_enact(para_id);
+			<inclusion::Pallet<Config>>::force_enact(ally_id);
 			build()
 		},
 		OccupiedCoreAssumption::TimedOut => build(),
 		OccupiedCoreAssumption::Free => {
-			if <inclusion::Pallet<Config>>::pending_availability(para_id).is_some() {
+			if <inclusion::Pallet<Config>>::pending_availability(ally_id).is_some() {
 				None
 			} else {
 				build()
@@ -214,13 +214,13 @@ where
 
 /// Implementation for the `persisted_validation_data` function of the runtime API.
 pub fn persisted_validation_data<T: initializer::Config>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	assumption: OccupiedCoreAssumption,
 ) -> Option<PersistedValidationData<T::Hash, T::BlockNumber>> {
 	let (relay_parent_number, relay_parent_storage_root) = current_relay_parent::<T>();
-	with_assumption::<T, _, _>(para_id, assumption, || {
+	with_assumption::<T, _, _>(ally_id, assumption, || {
 		crate::util::make_persisted_validation_data::<T>(
-			para_id,
+			ally_id,
 			relay_parent_number,
 			relay_parent_storage_root,
 		)
@@ -229,15 +229,15 @@ pub fn persisted_validation_data<T: initializer::Config>(
 
 /// Implementation for the `assumed_validation_data` function of the runtime API.
 pub fn assumed_validation_data<T: initializer::Config>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	expected_persisted_validation_data_hash: Hash,
 ) -> Option<(PersistedValidationData<T::Hash, T::BlockNumber>, ValidationCodeHash)> {
 	let (relay_parent_number, relay_parent_storage_root) = current_relay_parent::<T>();
-	// This closure obtains the `persisted_validation_data` for the given `para_id` and matches
+	// This closure obtains the `persisted_validation_data` for the given `ally_id` and matches
 	// its hash against an expected one.
 	let make_validation_data = || {
 		crate::util::make_persisted_validation_data::<T>(
-			para_id,
+			ally_id,
 			relay_parent_number,
 			relay_parent_storage_root,
 		)
@@ -247,21 +247,21 @@ pub fn assumed_validation_data<T: initializer::Config>(
 	let persisted_validation_data = make_validation_data().or_else(|| {
 		// Try again with force enacting the core. This check only makes sense if
 		// the core is occupied.
-		<inclusion::Pallet<T>>::pending_availability(para_id).and_then(|_| {
-			<inclusion::Pallet<T>>::force_enact(para_id);
+		<inclusion::Pallet<T>>::pending_availability(ally_id).and_then(|_| {
+			<inclusion::Pallet<T>>::force_enact(ally_id);
 			make_validation_data()
 		})
 	});
 	// If we were successful, also query current validation code hash.
-	persisted_validation_data.zip(<paras::Pallet<T>>::current_code_hash(&para_id))
+	persisted_validation_data.zip(<paras::Pallet<T>>::current_code_hash(&ally_id))
 }
 
 /// Implementation for the `check_validation_outputs` function of the runtime API.
 pub fn check_validation_outputs<T: initializer::Config>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	outputs: primitives::v1::CandidateCommitments,
 ) -> bool {
-	<inclusion::Pallet<T>>::check_validation_outputs_for_runtime_api(para_id, outputs)
+	<inclusion::Pallet<T>>::check_validation_outputs_for_runtime_api(ally_id, outputs)
 }
 
 /// Implementation for the `session_index_for_child` function of the runtime API.
@@ -307,17 +307,17 @@ pub fn relevant_authority_ids<T: initializer::Config + pallet_authority_discover
 
 /// Implementation for the `validation_code` function of the runtime API.
 pub fn validation_code<T: initializer::Config>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	assumption: OccupiedCoreAssumption,
 ) -> Option<ValidationCode> {
-	with_assumption::<T, _, _>(para_id, assumption, || <paras::Pallet<T>>::current_code(&para_id))
+	with_assumption::<T, _, _>(ally_id, assumption, || <paras::Pallet<T>>::current_code(&ally_id))
 }
 
 /// Implementation for the `candidate_pending_availability` function of the runtime API.
 pub fn candidate_pending_availability<T: initializer::Config>(
-	para_id: ParaId,
+	ally_id: AllyId,
 ) -> Option<CommittedCandidateReceipt<T::Hash>> {
-	<inclusion::Pallet<T>>::candidate_pending_availability(para_id)
+	<inclusion::Pallet<T>>::candidate_pending_availability(ally_id)
 }
 
 /// Implementation for the `candidate_events` function of the runtime API.
@@ -352,15 +352,15 @@ pub fn session_info<T: session_info::Config>(index: SessionIndex) -> Option<Sess
 
 /// Implementation for the `dmq_contents` function of the runtime API.
 pub fn dmq_contents<T: dmp::Config>(
-	recipient: ParaId,
+	recipient: AllyId,
 ) -> Vec<InboundDownwardMessage<T::BlockNumber>> {
 	<dmp::Pallet<T>>::dmq_contents(recipient)
 }
 
 /// Implementation for the `inbound_hrmp_channels_contents` function of the runtime API.
 pub fn inbound_hrmp_channels_contents<T: hrmp::Config>(
-	recipient: ParaId,
-) -> BTreeMap<ParaId, Vec<InboundHrmpMessage<T::BlockNumber>>> {
+	recipient: AllyId,
+) -> BTreeMap<AllyId, Vec<InboundHrmpMessage<T::BlockNumber>>> {
 	<hrmp::Pallet<T>>::inbound_hrmp_channels_contents(recipient)
 }
 
@@ -392,13 +392,13 @@ pub fn pvfs_require_precheck<T: paras::Config>() -> Vec<ValidationCodeHash> {
 
 /// Returns the validation code hash for the given allychain making the given `OccupiedCoreAssumption`.
 pub fn validation_code_hash<T>(
-	para_id: ParaId,
+	ally_id: AllyId,
 	assumption: OccupiedCoreAssumption,
 ) -> Option<ValidationCodeHash>
 where
 	T: inclusion::Config,
 {
-	with_assumption::<T, _, _>(para_id, assumption, || {
-		<paras::Pallet<T>>::current_code_hash(&para_id)
+	with_assumption::<T, _, _>(ally_id, assumption, || {
+		<paras::Pallet<T>>::current_code_hash(&ally_id)
 	})
 }

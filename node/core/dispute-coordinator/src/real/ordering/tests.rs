@@ -111,7 +111,7 @@ async fn process_active_leaves_update(
 fn make_candidate_receipt(relay_parent: Hash) -> CandidateReceipt {
 	let zeros = dummy_hash();
 	let descriptor = CandidateDescriptor {
-		para_id: 0.into(),
+		ally_id: 0.into(),
 		relay_parent,
 		collator: dummy_collator(),
 		persisted_validation_data_hash: zeros,

@@ -36,7 +36,7 @@ pub use sp_core::traits::SpawnNamed;
 
 use axia_primitives::v1::{
 	BlakeTwo256, CandidateCommitments, CandidateHash, CollatorPair, CommittedCandidateReceipt,
-	CompactStatement, EncodeAs, Hash, HashT, HeadData, Id as ParaId, OutboundHrmpMessage,
+	CompactStatement, EncodeAs, Hash, HashT, HeadData, Id as AllyId, OutboundHrmpMessage,
 	PersistedValidationData, SessionIndex, Signed, UncheckedSigned, UpwardMessage, ValidationCode,
 	ValidatorIndex, MAX_CODE_SIZE, MAX_POV_SIZE,
 };
@@ -227,7 +227,7 @@ pub enum InvalidCandidate {
 	PoVHashMismatch,
 	/// Bad collator signature.
 	BadSignature,
-	/// Para head hash does not match.
+	/// Ally head hash does not match.
 	ParaHeadHashMismatch,
 	/// Validation code hash does not match.
 	CodeHashMismatch,
@@ -292,7 +292,7 @@ pub struct Collation<BlockNumber = axia_primitives::v1::BlockNumber> {
 	/// Messages destined to be interpreted by the Relay chain itself.
 	pub upward_messages: Vec<UpwardMessage>,
 	/// The horizontal messages sent by the allychain.
-	pub horizontal_messages: Vec<OutboundHrmpMessage<ParaId>>,
+	pub horizontal_messages: Vec<OutboundHrmpMessage<AllyId>>,
 	/// New validation code.
 	pub new_validation_code: Option<ValidationCode>,
 	/// The head-data produced as a result of execution.
@@ -364,7 +364,7 @@ pub struct CollationGenerationConfig {
 	/// Collation function. See [`CollatorFn`] for more details.
 	pub collator: CollatorFn,
 	/// The allychain that this collator collates for
-	pub para_id: ParaId,
+	pub ally_id: AllyId,
 }
 
 #[cfg(not(target_os = "unknown"))]

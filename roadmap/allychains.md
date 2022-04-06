@@ -41,13 +41,13 @@ Category: Runtime
 
 Auctioning and registration of allychains. This is already implemented and follows the [Allychain Allocation — Research at W3F](https://research.web3.foundation/en/latest/axia/Allychain-Allocation.html) document.
 
-#### *Parathread Auctions*
+#### *Allythread Auctions*
 
 Category: Runtime
 
-Parathreads are pay-as-you-go allychains. This consists of an on-chain mechanism for resolving an auction by collators and ensuring that they author a block.
+Allythreads are pay-as-you-go allychains. This consists of an on-chain mechanism for resolving an auction by collators and ensuring that they author a block.
 
-The node-side portion of parathreads is for collators to actually cast bids and to be configured for which conditions to cast bids under.
+The node-side portion of allythreads is for collators to actually cast bids and to be configured for which conditions to cast bids under.
 
 #### *Validator Assignment*
 
@@ -76,11 +76,11 @@ Category: Networking
 
 A black-box networking component for validators or fishermen on a allychain to obtain the PoV block referenced by hash in an attestation, for the purpose of validating. When fetching "current" PoV blocks (close to the head of the chain, or relating to the block currently being built), this should be fast. When fetching "old" PoV blocks, it should be possible and fall back on recovering from the availability erasure-coding.
 
-#### *Parathread Auction Voting*
+#### *Allythread Auction Voting*
 
 Category: Node, Networking
 
-How and when collators are configured to cast votes in parathread auctions.
+How and when collators are configured to cast votes in allythread auctions.
 
 #### *Collation Loop*
 
@@ -100,9 +100,9 @@ https://github.com/axiatech/axia/issues/597
 
 The biggest sub-project of the allychains roadmap - how messages are sent between allychains. This involves the state-machine ordering of incoming messages, protocols for fetching those messages, and node logic for persisting the messages.
 
-This is designed around a concept of unidirectional _channels_ between paras, which consist of a sender and receiver. At each relay chain block, each para has an opportunity to send a message on each channel for which it controls the sending half. It will also attempt to process messages on each receiving half of the channel which it controls _in order_: messages sent at block height `b` must be processed before those sent at block height `b+1`. For messages on different channels sent at the same block height, there will be some well-defined order in which they should be processed.
+This is designed around a concept of unidirectional _channels_ between paras, which consist of a sender and receiver. At each relay chain block, each ally has an opportunity to send a message on each channel for which it controls the sending half. It will also attempt to process messages on each receiving half of the channel which it controls _in order_: messages sent at block height `b` must be processed before those sent at block height `b+1`. For messages on different channels sent at the same block height, there will be some well-defined order in which they should be processed.
 
-This means that a receiving para will have a maximum height differential of `1` in terms of the most recently processed message's send-height across all of the channels it is receiving on. The minimum processed send-height of a receiving para is known as its _watermark_. All messages on all channels sending to this para before or at the watermark have been processed.
+This means that a receiving ally will have a maximum height differential of `1` in terms of the most recently processed message's send-height across all of the channels it is receiving on. The minimum processed send-height of a receiving ally is known as its _watermark_. All messages on all channels sending to this ally before or at the watermark have been processed.
 
 #### *Finalize CandidateReceipt format*
 
@@ -136,9 +136,9 @@ Category: Node
 
 Every channel's state is described by a Message Queue Chain (MQC) which is a hash-chain, where the links are defined by `(M, b, H)`: the message most recently sent, the block height at which the prior message was sent, and the hash of the prior link.
 
-It is the responsibility of the full nodes of the _sending_ para to maintain all links of the MQC up to and including the link where `b` is less than the watermark of the _receiving_ para.
+It is the responsibility of the full nodes of the _sending_ ally to maintain all links of the MQC up to and including the link where `b` is less than the watermark of the _receiving_ para.
 
-Full nodes of the para will be aware of the head of all MQCs for its channels because they are produced by execution of the block. This will take collaboration with the Cumulus team (https://github.com/axiatech/cumulus) on APIs.
+Full nodes of the ally will be aware of the head of all MQCs for its channels because they are produced by execution of the block. This will take collaboration with the Cumulus team (https://github.com/axiatech/cumulus) on APIs.
 
 We will need a network where collators of paras can discover and fetch the relevant portion of the MQC incoming from all channels.
 
@@ -146,7 +146,7 @@ We will need a network where collators of paras can discover and fetch the relev
 
 Category: Runtime
 
-Runtime logic for paras to open and close channels by putting down a deposit. The amount of channels a parathread can open will be limited. Channels that are pending close should remain open until the watermark of the recipient has reached the block height of the close request.
+Runtime logic for paras to open and close channels by putting down a deposit. The amount of channels a allythread can open will be limited. Channels that are pending close should remain open until the watermark of the recipient has reached the block height of the close request.
 
 ---
 ### Fishing/Slashing
@@ -197,7 +197,7 @@ The very first phase - this is allychains without slashing (full security) or cr
 
 ### Assignment:
   - Auctions
-  - Parathread Auctions
+  - Allythread Auctions
   - Validator Assignment
 
 ### Agreement:

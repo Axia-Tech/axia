@@ -32,7 +32,7 @@ use axia_node_subsystem_test_helpers as test_helpers;
 use axia_node_subsystem_util::TimeoutExt;
 use axia_overseer::HeadSupportsAllychains;
 use axia_primitives::v1::{
-	CandidateCommitments, CandidateEvent, CoreIndex, GroupIndex, Header, Id as ParaId,
+	CandidateCommitments, CandidateEvent, CoreIndex, GroupIndex, Header, Id as AllyId,
 	ValidationCode, ValidatorSignature,
 };
 use std::time::Duration;
@@ -555,9 +555,9 @@ where
 	db.write(write_ops).unwrap();
 }
 
-fn make_candidate(para_id: ParaId, hash: &Hash) -> CandidateReceipt {
+fn make_candidate(ally_id: AllyId, hash: &Hash) -> CandidateReceipt {
 	let mut r = dummy_candidate_receipt_bad_sig(hash.clone(), Some(Default::default()));
-	r.descriptor.para_id = para_id;
+	r.descriptor.ally_id = ally_id;
 	r
 }
 
@@ -1222,7 +1222,7 @@ fn subsystem_rejects_approval_before_assignment() {
 		let candidate_hash = {
 			let mut candidate_receipt =
 				dummy_candidate_receipt_bad_sig(block_hash, Some(Default::default()));
-			candidate_receipt.descriptor.para_id = 0.into();
+			candidate_receipt.descriptor.ally_id = 0.into();
 			candidate_receipt.descriptor.relay_parent = block_hash;
 			candidate_receipt.hash()
 		};
@@ -1437,7 +1437,7 @@ fn subsystem_accepts_and_imports_approval_after_assignment() {
 		let candidate_hash = {
 			let mut candidate_receipt =
 				dummy_candidate_receipt_bad_sig(block_hash, Some(Default::default()));
-			candidate_receipt.descriptor.para_id = 0.into();
+			candidate_receipt.descriptor.ally_id = 0.into();
 			candidate_receipt.descriptor.relay_parent = block_hash;
 			candidate_receipt.hash()
 		};
@@ -1508,7 +1508,7 @@ fn subsystem_second_approval_import_only_schedules_wakeups() {
 		let candidate_hash = {
 			let mut candidate_receipt =
 				dummy_candidate_receipt_bad_sig(block_hash, Some(Default::default()));
-			candidate_receipt.descriptor.para_id = 0.into();
+			candidate_receipt.descriptor.ally_id = 0.into();
 			candidate_receipt.descriptor.relay_parent = block_hash;
 			candidate_receipt.hash()
 		};
@@ -1998,12 +1998,12 @@ fn subsystem_import_checked_approval_sets_one_block_bit_at_a_time() {
 
 		let candidate_receipt1 = {
 			let mut receipt = dummy_candidate_receipt(block_hash);
-			receipt.descriptor.para_id = 1.into();
+			receipt.descriptor.ally_id = 1.into();
 			receipt
 		};
 		let candidate_receipt2 = {
 			let mut receipt = dummy_candidate_receipt(block_hash);
-			receipt.descriptor.para_id = 2.into();
+			receipt.descriptor.ally_id = 2.into();
 			receipt
 		};
 		let candidate_hash1 = candidate_receipt1.hash();
@@ -2143,7 +2143,7 @@ fn approved_ancestor_test(
 			.enumerate()
 			.map(|(i, hash)| {
 				let mut candidate_receipt = dummy_candidate_receipt(*hash);
-				candidate_receipt.descriptor.para_id = i.into();
+				candidate_receipt.descriptor.ally_id = i.into();
 				candidate_receipt
 			})
 			.collect();
