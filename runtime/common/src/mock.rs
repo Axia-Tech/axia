@@ -29,7 +29,7 @@ use std::{cell::RefCell, collections::HashMap};
 thread_local! {
 	static OPERATIONS: RefCell<Vec<(AllyId, u32, bool)>> = RefCell::new(Vec::new());
 	static ALLYCHAINS: RefCell<Vec<AllyId>> = RefCell::new(Vec::new());
-	static PARATHREADS: RefCell<Vec<AllyId>> = RefCell::new(Vec::new());
+	static ALLYTHREADS: RefCell<Vec<AllyId>> = RefCell::new(Vec::new());
 	static LOCKS: RefCell<HashMap<AllyId, bool>> = RefCell::new(HashMap::new());
 	static MANAGERS: RefCell<HashMap<AllyId, Vec<u8>>> = RefCell::new(HashMap::new());
 }
@@ -48,7 +48,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 	}
 
 	fn is_allythread(id: AllyId) -> bool {
-		PARATHREADS.with(|x| x.borrow().binary_search(&id).is_ok())
+		ALLYTHREADS.with(|x| x.borrow().binary_search(&id).is_ok())
 	}
 
 	fn apply_lock(id: AllyId) {
@@ -74,7 +74,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 			}
 		})?;
 		// Should not be allythread, then make it.
-		PARATHREADS.with(|x| {
+		ALLYTHREADS.with(|x| {
 			let mut allythreads = x.borrow_mut();
 			match allythreads.binary_search(&id) {
 				Ok(_) => Err(DispatchError::Other("Already Allythread")),
@@ -98,7 +98,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 			}
 		})?;
 		// Remove from allythread.
-		PARATHREADS.with(|x| {
+		ALLYTHREADS.with(|x| {
 			let mut allythreads = x.borrow_mut();
 			match allythreads.binary_search(&id) {
 				Ok(i) => {
@@ -113,7 +113,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 	}
 
 	fn make_allychain(id: AllyId) -> DispatchResult {
-		PARATHREADS.with(|x| {
+		ALLYTHREADS.with(|x| {
 			let mut allythreads = x.borrow_mut();
 			match allythreads.binary_search(&id) {
 				Ok(i) => {
@@ -153,7 +153,7 @@ impl<T: frame_system::Config> Registrar for TestRegistrar<T> {
 				Err(_) => Err(DispatchError::Other("not allychain, so cannot `make_allythread`")),
 			}
 		})?;
-		PARATHREADS.with(|x| {
+		ALLYTHREADS.with(|x| {
 			let mut allythreads = x.borrow_mut();
 			match allythreads.binary_search(&id) {
 				Ok(_) =>
@@ -202,14 +202,14 @@ impl<T: frame_system::Config> TestRegistrar<T> {
 
 	#[allow(dead_code)]
 	pub fn allythreads() -> Vec<AllyId> {
-		PARATHREADS.with(|x| x.borrow().clone())
+		ALLYTHREADS.with(|x| x.borrow().clone())
 	}
 
 	#[allow(dead_code)]
 	pub fn clear_storage() {
 		OPERATIONS.with(|x| x.borrow_mut().clear());
 		ALLYCHAINS.with(|x| x.borrow_mut().clear());
-		PARATHREADS.with(|x| x.borrow_mut().clear());
+		ALLYTHREADS.with(|x| x.borrow_mut().clear());
 		MANAGERS.with(|x| x.borrow_mut().clear());
 	}
 }

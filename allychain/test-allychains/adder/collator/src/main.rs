@@ -25,7 +25,7 @@ use sp_core::hexdisplay::HexDisplay;
 use test_allychain_adder_collator::Collator;
 
 /// The allychain ID to collate for in case it wasn't set explicitly through CLI.
-const DEFAULT_PARA_ID: ParaId = ParaId::new(2000);
+const DEFAULT_ALLY_ID: AllyId = AllyId::new(2000);
 
 mod cli;
 use cli::Cli;
