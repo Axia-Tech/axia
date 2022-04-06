@@ -1087,22 +1087,22 @@ impl<T: Config> Pallet<T> {
 		let mut outgoing = Vec::new();
 
 		for ally in actions {
-			let lifecycle = ParaLifecycles::<T>::get(&para);
+			let lifecycle = ParaLifecycles::<T>::get(&ally);
 			match lifecycle {
 				None | Some(ParaLifecycle::Allythread) | Some(ParaLifecycle::Allychain) => { /* Nothing to do... */
 				},
 				Some(ParaLifecycle::Onboarding) => {
-					if let Some(genesis_data) = <Self as Store>::UpcomingParasGenesis::take(&para) {
+					if let Some(genesis_data) = <Self as Store>::UpcomingParasGenesis::take(&ally) {
 						if genesis_data.allychain {
-							if let Err(i) = allychains.binary_search(&para) {
-								allychains.insert(i, para);
+							if let Err(i) = allychains.binary_search(&ally) {
+								allychains.insert(i, ally);
 							}
-							ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allychain);
+							ParaLifecycles::<T>::insert(&ally, ParaLifecycle::Allychain);
 						} else {
-							ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allythread);
+							ParaLifecycles::<T>::insert(&ally, ParaLifecycle::Allythread);
 						}
 
-						// HACK: see the notice in `schedule_para_initialize`.
+						// HACK: see the notice in `schedule_ally_initialize`.
 						//
 						// Apparently, this is left over from a prior version of the runtime.
 						// To handle this we just insert the code and link the current code hash
@@ -1110,49 +1110,49 @@ impl<T: Config> Pallet<T> {
 						if !genesis_data.validation_code.0.is_empty() {
 							let code_hash = genesis_data.validation_code.hash();
 							Self::increase_code_ref(&code_hash, &genesis_data.validation_code);
-							<Self as Store>::CurrentCodeHash::insert(&para, code_hash);
+							<Self as Store>::CurrentCodeHash::insert(&ally, code_hash);
 						}
 
-						<Self as Store>::Heads::insert(&para, genesis_data.genesis_head);
+						<Self as Store>::Heads::insert(&ally, genesis_data.genesis_head);
 					}
 				},
 				// Upgrade a allythread to a allychain
 				Some(ParaLifecycle::UpgradingAllythread) => {
-					if let Err(i) = allychains.binary_search(&para) {
-						allychains.insert(i, para);
+					if let Err(i) = allychains.binary_search(&ally) {
+						allychains.insert(i, ally);
 					}
-					ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allychain);
+					ParaLifecycles::<T>::insert(&ally, ParaLifecycle::Allychain);
 				},
 				// Downgrade a allychain to a allythread
 				Some(ParaLifecycle::DowngradingAllychain) => {
-					if let Ok(i) = allychains.binary_search(&para) {
+					if let Ok(i) = allychains.binary_search(&ally) {
 						allychains.remove(i);
 					}
-					ParaLifecycles::<T>::insert(&para, ParaLifecycle::Allythread);
+					ParaLifecycles::<T>::insert(&ally, ParaLifecycle::Allythread);
 				},
 				// Offboard a allythread or allychain from the system
 				Some(ParaLifecycle::OffboardingAllychain) |
 				Some(ParaLifecycle::OffboardingAllythread) => {
-					if let Ok(i) = allychains.binary_search(&para) {
+					if let Ok(i) = allychains.binary_search(&ally) {
 						allychains.remove(i);
 					}
 
-					<Self as Store>::Heads::remove(&para);
-					<Self as Store>::FutureCodeUpgrades::remove(&para);
-					<Self as Store>::UpgradeGoAheadSignal::remove(&para);
-					<Self as Store>::UpgradeRestrictionSignal::remove(&para);
-					ParaLifecycles::<T>::remove(&para);
-					let removed_future_code_hash = <Self as Store>::FutureCodeHash::take(&para);
+					<Self as Store>::Heads::remove(&ally);
+					<Self as Store>::FutureCodeUpgrades::remove(&ally);
+					<Self as Store>::UpgradeGoAheadSignal::remove(&ally);
+					<Self as Store>::UpgradeRestrictionSignal::remove(&ally);
+					ParaLifecycles::<T>::remove(&ally);
+					let removed_future_code_hash = <Self as Store>::FutureCodeHash::take(&ally);
 					if let Some(removed_future_code_hash) = removed_future_code_hash {
 						Self::decrease_code_ref(&removed_future_code_hash);
 					}
 
-					let removed_code_hash = <Self as Store>::CurrentCodeHash::take(&para);
+					let removed_code_hash = <Self as Store>::CurrentCodeHash::take(&ally);
 					if let Some(removed_code_hash) = removed_code_hash {
-						Self::note_past_code(para, now, now, removed_code_hash);
+						Self::note_past_code(ally, now, now, removed_code_hash);
 					}
 
-					outgoing.push(para);
+					outgoing.push(ally);
 				},
 			}
 		}
@@ -1167,13 +1167,13 @@ impl<T: Config> Pallet<T> {
 			<Self as Store>::UpcomingUpgrades::mutate(|upcoming_upgrades| {
 				*upcoming_upgrades = mem::take(upcoming_upgrades)
 					.into_iter()
-					.filter(|&(ref para, _)| !outgoing.contains(para))
+					.filter(|&(ref ally, _)| !outgoing.contains(ally))
 					.collect();
 			});
 			<Self as Store>::UpgradeCooldowns::mutate(|upgrade_cooldowns| {
 				*upgrade_cooldowns = mem::take(upgrade_cooldowns)
 					.into_iter()
-					.filter(|&(ref para, _)| !outgoing.contains(para))
+					.filter(|&(ref ally, _)| !outgoing.contains(ally))
 					.collect();
 			});
 		}
@@ -1187,8 +1187,8 @@ impl<T: Config> Pallet<T> {
 	// note replacement of the code of ally with given `id`, which occured in the
 	// context of the given relay-chain block number. provide the replaced code.
 	//
-	// `at` for para-triggered replacement is the block number of the relay-chain
-	// block in whose context the parablock was executed
+	// `at` for ally-triggered replacement is the block number of the relay-chain
+	// block in whose context the allyblock was executed
 	// (i.e. number of `relay_parent` in the receipt)
 	fn note_past_code(
 		id: AllyId,
