@@ -80,6 +80,7 @@ impl SubstrateCli for Cli {
 			id
 		};
 		Ok(match id {
+			"sankar" => Box::new(service::chain_spec::sankar_config()?),
 			"axctest" => Box::new(service::chain_spec::axctest_config()?),
 			#[cfg(feature = "axctest-native")]
 			"axctest-dev" => Box::new(service::chain_spec::axctest_development_config()?),

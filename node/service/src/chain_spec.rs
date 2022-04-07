@@ -2056,3 +2056,113 @@ pub fn versi_local_testnet_config() -> Result<BetanetChainSpec, String> {
 		Default::default(),
 	))
 }
+
+
+pub fn sankar_config() -> Result<BetanetChainSpec, String> {
+	let wasm_binary = betanet::WASM_BINARY.ok_or("Betanet development wasm not available")?;
+
+	Ok(BetanetChainSpec::from_genesis(
+		"Betanet sankar",
+		"betanet_sankar",
+		ChainType::Local,
+		move || BetanetGenesisExt {
+			runtime_genesis_config: sankar_genesis(wasm_binary),
+			// Use 1 minute session length.
+			session_length_in_blocks: Some(10),
+		},
+		vec![],
+		None,
+		Some(DEFAULT_PROTOCOL_ID),
+		None,
+		None,
+		Default::default(),
+	))
+}
+
+pub fn sankar_genesis(wasm_binary: &[u8]) -> betanet_runtime::GenesisConfig {
+	eprintln!("Sankar______Boro______");
+	let initial_authorities: Vec<(
+		AccountId,
+		AccountId,
+		BabeId,
+		GrandpaId,
+		ImOnlineId,
+		ValidatorId,
+		AssignmentId,
+		AuthorityDiscoveryId,
+		BeefyId,
+	)> = vec![get_authority_keys_from_seed("Alice"), get_authority_keys_from_seed("Bob")];
+	let root_key: AccountId = get_account_id_from_seed::<sr25519::Public>("Alice");
+	
+	let endowed_accounts: Vec<AccountId> = testnet_accounts();
+
+	const ENDOWMENT: u128 = 1_000_000_000 * AXC;
+
+	betanet_runtime::GenesisConfig {
+		system: betanet_runtime::SystemConfig { code: wasm_binary.to_vec() },
+		beefy: Default::default(),
+		indices: betanet_runtime::IndicesConfig { indices: vec![] },
+		balances: betanet_runtime::BalancesConfig {
+			balances: endowed_accounts.iter().map(|k| (k.clone(), ENDOWMENT)).collect(),
+		},
+		session: betanet_runtime::SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.map(|x| {
+					(
+						x.0.clone(),
+						x.0.clone(),
+						betanet_session_keys(
+							x.2.clone(),
+							x.3.clone(),
+							x.4.clone(),
+							x.5.clone(),
+							x.6.clone(),
+							x.7.clone(),
+							x.8.clone(),
+						),
+					)
+				})
+				.collect::<Vec<_>>(),
+		},
+		babe: betanet_runtime::BabeConfig {
+			authorities: Default::default(),
+			epoch_config: Some(betanet_runtime::BABE_GENESIS_EPOCH_CONFIG),
+		},
+		grandpa: Default::default(),
+		im_online: Default::default(),
+		collective: Default::default(),
+		membership: Default::default(),
+		authority_discovery: betanet_runtime::AuthorityDiscoveryConfig { keys: vec![] },
+		sudo: betanet_runtime::SudoConfig { key: Some(root_key.clone()) },
+		hrmp: Default::default(),
+		configuration: betanet_runtime::ConfigurationConfig {
+			config: axia_runtime_allychains::configuration::HostConfiguration {
+				max_validators_per_core: Some(1),
+				..default_allychains_host_configuration()
+			},
+		},
+		paras: betanet_runtime::ParasConfig { paras: vec![] },
+		registrar: betanet_runtime::RegistrarConfig {
+			next_free_ally_id: axia_primitives::v1::LOWEST_PUBLIC_ID,
+		},
+		xcm_pallet: Default::default(),
+		transaction_payment: Default::default(),
+		bridge_betanet_grandpa: betanet_runtime::BridgeBetanetGrandpaConfig {
+			owner: Some(root_key.clone()),
+			..Default::default()
+		},
+		bridge_wococo_grandpa: betanet_runtime::BridgeWococoGrandpaConfig {
+			owner: Some(root_key.clone()),
+			..Default::default()
+		},
+		bridge_betanet_messages: betanet_runtime::BridgeBetanetMessagesConfig {
+			owner: Some(root_key.clone()),
+			..Default::default()
+		},
+		bridge_wococo_messages: betanet_runtime::BridgeWococoMessagesConfig {
+			owner: Some(root_key.clone()),
+			..Default::default()
+		},
+	}
+}
