@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 futures = "0.3.21"
-tracing = "0.1.29"
+tracing = "0.1.34"
 axia-primitives = { path = "../../../primitives" }
 axia-subsystem = { package = "axia-node-subsystem", path = "../../subsystem" }
 axia-node-subsystem-util = { path = "../../subsystem-util" }
