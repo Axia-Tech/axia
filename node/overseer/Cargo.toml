@@ -16,7 +16,7 @@ axia-node-subsystem-types = { path = "../subsystem-types" }
 axia-node-metrics = { path = "../metrics" }
 axia-primitives = { path = "../../primitives" }
 axia-overseer-gen = { path = "./overseer-gen" }
-tracing = "0.1.29"
+tracing = "0.1.34"
 lru = "0.7"
 parity-util-mem = { version = ">= 0.10.1", default-features = false }
 
