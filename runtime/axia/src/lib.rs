@@ -114,7 +114,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("axia"),
 	impl_name: create_runtime_str!("axia-axia"),
 	authoring_version: 0,
-	spec_version: 9170,
+	spec_version: 1110,
 	impl_version: 0,
 	#[cfg(not(feature = "disable-runtime-api"))]
 	apis: RUNTIME_API_VERSIONS,
