@@ -293,12 +293,11 @@ impl pallet_preimage::Config for Runtime {
 }
 
 parameter_types! {
-	// pub EpochDuration: u64 = prod_or_fast!(
-	// 	EPOCH_DURATION_IN_SLOTS as u64,
-	// 	2 * MINUTES as u64,
-	// 	"KSM_EPOCH_DURATION"
-	// );
-	pub EpochDuration: u64 = 10 * MINUTES as u64;
+	pub EpochDuration: u64 = prod_or_fast!(
+		EPOCH_DURATION_IN_SLOTS as u64,
+		2 * MINUTES as u64,
+		"KSM_EPOCH_DURATION"
+	);
 	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
 	pub ReportLongevity: u64 =
 		BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
