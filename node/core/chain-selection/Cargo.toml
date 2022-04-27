@@ -1,7 +1,7 @@
 [package]
 name = "axia-node-core-chain-selection"
 description = "Chain Selection Subsystem"
-version = "0.9.17"
+version = "0.19.8"
 authors = ["Axia Technologies <admin@axia.io>"]
 edition = "2018"
 

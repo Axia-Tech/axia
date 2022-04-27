@@ -45,6 +45,8 @@ use telemetry::TelemetryEndpoints;
 use alphanet_runtime as alphanet;
 #[cfg(feature = "alphanet-native")]
 use alphanet_runtime_constants::currency::UNITS as WND;
+use hex_literal::hex;
+use sp_core::crypto::UncheckedInto;
 
 #[cfg(feature = "axia-native")]
 const AXIA_STAGING_TELEMETRY_URL: &str = "ws://localhost:8001/submit/";
@@ -306,8 +308,6 @@ fn betanet_session_keys(
 
 #[cfg(feature = "axia-native")]
 fn axia_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axia::GenesisConfig {
-	use hex_literal::hex;
-	use sp_core::crypto::UncheckedInto;
 
 	// subkey inspect "$SECRET"
 	let endowed_accounts: Vec<AccountId> = endowedaccounts();
@@ -397,8 +397,6 @@ fn axia_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axia::GenesisConfi
 
 #[cfg(feature = "alphanet-native")]
 fn alphanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> alphanet::GenesisConfig {
-	use hex_literal::hex;
-	use sp_core::crypto::UncheckedInto;
 
 	// subkey inspect "$SECRET"
 	let endowed_accounts = vec![
@@ -581,8 +579,6 @@ fn alphanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> alphanet::Gene
 
 #[cfg(feature = "axctest-native")]
 fn axctest_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axctest::GenesisConfig {
-	use hex_literal::hex;
-	use sp_core::crypto::UncheckedInto;
 
 	// subkey inspect "$SECRET"
 	let endowed_accounts = vec![
@@ -748,8 +744,6 @@ fn axctest_staging_testnet_config_genesis(wasm_binary: &[u8]) -> axctest::Genesi
 
 #[cfg(feature = "betanet-native")]
 fn betanet_staging_testnet_config_genesis(wasm_binary: &[u8]) -> betanet_runtime::GenesisConfig {
-	use hex_literal::hex;
-	use sp_core::crypto::UncheckedInto;
 
 	// subkey inspect "$SECRET"
 	let endowed_accounts = vec![
@@ -1367,7 +1361,7 @@ pub fn betanet_testnet_genesis(
 		BeefyId,
 	)>,
 	_root_key: AccountId,
-	endowed_accounts: Option<Vec<AccountId>>,
+	_endowed_accounts: Option<Vec<AccountId>>,
 ) -> betanet_runtime::GenesisConfig {
 	let endowed_accounts: Vec<AccountId> = endowedaccounts();
 	let root_key: AccountId = endowed_accounts[0].clone();
@@ -1833,9 +1827,6 @@ fn endowedaccounts() -> Vec<AccountId> {
 		hex!["a2bf32e50edd79c181888da41c80c67c191e9e6b29d3f2efb102ca0e2b53c558"].into()
 	]
 }
-
-use hex_literal::hex;
-use sp_core::crypto::UncheckedInto;
 
 fn authorities8() -> Vec<(
 	AccountId,

@@ -1,6 +1,6 @@
 [package]
 name = "axia-statement-distribution"
-version = "0.9.17"
+version = "0.19.8"
 authors = ["Axia Technologies <admin@axia.io>"]
 description = "Statement Distribution Subsystem"
 edition = "2018"

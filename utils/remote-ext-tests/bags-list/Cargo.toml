@@ -1,16 +1,16 @@
 [package]
 name = "remote-ext-tests-bags-list"
-version = "0.9.17"
+version = "0.19.8"
 authors = ["Axia Technologies <admin@axia.io>"]
 edition = "2018"
 
 [dependencies]
-axia-runtime = { version = "0.9.17", path = "../../../runtime/axia" }
-axctest-runtime = { version = "0.9.17", path = "../../../runtime/axctest" }
-alphanet-runtime = { version = "0.9.17", path = "../../../runtime/alphanet" }
-axia-runtime-constants = { version = "0.9.17", path = "../../../runtime/axia/constants" }
-axctest-runtime-constants = { version = "0.9.17", path = "../../../runtime/axctest/constants" }
-alphanet-runtime-constants = { version = "0.9.17", path = "../../../runtime/alphanet/constants" }
+axia-runtime = { version = "0.19.8", path = "../../../runtime/axia" }
+axctest-runtime = { version = "0.19.8", path = "../../../runtime/axctest" }
+alphanet-runtime = { version = "0.19.8", path = "../../../runtime/alphanet" }
+axia-runtime-constants = { version = "0.19.8", path = "../../../runtime/axia/constants" }
+axctest-runtime-constants = { version = "0.19.8", path = "../../../runtime/axctest/constants" }
+alphanet-runtime-constants = { version = "0.19.8", path = "../../../runtime/alphanet/constants" }
 
 pallet-bags-list-remote-tests = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
 sp-tracing = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
