@@ -1982,7 +1982,7 @@ pub fn versi_local_testnet_config() -> Result<BetanetChainSpec, String> {
 }
 
 
-pub fn sankar_config() -> Result<BetanetChainSpec, String> {
+pub fn canary_config() -> Result<BetanetChainSpec, String> {
 	let wasm_binary = betanet::WASM_BINARY.ok_or("Betanet development wasm not available")?;
 
 	Ok(BetanetChainSpec::from_genesis(
@@ -1990,7 +1990,7 @@ pub fn sankar_config() -> Result<BetanetChainSpec, String> {
 		"betanet_sankar",
 		ChainType::Local,
 		move || BetanetGenesisExt {
-			runtime_genesis_config: sankar_genesis(wasm_binary),
+			runtime_genesis_config: canary_genesis(wasm_binary),
 			// Use 1 minute session length.
 			session_length_in_blocks: Some(10),
 		},
@@ -2003,8 +2003,7 @@ pub fn sankar_config() -> Result<BetanetChainSpec, String> {
 	))
 }
 
-pub fn sankar_genesis(wasm_binary: &[u8]) -> betanet_runtime::GenesisConfig {
-	eprintln!("Sankar______Boro______");
+pub fn canary_genesis(wasm_binary: &[u8]) -> betanet_runtime::GenesisConfig {
 	let initial_authorities: Vec<(
 		AccountId,
 		AccountId,
