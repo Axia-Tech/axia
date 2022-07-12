@@ -14,7 +14,7 @@ axia-node-network-protocol = { path = "../../network/protocol" }
 
 [dev-dependencies]
 axia-node-subsystem-test-helpers = { path = "../../subsystem-test-helpers" }
-bitvec = { version = "0.20.1", default-features = false, features = ["alloc"] }
+bitvec = { version = "1.0.1", default-features = false, features = ["alloc"] }
 sp-core = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
 sp-application-crypto = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
 sp-keystore = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
